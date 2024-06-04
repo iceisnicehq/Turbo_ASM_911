@@ -1,1 +1,0 @@
-daniyar.sabirov.00:
