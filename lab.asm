@@ -28,6 +28,12 @@
 Start:
     mov ax, @data
     mov ds, ax
+    xor ax, ax
+
+;check if undefined 
+    mov cx, 6
+    repe scasb
+    ;jne calc
     
 mkFile:
     mov dx, offset path
