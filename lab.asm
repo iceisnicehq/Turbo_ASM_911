@@ -12,12 +12,12 @@ JUMPS
 
 .data
     ; ?? -128 ?? 127 <=> 80h to 7Fh
-    a db 127
-    b db 127
-    c db 127
-    count_a db 127
-    count_b db 127
-    count_c db 127
+    a db 10
+    b db 10
+    c db 10
+    count_a db 10
+    count_b db 10
+    count_c db 10
     path db 'D:\NEWFILE.TXT', 0
     buffer db "A = 0000, B = 0000, C = 0000", 0ah
     handle dw ?
@@ -33,8 +33,8 @@ Start:
 ; if not defined init to -128 every variable
 
 ;check if undefined 
-    mov cx, 6
-    repe scasb
+    ;mov cx, 6
+    ;repe scasb
     ;jne calc
     
 mkFile:
@@ -46,11 +46,11 @@ mkFile:
 
     ;if_undefined:
 loop_a:
-    mov [count_b], 127
-    ;mov b, 
+    mov [count_b], 10
+    mov [b], 10
 loop_b:
-    mov [count_c], 127
-    ;mov c,
+    mov [count_c], 10
+    mov [c], 10
 loop_c:
 ;    jmp wrBuffer
 ;calc:
@@ -70,9 +70,6 @@ loop_c:
 ;    idiv cx ; ax/cx
 ;    ;jno loop_c
 wrBuffer:
-    ;mov [buffer], 041h ;A
-    ;mov [buffer+1], 00h ;A 
-    ;mov [buffer+2], 3dh ;A =
     mov al, a
     aam
     or al, 30h
