@@ -7,14 +7,17 @@
 .model small
 .stack 100h
 
+SMART
+JUMPS
+
 .data
     ; ?? -128 ?? 127 <=> 80h to 7Fh
     a db 127
     b db 127
     c db 127
-    count_a db 10
-    count_b db 30 
-    count_c db 30
+    count_a db 127
+    count_b db 127
+    count_c db 127
     path db 'D:\NEWFILE.TXT', 0
     buffer db "A = 0000, B = 0000, C = 0000", 0ah
     handle dw ?
@@ -83,24 +86,23 @@ wrBuffer:
     mov al, b
     aam
     or al, 30h
-    mov [buffer+17], al  ;A = 0000, B = 0000, C = 0000\n
+    mov [buffer+17], al  ;A = 000-, B = 000-, C = 0000\n
     mov al, ah
     aam
     or ax, 3030h
-    mov [buffer+16], al ;A = 00-0, B = 0000, C = 0000\n
-    mov [buffer+15], ah ;A = 0--0, B = 0000, C = 0000\n
+    mov [buffer+16], al ;A = 00--, B = 00--, C = 0000\n
+    mov [buffer+15], ah ;A = 0---, B = 0---, C = 0000\n
     ;write c
     mov al, c
     aam
     or al, 30h
     mov [buffer+27], al  ;A = 0000, B = 0000, C = 0000\n
     mov al, ah
-    ;aam
-    ;or ax, 3030h
-    ;mov [buffer+20], al ;A = 00-0, B = 0000, C = 0000\n
-    ;mov [buffer+19], ah ;A = 0--0, B = 0000, C = 0000\n
-    ;mov [buffer+7], 0ah;A = 0---, B = 0000, C = 0000\n
-    ;mov [buufer
+    aam
+    or ax, 3030h
+    mov [buffer+26], al ;A = 00-0, B = 0000, C = 0000\n
+    mov [buffer+25], ah ;A = 0--0, B = 0000, C = 0000\n
+    mov [buffer+28], 0ah;A = 0---, B = 0000, C = 0000\n
     
 wrFile:
     mov dx, offset buffer
@@ -108,10 +110,10 @@ wrFile:
     mov ah, 40h
     mov bx, handle
     int 21h
-    cmp [a], 120
-    jz clFile
-    inc [a]
-    jmp wrFile
+    ;cmp [a], 120
+    ;jz clFile
+    ;inc [a]
+    ;jmp wrFile
     ; calc
     ; write
     dec c
