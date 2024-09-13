@@ -25,7 +25,7 @@ Start:
     mov    ax,    @data
     mov    ds,    ax
     mov    al,    [a]
-    test   al,    [c]
+    or     al,    [c]
     jnz    calc
     mov    [a],    -128
     
@@ -35,6 +35,7 @@ mkFile:
     xor    cx,    cx
     int    21h
     mov    [handle],    ax
+    mov    di,    [handle]
 
 loop_a:
     mov    [count_b],    255
@@ -76,9 +77,9 @@ continue:
     add    ax,    bx            ; ax <- a+12*b*c+6
     cwd                         ; ax:dx <- a+12*b*c+6
     idiv   cx                   ; ax:dx/cx
-    test   [handle],    00000h
-    jnz     not_exit
-    jmp     Exit
+    or     di,    00000h
+    jnz    not_exit
+    jmp    Exit
 not_exit:
     jmp    loop_iter
     
@@ -86,8 +87,8 @@ wrBuffer:
         ;----------|
         ; write a  |
         ;----------|
-    mov    al,    byte ptr [a]
-    test   [a],    080h         ; is negative?
+    mov    al,    [a]
+    test   al,    080h         ; is negative?
     jns    posA
     neg    al
     mov    [buffer+4],    2dh   ; A = 1000, B = 0000, C = 0000\n
@@ -103,8 +104,8 @@ posA:
         ;----------|
         ; write b  |
         ;----------|
-    mov    al,    byte ptr [b]
-    test   [b],   080h          ; is negative?
+    mov    al,    [b]
+    test   al,   080h          ; is negative?
     jns    posB
     neg    al
     mov    [buffer+14],    2dh  ; A = 0000, B = 1000, C = 0000\n
@@ -120,8 +121,8 @@ posB:
         ;----------|
         ; write c  |
         ;----------|
-    mov    al,    byte ptr [c]
-    test   [c],   080h          ; is negative?
+    mov    al,    [c]
+    test   al,   080h          ; is negative?
     jns    posC
     neg    al
     mov    [buffer+24],    2dh  ; A = 0000, B = 0000, C = 1000\n
