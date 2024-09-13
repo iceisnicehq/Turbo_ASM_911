@@ -85,7 +85,7 @@ wrBuffer:
     mov    [buffer+4], 2dh      ; A = 1000, B = 0000, C = 0000\n
 
 @@posA:
-        ;-----------
+        ;----------|
         ; write a  |
         ;----------|
     aam
@@ -96,7 +96,7 @@ wrBuffer:
     or     ax,    3030h
     mov    [buffer+6],    al    ; A = 0010, B = 0000, C = 0000\n
     mov    [buffer+5],    ah    ; A = 0100, B = 0000, C = 0000\n
-        ;-----------
+        ;----------|
         ; write b  |
         ;----------|
     mov    al,    byte ptr [b]
@@ -113,7 +113,7 @@ wrBuffer:
     or     ax,    3030h
     mov    [buffer+16],    al   ; A = 0000, B = 0010, C = 0000\n
     mov    [buffer+15],    ah   ; A = 0000, B = 0100, C = 0000\n
-        ;-----------
+        ;----------|
         ; write c  |
         ;----------|
     mov    al,    byte ptr [c]
