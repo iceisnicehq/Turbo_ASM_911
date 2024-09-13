@@ -22,27 +22,27 @@
 .code 
 
 Start:
-    mov    ax,    @data
+    mov    ax,    @data 
     mov    ds,    ax
-    mov    al,    [a]
-    or     al,    [c]
-    jnz    calc
-    mov    [a],    -128
+    mov    al,    [a]           ; mov al <- a
+    or     al,    [c]           ; is a = c 
+    jnz    calc                 ; if a != 0 and c != 0
+    mov    [a],    -128         ; a <- -128
     
 mkFile:
     mov    dx,    offset path
     mov    ah,    03Ch
     xor    cx,    cx
     int    21h
-    mov    [handle],    ax
-    mov    di,    [handle]
+    mov    [handle],    ax      ; ax <- handle (0005h)
+    mov    di,    [handle]      ; di <- ax
 
-loop_a:
-    mov    [count_b],    255
-    mov    [b],     -128
+loop_a: 
+    mov    [count_b],    255    ; count_b <- 255
+    mov    [b],     -128        ; b <- -128
 loop_b:
-    mov    [count_c],    255
-    mov    [c],    -128
+    mov    [count_c],    255    ; count_c <- 255
+    mov    [c],    -128         ; c <- -128
 loop_c:    
     ; d = (a + 12*b*c+6) / (65*c+7*a^2)
 calc:
@@ -61,7 +61,7 @@ calc:
     add    dx,    ax            ; dx <- 65*c 
     add    cx,    dx            ; cx <- cx + ax
     jnz    continue             ; if denominator is zero
-    jmp    loop_iter
+    jmp    loop_iter            ;    skip loop
 continue:
     jo     wrBuffer             ; if overflow
     sal    ax,    2             ; ax <- 4*c
@@ -77,20 +77,20 @@ continue:
     add    ax,    bx            ; ax <- a+12*b*c+6
     cwd                         ; ax:dx <- a+12*b*c+6
     idiv   cx                   ; ax:dx/cx
-    or     di,    00000h
-    jnz    not_exit
-    jmp    Exit
+    or     di,    00000h        ; is di = 0000h
+    jnz    not_exit             ;    if no then continue
+    jmp    Exit                 ;    else Exit 
 not_exit:
-    jmp    loop_iter
+    jmp    loop_iter 
     
 wrBuffer:
         ;----------|
         ; write a  |
         ;----------|
     mov    al,    [a]
-    test   al,    080h         ; is negative?
+    test   al,    080h          ; is a negative?
     jns    posA
-    neg    al
+    neg    al                   ; get absolute value of a
     mov    [buffer+4],    2dh   ; A = 1000, B = 0000, C = 0000\n
 posA:
     aam
@@ -105,9 +105,9 @@ posA:
         ; write b  |
         ;----------|
     mov    al,    [b]
-    test   al,   080h          ; is negative?
+    test   al,   080h           ; is b negative?
     jns    posB
-    neg    al
+    neg    al                   ; get abs_value of b
     mov    [buffer+14],    2dh  ; A = 0000, B = 1000, C = 0000\n
 posB:
     aam
@@ -122,9 +122,9 @@ posB:
         ; write c  |
         ;----------|
     mov    al,    [c]
-    test   al,   080h          ; is negative?
+    test   al,   080h           ; is c negative?
     jns    posC
-    neg    al
+    neg    al                   ; abs val of c
     mov    [buffer+24],    2dh  ; A = 0000, B = 0000, C = 1000\n
 posC:
     aam
@@ -135,7 +135,6 @@ posC:
     or     ax,    3030h
     mov    [buffer+26],    al   ; A = 0000, B = 0000, C = 0001\n
     mov    [buffer+25],    ah   ; A = 0000, B = 0000, C = 0010\n
-    mov    [buffer+28],    0ah  ; A = 0000, B = 0000, C = 0100\n
     
 wrFile:
     mov    dx,    offset buffer
@@ -151,21 +150,21 @@ loop_iter:
     inc    [c]
     dec    [count_c]
     cmp    [count_c],    -1
-    jz     c_is_0
+    jz     cCount_0
     jmp    loop_c
-c_is_0:  
+cCount_0:  
     inc    [b]
     dec    [count_b]
     cmp    [count_b],    -1
-    jz     b_is_0
+    jz     bCount_0
     jmp    loop_b
-b_is_0:
+bCount_0:
     inc    [a]
     dec    [count_a]
     cmp    [count_a],    -1    
-    jz     a_is_0
+    jz     aCount_0
     jmp    loop_a
-a_is_0:
+aCount_0:
     
 clFile:
     mov    ah,    3Eh
