@@ -1,6 +1,6 @@
 %TITLE    "Lab1"
-    ;--------------------------------------
-    ; d = (a + 12*b*c+6) / (65*c+7*a^2)   |
+    ;-------------------------------------------------------------|
+    ; d = (a + 12*b*c+6) / (65*c+7*a^2)   | 12 688 332            |
     ;-------------------------------------------------------------|
     ; overflow is when the resulting value is bigger than 16bits  |
     ;-------------------------------------------------------------|
@@ -14,7 +14,7 @@ LOCALS    @@
 
 .data
     count_a    db    255
-    path       db    'D:\NEWFILE.TXT', 0
+    path       db    'OUTPUT.TXT', 0
     buffer     db    "A = 0000, B = 0000, C = 0000", 0ah ; 29 chars
     count_b    db    ?
     count_c    db    ?
@@ -51,33 +51,49 @@ loop_b:
 loop_c:
             ; d = (a + 12*b*c+6) / (65*c+7*a^2)
 calc:
-    mov    al,    [a]           ; ax <- a
+    xor    bh,    bh
+    mov    bl,    [a]           ; bl <- a
+    test   bl,    080h          ; is a negative ?
+    jns     @@posA
+    or     bh,    0ffh
+@@posA:
+    mov    ax,    bx            ; al <- a
     sal    ax,    3             ; ax <- 8*a
-    sub    ax,    word ptr [a]  ; ax <- 7*a
-    imul   word ptr [a]         ; ax <- 7*a^2
-    jc     wrBuffer
-    mov    bl,    [c]           ; bl <- c
-    sal    bx,    6             ; bx <- 64*c
-    add    bx,    word ptr [c]  ; bx < 65*c
-    add    bx,    ax            ; bx <- ax + bx
+    sub    ax,    bx            ; ax <- 7*a
+    imul   bx                   ; ax:dx <- 7*a^2, dx is undefined
+    jo     wrBuffer
+    mov    cl,    [c]           ; cl <- c
+    xor    ch,    ch            ; ch <- 0
+    test   cl,    080h          ; is c negative ?
+    jns     @@posC
+    or     ch,    0ffh
+@@posC:
+    mov    dx,    cx            ; dx <- c
+    sal    cx,    6             ; cx <- 64*c
+    add    cx,    dx            ; cx <- 65*c
+    add    cx,    ax            ; cx <- cx + ax
     jz     loop_skip            ; if denominator is zero
-    jc     wrBuffer             ; if overflow
-    mov    cl,    [b]           ; cl <- b
-    sal    cx,    2             ; cx <- 4*b
-    mov    ax,    cx            ; ax <- cx
-    sal    cx,    1             ; cx <- 8*b    
-    add    ax,    cx            ; ax <- ax + cx <=> (4*b + 8*b)
-    imul   word ptr [c]         ; ax(:dx) <- 12*b*c
-    jc     wrBuffer
-    add    ax,    6             ; ax <- a+12*b*c+6
-    jc     wrBuffer
-    add    ax,    word ptr [a]
-    xchg   ax,    bx            ; ax <- bx, bx <- ax
-    idiv   bx                   ; ax/bx
+    jo     wrBuffer             ; if overflow
+    sal    dx,    2             ; dx <- 4*c
+    mov    ax,    dx            ; ax <- 4*c
+    sal    ax,    1             ; ax <- 8*c    
+    add    ax,    dx            ; ax <- 12*c <=> (4*c + 8*c)
+    xor    dh,    dh            ; dh <- 0
+    mov    dl,    [b]           ; dl <- b
+    test   dl,    080h          ; is b negative?
+    jns    @@posB
+    or     dh,    0ffh
+@@posB:
+    imul   dx                   ; ax(:dx) <- 12*b*c, dx is undefined 
+    jo     wrBuffer
+    add    ax,    6             ; ax <- 12*b*c+6
+    jo     wrBuffer
+    add    ax,    bx            ; ax <- a+12*b*c+6
+    idiv   cx                   ; ax/cx
     or     [handle],    00000h
     jz     Exit
     jmp    loop_skip
-
+    
 wrBuffer:
     mov    al,    byte ptr [a]
     test   [a],    080h         ; is negative?
@@ -167,4 +183,4 @@ Exit:
     int    21h
     End    Start
     
-    
+        
