@@ -45,8 +45,8 @@ loop_a:
     mov    [count_b],    255
     mov    [b],     -128
 loop_b:
-    mov     [count_c],    255
-    mov     [c],    -128
+    mov    [count_c],    255
+    mov    [c],    -128
 loop_c:
             ;   d = (a + 12*b*c+6) / (65*c+7*a^2)
 calc:
