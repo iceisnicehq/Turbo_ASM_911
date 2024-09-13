@@ -1,15 +1,16 @@
-%TITLE "Lab1"
+%TITLE    "Lab1"
     ;--------------------------------------
     ; d = (a + 12*b*c+6) / (65*c+7*a^2)   |
-    ;--------------------------------------
-    ; overflow is when the resulting value is bigger than 16bits
+    ;-------------------------------------------------------------|
+    ; overflow is when the resulting value is bigger than 16bits  |
+    ;-------------------------------------------------------------|
 .186
-.model small
-.stack 100h
+.model    small
+.stack    100h
 
 SMART
 JUMPS
-LOCALS @@
+LOCALS    @@
 
 .data
     count_a    db    255
@@ -48,7 +49,7 @@ loop_b:
     mov    [count_c],    255
     mov    [c],    -128
 loop_c:
-            ;   d = (a + 12*b*c+6) / (65*c+7*a^2)
+            ; d = (a + 12*b*c+6) / (65*c+7*a^2)
 calc:
     mov    al,    [a]           ; ax <- a
     shl    ax,    3             ; ax <- 8*a
@@ -65,7 +66,7 @@ calc:
     shl    cx,    2             ; cx <- 4*b
     mov    ax,    cx            ; ax <- cx
     shl    cx,    1             ; cx <- 8*b    
-    add    ax,    cx            ; ax <- ax + cx (4*b + 8*b)
+    add    ax,    cx            ; ax <- ax + cx <=> (4*b + 8*b)
     imul   word ptr [c]         ; ax(:dx) <- 12*b*c
     jc     wrBuffer
     add    ax,    6             ; ax <- a+12*b*c+6
@@ -82,7 +83,7 @@ wrBuffer:
     test   [a],    080h         ; is negative?
     jns    @@posA
     neg    al
-    mov    [buffer+4], 2dh      ; A = 1000, B = 0000, C = 0000\n
+    mov    [buffer+4],    2dh   ; A = 1000, B = 0000, C = 0000\n
 
 @@posA:
         ;----------|
@@ -103,7 +104,7 @@ wrBuffer:
     test   [b],   080h          ; is negative?
     jns    @@posB
     neg    al
-    mov    [buffer+14], 2dh     ; A = 0000, B = 1000, C = 0000\n
+    mov    [buffer+14],    2dh  ; A = 0000, B = 1000, C = 0000\n
 @@posB:
     aam
     or     al,    30h
@@ -120,7 +121,7 @@ wrBuffer:
     test   [c],   080h          ; is negative?
     jns    @@posC
     neg    al
-    mov    [buffer+24], 2dh     ; A = 0000, B = 0000, C = 1000\n
+    mov    [buffer+24],    2dh  ; A = 0000, B = 0000, C = 1000\n
 @@posC:
     aam
     or     al,    30h
@@ -144,15 +145,15 @@ wrFile:
 loop_skip:
     inc    [c]
     dec    [count_c]
-    cmp    [count_c], -1
+    cmp    [count_c],    -1
     jnz    loop_c  
     inc    [b]
     dec    [count_b]
-    cmp    [count_b], -1
+    cmp    [count_b],    -1
     jnz    loop_b
     inc    [a]
     dec    [count_a]
-    cmp    [count_a], -1
+    cmp    [count_a],    -1
     jnz    loop_a
     
 clFile:
