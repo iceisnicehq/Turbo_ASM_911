@@ -52,20 +52,20 @@ loop_c:
             ; d = (a + 12*b*c+6) / (65*c+7*a^2)
 calc:
     mov    al,    [a]           ; ax <- a
-    shl    ax,    3             ; ax <- 8*a
+    sal    ax,    3             ; ax <- 8*a
     sub    ax,    word ptr [a]  ; ax <- 7*a
     imul   word ptr [a]         ; ax <- 7*a^2
     jc     wrBuffer
     mov    bl,    [c]           ; bl <- c
-    shl    bx,    6             ; bx <- 64*c
+    sal    bx,    6             ; bx <- 64*c
     add    bx,    word ptr [c]  ; bx < 65*c
     add    bx,    ax            ; bx <- ax + bx
     jz     loop_skip            ; if denominator is zero
     jc     wrBuffer             ; if overflow
     mov    cl,    [b]           ; cl <- b
-    shl    cx,    2             ; cx <- 4*b
+    sal    cx,    2             ; cx <- 4*b
     mov    ax,    cx            ; ax <- cx
-    shl    cx,    1             ; cx <- 8*b    
+    sal    cx,    1             ; cx <- 8*b    
     add    ax,    cx            ; ax <- ax + cx <=> (4*b + 8*b)
     imul   word ptr [c]         ; ax(:dx) <- 12*b*c
     jc     wrBuffer
