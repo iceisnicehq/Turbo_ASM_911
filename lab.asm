@@ -8,9 +8,7 @@
 .model    small
 .stack    100h
 
-SMART
 JUMPS
-LOCALS    @@
 
 .data
     count_a    db    255
@@ -24,16 +22,14 @@ LOCALS    @@
     handle     dw    ?
     
 .code 
+
 Start:
     mov    ax,    @data
     mov    ds,    ax
-    xor    ax,    ax
-    
     mov    al,    [a]
-    or     al,    [b]
-    or     al,    [c]
+    test   al,    [c]
     jnz    calc
-    or     [a],    -128
+    mov     [a],    -128
     
 mkFile:
     mov    dx,    offset path
@@ -48,63 +44,52 @@ loop_a:
 loop_b:
     mov    [count_c],    255
     mov    [c],    -128
-loop_c:
-            ; d = (a + 12*b*c+6) / (65*c+7*a^2)
+loop_c:    
+    ; d = (a + 12*b*c+6) / (65*c+7*a^2)
 calc:
-    xor    bh,    bh
-    mov    bl,    [a]           ; bl <- a
-    test   bl,    080h          ; is a negative ?
-    jns     @@posA
-    or     bh,    0ffh
-@@posA:
-    mov    ax,    bx            ; al <- a
+    mov    al,    [a]           ; al <- a
+    cbw                         ; ax <- a
+    mov    bx,    ax            ; bx <- a
     sal    ax,    3             ; ax <- 8*a
     sub    ax,    bx            ; ax <- 7*a
     imul   bx                   ; ax:dx <- 7*a^2, dx is undefined
     jo     wrBuffer
-    mov    cl,    [c]           ; cl <- c
-    xor    ch,    ch            ; ch <- 0
-    test   cl,    080h          ; is c negative ?
-    jns     @@posC
-    or     ch,    0ffh
-@@posC:
-    mov    dx,    cx            ; dx <- c
-    sal    cx,    6             ; cx <- 64*c
-    add    cx,    dx            ; cx <- 65*c
-    add    cx,    ax            ; cx <- cx + ax
+    mov    cx,    ax            ; cx <- 7*a^2  
+    mov    al,    [c]           ; al <- c 
+    cbw                         ; ax <- c 
+    mov    dx,    ax            ; dx <- c 
+    sal    dx,    6             ; dx <- 64*c 
+    add    dx,    ax            ; dx <- 65*c 
+    add    cx,    dx            ; cx <- cx + ax
     jz     loop_skip            ; if denominator is zero
     jo     wrBuffer             ; if overflow
-    sal    dx,    2             ; dx <- 4*c
-    mov    ax,    dx            ; ax <- 4*c
+    sal    ax,    2             ; ax <- 4*c
+    mov    dx,    ax            ; dx <- 4*c
     sal    ax,    1             ; ax <- 8*c    
-    add    ax,    dx            ; ax <- 12*c <=> (4*c + 8*c)
-    xor    dh,    dh            ; dh <- 0
-    mov    dl,    [b]           ; dl <- b
-    test   dl,    080h          ; is b negative?
-    jns    @@posB
-    or     dh,    0ffh
-@@posB:
+    add    dx,    ax            ; dx <- 12*c <=> (4*c + 8*c)
+    mov    al,    [b]           ; al <- b
+    cbw                         ; ax <- b
     imul   dx                   ; ax(:dx) <- 12*b*c, dx is undefined 
     jo     wrBuffer
     add    ax,    6             ; ax <- 12*b*c+6
     jo     wrBuffer
     add    ax,    bx            ; ax <- a+12*b*c+6
-    idiv   cx                   ; ax/cx
-    or     [handle],    00000h
+    cwd                         ; ax:dx <- a+12*b*c+6
+    idiv   cx                   ; ax:dx/cx
+    test   [handle],    00000h
     jz     Exit
     jmp    loop_skip
     
 wrBuffer:
-    mov    al,    byte ptr [a]
-    test   [a],    080h         ; is negative?
-    jns    @@posA
-    neg    al
-    mov    [buffer+4],    2dh   ; A = 1000, B = 0000, C = 0000\n
-
-@@posA:
         ;----------|
         ; write a  |
         ;----------|
+    mov    al,    byte ptr [a]
+    test   [a],    080h         ; is negative?
+    jns    posA
+    neg    al
+    mov    [buffer+4],    2dh   ; A = 1000, B = 0000, C = 0000\n
+posA:
     aam
     or     al,    30h
     mov    [buffer+7],    al    ; A = 0001, B = 0000, C = 0000\n
@@ -118,10 +103,10 @@ wrBuffer:
         ;----------|
     mov    al,    byte ptr [b]
     test   [b],   080h          ; is negative?
-    jns    @@posB
+    jns    posB
     neg    al
     mov    [buffer+14],    2dh  ; A = 0000, B = 1000, C = 0000\n
-@@posB:
+posB:
     aam
     or     al,    30h
     mov    [buffer+17],    al   ; A = 0000, B = 0001, C = 0000\n
@@ -135,10 +120,10 @@ wrBuffer:
         ;----------|
     mov    al,    byte ptr [c]
     test   [c],   080h          ; is negative?
-    jns    @@posC
+    jns    posC
     neg    al
     mov    [buffer+24],    2dh  ; A = 0000, B = 0000, C = 1000\n
-@@posC:
+posC:
     aam
     or     al,    30h
     mov    [buffer+27],    al   ; A = 0000, B = 0000, C = 1000\n
@@ -158,6 +143,7 @@ wrFile:
     mov    [buffer+4],     030h ; A = 1000, B = 0000, C = 0000\n
     mov    [buffer+14],    030h ; A = 0000, B = 1000, C = 0000\n
     mov    [buffer+24],    030h ; A = 0000, B = 0000, C = 1000\n
+    
 loop_skip:
     inc    [c]
     dec    [count_c]
@@ -183,4 +169,4 @@ Exit:
     int    21h
     End    Start
     
-        
+    
