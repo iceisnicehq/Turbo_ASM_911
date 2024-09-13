@@ -1,14 +1,12 @@
 %TITLE    "Lab1"
     ;-------------------------------------------------------------|
-    ; d = (a + 12*b*c+6) / (65*c+7*a^2)   | 12 688 332            |
+    ; d = (a + 12*b*c+6) / (65*c+7*a^2)   |       12 688 332      |
     ;-------------------------------------------------------------|
     ; overflow is when the resulting value is bigger than 16bits  |
     ;-------------------------------------------------------------|
 .186
 .model    small
 .stack    100h
-
-JUMPS
 
 .data
     count_a    db    255
@@ -29,7 +27,7 @@ Start:
     mov    al,    [a]
     test   al,    [c]
     jnz    calc
-    mov     [a],    -128
+    mov    [a],    -128
     
 mkFile:
     mov    dx,    offset path
@@ -61,7 +59,9 @@ calc:
     sal    dx,    6             ; dx <- 64*c 
     add    dx,    ax            ; dx <- 65*c 
     add    cx,    dx            ; cx <- cx + ax
-    jz     loop_skip            ; if denominator is zero
+    jnz    continue             ; if denominator is zero
+    jmp    loop_iter
+continue:
     jo     wrBuffer             ; if overflow
     sal    ax,    2             ; ax <- 4*c
     mov    dx,    ax            ; dx <- 4*c
@@ -77,8 +77,10 @@ calc:
     cwd                         ; ax:dx <- a+12*b*c+6
     idiv   cx                   ; ax:dx/cx
     test   [handle],    00000h
-    jz     Exit
-    jmp    loop_skip
+    jnz     not_exit
+    jmp     Exit
+not_exit:
+    jmp    loop_iter
     
 wrBuffer:
         ;----------|
@@ -144,19 +146,25 @@ wrFile:
     mov    [buffer+14],    030h ; A = 0000, B = 1000, C = 0000\n
     mov    [buffer+24],    030h ; A = 0000, B = 0000, C = 1000\n
     
-loop_skip:
+loop_iter:
     inc    [c]
     dec    [count_c]
     cmp    [count_c],    -1
-    jnz    loop_c  
+    jz     c_is_0
+    jmp    loop_c
+c_is_0:  
     inc    [b]
     dec    [count_b]
     cmp    [count_b],    -1
-    jnz    loop_b
+    jz     b_is_0
+    jmp    loop_b
+b_is_0:
     inc    [a]
     dec    [count_a]
-    cmp    [count_a],    -1
-    jnz    loop_a
+    cmp    [count_a],    -1    
+    jz     a_is_0
+    jmp    loop_a
+a_is_0:
     
 clFile:
     mov    ah,    3Eh
