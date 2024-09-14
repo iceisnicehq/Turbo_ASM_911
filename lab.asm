@@ -1,17 +1,17 @@
 %TITLE    "Lab1"
-    ;-------------------------------------------------------------|
-    ; d = (a + 12*b*c+6) / (65*c+7*a^2)   |       12 688 332      |
-    ;-------------------------------------------------------------|
-    ; overflow is when the resulting value is bigger than 16bits  |
-    ;-------------------------------------------------------------|
+    ;--------------------------------------------------------------|
+    ; d = (a + 12*b*c+6) / (65*c+7*a^2)   |       12 688 332       |
+    ;--------------------------------------------------------------|
+    ; overflow is when the resulting value is bigger than 16bits(S)|
+    ;--------------------------------------------------------------|
 .186
 .model    small
 .stack    100h
 
 .data
-    count_a    db    255
     path       db    'OUTPUT.TXT', 0
     buffer     db    "A = 0000, B = 0000, C = 0000", 0ah ; 29 chars
+    count_a    db    ?
     count_b    db    ?
     count_c    db    ?
     a          db    ?
@@ -20,7 +20,6 @@
     handle     dw    ?
     
 .code 
-
 Start:
     mov    ax,    @data 
     mov    ds,    ax
@@ -28,6 +27,7 @@ Start:
     or     al,    [c]           ; is a = c 
     jnz    calc                 ; if a != 0 and c != 0
     mov    [a],    -128         ; a <- -128
+    mov    [count_a], 255       ; count_a <- 255
     
 mkFile:
     mov    dx,    offset path
@@ -168,7 +168,7 @@ aCount_0:
     
 clFile:
     mov    ah,    3Eh
-    mov    bx,    [handle]
+    mov    bx,    di
     int    21h
     
 Exit:
