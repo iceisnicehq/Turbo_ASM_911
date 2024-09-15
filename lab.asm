@@ -9,7 +9,7 @@
 .stack    100h
 
 .data
-    path       db    'www.TXT', 0
+    path       db    'OUTPUT.TXT', 0
     buffer     db    "A = -000, B = -000, C = -000", 0ah ; 29 chars
     count_a    db    ?
     count_b    db    ?
