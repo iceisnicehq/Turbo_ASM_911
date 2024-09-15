@@ -9,7 +9,7 @@
 .stack    100h
 
 .data
-    path       db    'OUTPUT.TXT', 0
+    path       db    'www.TXT', 0
     buffer     db    "A = -000, B = -000, C = -000", 0ah ; 29 chars
     count_a    db    ?
     count_b    db    ?
@@ -21,10 +21,10 @@
     
 .code 
 Start:
-    mov    ax,    @data 
-    mov    ds,    ax
+    mov    ax,    @data         ; make ds 
+    mov    ds,    ax            ;      to DATASEG
     mov    al,    [a]           ; mov al <- a
-    or     al,    [c]           ; is a = c 
+    or     al,    [c]           ; is a = c? 
     jnz    calc                 ;    if a != 0 and c != 0
     mov    al,    -128          ; al <-  -128
     mov    [c],   al            ; a  <-  -128
@@ -77,8 +77,8 @@ continue:
     add    ax,    bx            ; ax <- a+12*b*c+6
     cwd                         ; ax:dx <- a+12*b*c+6
     idiv   cx                   ; ax:dx/cx
-    or     di,    00000h        ; is di = 0000h
-    jnz    not_exit             ;    if no then continue
+    or     di,    00000h        ; is file open?
+    jnz    not_exit             ;    if yes then continue
     jmp    Exit                 ;    else Exit 
 not_exit:
     jmp    loop_iter 
