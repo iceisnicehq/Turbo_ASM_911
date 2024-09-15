@@ -9,8 +9,8 @@
 .stack    100h
 
 .data
-    path       db    'OUTPUT.TXT', 0
-    buffer     db    "A = 0000, B = 0000, C = 0000", 0ah ; 29 chars
+    path       db    'www.TXT', 0
+    buffer     db    "A = -000, B = -000, C = -000", 0ah ; 29 chars
     count_a    db    ?
     count_b    db    ?
     count_c    db    ?
@@ -25,9 +25,11 @@ Start:
     mov    ds,    ax
     mov    al,    [a]           ; mov al <- a
     or     al,    [c]           ; is a = c 
-    jnz    calc                 ; if a != 0 and c != 0
-    mov    [a],    -128         ; a <- -128
-    mov    [count_a], 255       ; count_a <- 255
+    jnz    calc                 ;    if a != 0 and c != 0
+    mov    al,    -128          ; al <-  -128
+    mov    [c],   al            ; a  <-  -128
+    mov    [b],   al            ; b  <-  -128
+    mov    [a],   al            ; a  <-  -128  
     
 mkFile:
     mov    dx,    offset path
@@ -38,13 +40,11 @@ mkFile:
     mov    di,    [handle]      ; di <- ax
 
 loop_a: 
-    mov    [count_b],    255    ; count_b <- 255
-    mov    [b],     -128        ; b <- -128
+     ; a goes from -128 to 127
 loop_b:
-    mov    [count_c],    255    ; count_c <- 255
-    mov    [c],    -128         ; c <- -128
+     ; b goes from -128 to 127
 loop_c:    
-    ; d = (a + 12*b*c+6) / (65*c+7*a^2)
+     ; EQUATION d = (a + 12*b*c+6) / (65*c+7*a^2)
 calc:
     mov    al,    [a]           ; al <- a
     cbw                         ; ax <- a
@@ -91,7 +91,6 @@ wrBuffer:
     test   al,    080h          ; is a negative?
     jns    posA
     neg    al                   ; get absolute value of a
-    mov    [buffer+4],    2dh   ; A = 1000, B = 0000, C = 0000\n
 posA:
     aam
     or     al,    30h
@@ -108,7 +107,6 @@ posA:
     test   al,   080h           ; is b negative?
     jns    posB
     neg    al                   ; get abs_value of b
-    mov    [buffer+14],    2dh  ; A = 0000, B = 1000, C = 0000\n
 posB:
     aam
     or     al,    30h
@@ -125,7 +123,6 @@ posB:
     test   al,   080h           ; is c negative?
     jns    posC
     neg    al                   ; abs val of c
-    mov    [buffer+24],    2dh  ; A = 0000, B = 0000, C = 1000\n
 posC:
     aam
     or     al,    30h
@@ -142,30 +139,34 @@ wrFile:
     mov    ah,    40h
     mov    bx,    handle
     int    21h
-    mov    [buffer+4],     030h ; A = 1000, B = 0000, C = 0000\n
-    mov    [buffer+14],    030h ; A = 0000, B = 1000, C = 0000\n
-    mov    [buffer+24],    030h ; A = 0000, B = 0000, C = 1000\n
-    
+  
 loop_iter:
     inc    [c]
-    dec    [count_c]
-    cmp    [count_c],    -1
-    jz     cCount_0
+    jnz    negC
+    mov    [buffer+24],    020h ; A = 0000, B = 0000, C = 1000\n
+negC:
+    inc    [count_c]
+    jz     c_max
     jmp    loop_c
-cCount_0:  
+c_max:  
+    mov    [buffer+24],    2dh  ; A = 0000, B = 0000, C = 1000\n
     inc    [b]
-    dec    [count_b]
-    cmp    [count_b],    -1
-    jz     bCount_0
+    jnz    negB
+    mov    [buffer+14],    020h ; A = 0000, B = 1000, C = 0000\n
+negB:
+    inc    [count_b]
+    jz     b_max
     jmp    loop_b
-bCount_0:
+b_max:
+    mov    [buffer+14],    2dh  ; A = 0000, B = 0000, C = 1000\n
     inc    [a]
-    dec    [count_a]
-    cmp    [count_a],    -1    
-    jz     aCount_0
+    jnz    negA
+    mov    [buffer+4],     020h ; A = 1000, B = 0000, C = 0000\n
+negA:
+    inc    [count_a]  
+    jz     clFile
     jmp    loop_a
-aCount_0:
-    
+
 clFile:
     mov    ah,    3Eh
     mov    bx,    di
