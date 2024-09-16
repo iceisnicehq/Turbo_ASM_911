@@ -29,7 +29,7 @@ Start:
     mov    byte ptr [c],   al            ; a  <-  -128
     mov    byte ptr [b],   al            ; b  <-  -128
     mov    byte ptr [a],   al            ; a  <-  -128  
-    mov    di,    offset buffer          ; di <-  address of di
+    mov    di,    offset buffer          ; di <-  address of buffer
 mkFile:
     mov    dx,    offset path            ; dx <-  address of path
     mov    ah,    03Ch                   ; DOS function to create file
