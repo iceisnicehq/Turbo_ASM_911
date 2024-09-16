@@ -39,11 +39,8 @@ mkFile:
     mov    [handle],    ax      ; ax <- handle (0005h)
     mov    di,    [handle]      ; di <- ax
 
-loop_a: 
      ; a goes from -128 to 127
-loop_b:
      ; b goes from -128 to 127
-loop_c:    
      ; EQUATION d = (a + 12*b*c+6) / (65*c+7*a^2)
 calc:
     mov    al,    [a]           ; al <- a
@@ -84,6 +81,7 @@ not_exit:
     jmp    loop_iter 
     
 wrBuffer:
+    mov    dx,    offset buffer ; dx <- address of buffer 
         ;----------|
         ; write a  |
         ;----------|
@@ -94,12 +92,12 @@ wrBuffer:
 posA:
     aam
     or     al,    30h
-    mov    [buffer+7],    al    ; A = 0001, B = 0000, C = 0000\n
+    mov    [dx + 7],    al      ; A = 0001, B = 0000, C = 0000\n
     mov    al,    ah
     aam
     or     ax,    3030h
-    mov    [buffer+6],    al    ; A = 0010, B = 0000, C = 0000\n
-    mov    [buffer+5],    ah    ; A = 0100, B = 0000, C = 0000\n
+    mov    [dx + 6],    al      ; A = 0010, B = 0000, C = 0000\n
+    mov    [dx + 5],    ah      ; A = 0100, B = 0000, C = 0000\n
         ;----------|
         ; write b  |
         ;----------|
@@ -110,12 +108,12 @@ posA:
 posB:
     aam
     or     al,    30h
-    mov    [buffer+17],    al   ; A = 0000, B = 0001, C = 0000\n
+    mov    [dx + 17],    al     ; A = 0000, B = 0001, C = 0000\n
     mov    al,    ah
     aam
     or     ax,    3030h
-    mov    [buffer+16],    al   ; A = 0000, B = 0010, C = 0000\n
-    mov    [buffer+15],    ah   ; A = 0000, B = 0100, C = 0000\n
+    mov    [dx + 16],    al     ; A = 0000, B = 0010, C = 0000\n
+    mov    [dx + 15],    ah     ; A = 0000, B = 0100, C = 0000\n
         ;----------|
         ; write c  |
         ;----------|
@@ -126,15 +124,15 @@ posB:
 posC:
     aam
     or     al,    30h
-    mov    [buffer+27],    al   ; A = 0000, B = 0000, C = 1000\n
+    mov    [dx + 27],    al     ; A = 0000, B = 0000, C = 1000\n
     mov    al,    ah
     aam
     or     ax,    3030h
-    mov    [buffer+26],    al   ; A = 0000, B = 0000, C = 0001\n
-    mov    [buffer+25],    ah   ; A = 0000, B = 0000, C = 0010\n
+    mov    [dx + 26],    al     ; A = 0000, B = 0000, C = 0001\n
+    mov    [dx + 25],    ah     ; A = 0000, B = 0000, C = 0010\n
     
 wrFile:
-    mov    dx,    offset buffer
+    ;mov    dx,    offset buffer
     mov    cx,    29
     mov    ah,    40h
     mov    bx,    handle
@@ -147,7 +145,7 @@ loop_iter:
 negC:
     inc    [count_c]
     jz     c_max
-    jmp    loop_c
+    jmp    calc
 c_max:  
     mov    [buffer+24],    2dh  ; A = 0000, B = 0000, C = 1000\n
     inc    [b]
@@ -156,7 +154,7 @@ c_max:
 negB:
     inc    [count_b]
     jz     b_max
-    jmp    loop_b
+    jmp    calc
 b_max:
     mov    [buffer+14],    2dh  ; A = 0000, B = 0000, C = 1000\n
     inc    [a]
@@ -165,7 +163,7 @@ b_max:
 negA:
     inc    [count_a]  
     jz     clFile
-    jmp    loop_a
+    jmp    calc
 
 clFile:
     mov    ah,    3Eh
