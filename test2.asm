@@ -37,6 +37,10 @@ MOV DX, [DI+10h]     ; Load the word from memory at DI + 10h into DX
 MOV CL, [BX+SI]      ; Load the byte from memory at BX + SI into CL
 MOV AH, [BX+DI+2]    ; Load the byte from memory at BX + DI + 2 into AH
 MOV CX, [SI+BP+3]    ; Load the word from memory at SI + BP + 3 into CX
+MOV AX, [BP+8h]      ; Load the word from memory at BP + 8h into AX
+MOV DX, [DI]         ; Load the word from memory at DI into DX
+MOV CX, [SI+3h]      ; Load the word from memory at SI + 3h into CX
+MOV CL, [BX+SI]      ; Load the byte from memory at BX + SI into CL
 
 
 
