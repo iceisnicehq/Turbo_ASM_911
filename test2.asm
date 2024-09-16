@@ -31,6 +31,13 @@ MAIN:
     MOV BP, 2540h    ; Load BP
     MOV SP, 2DDEh    ; Load SP
 
+MOV AL, [BX]         ; Load the byte from memory at the address in BX into AL
+MOV CH, [SI+5]       ; Load the byte from memory at SI + 5 into CH
+MOV DX, [DI+10h]     ; Load the word from memory at DI + 10h into DX
+MOV CL, [BX+SI]      ; Load the byte from memory at BX + SI into CL
+MOV AH, [BX+DI+2]    ; Load the byte from memory at BX + DI + 2 into AH
+MOV CX, [SI+BP+3]    ; Load the word from memory at SI + BP + 3 into CX
+
 
 
     MOV AX, 4C00h     ; Exit program
