@@ -32,11 +32,10 @@ Start:
     mov    di,    offset buffer          ; di <-  address of di
 mkFile:
     mov    dx,    offset path            ; dx <-  address of path
-    mov    ah,    03Ch                           ; DOS function to create file
-    xor    cx,    cx                                                     ; specify normal file attributes
+    mov    ah,    03Ch                   ; DOS function to create file
+    xor    cx,    cx                     ; specify normal file attributes
     int    21h                           ; call DOS
     mov    si,    ax                     ; si <- file handle (0005h)
-
      ; a goes from -128 to 127
      ; b goes from -128 to 127
      ; EQUATION d = (a + 12*b*c+6) / (65*c+7*a^2)
