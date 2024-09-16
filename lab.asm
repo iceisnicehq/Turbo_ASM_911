@@ -81,7 +81,7 @@ not_exit:
     jmp    loop_iter 
     
 wrBuffer:
-    mov    dx,    offset buffer ; dx <- address of buffer 
+    mov    bx,    offset buffer ; dx <- address of buffer 
         ;----------|
         ; write a  |
         ;----------|
@@ -92,12 +92,12 @@ wrBuffer:
 posA:
     aam
     or     al,    30h
-    mov    [dx + 7],    al      ; A = 0001, B = 0000, C = 0000\n
+    mov    [bx + 7],    al      ; A = 0001, B = 0000, C = 0000\n
     mov    al,    ah
     aam
     or     ax,    3030h
-    mov    [dx + 6],    al      ; A = 0010, B = 0000, C = 0000\n
-    mov    [dx + 5],    ah      ; A = 0100, B = 0000, C = 0000\n
+    mov    [bx + 6],    al      ; A = 0010, B = 0000, C = 0000\n
+    mov    [bx + 5],    ah      ; A = 0100, B = 0000, C = 0000\n
         ;----------|
         ; write b  |
         ;----------|
@@ -108,12 +108,12 @@ posA:
 posB:
     aam
     or     al,    30h
-    mov    [dx + 17],    al     ; A = 0000, B = 0001, C = 0000\n
+    mov    [bx + 17],    al     ; A = 0000, B = 0001, C = 0000\n
     mov    al,    ah
     aam
     or     ax,    3030h
-    mov    [dx + 16],    al     ; A = 0000, B = 0010, C = 0000\n
-    mov    [dx + 15],    ah     ; A = 0000, B = 0100, C = 0000\n
+    mov    [bx + 16],    al     ; A = 0000, B = 0010, C = 0000\n
+    mov    [bx + 15],    ah     ; A = 0000, B = 0100, C = 0000\n
         ;----------|
         ; write c  |
         ;----------|
@@ -124,15 +124,15 @@ posB:
 posC:
     aam
     or     al,    30h
-    mov    [dx + 27],    al     ; A = 0000, B = 0000, C = 1000\n
+    mov    [bx + 27],    al     ; A = 0000, B = 0000, C = 1000\n
     mov    al,    ah
     aam
     or     ax,    3030h
-    mov    [dx + 26],    al     ; A = 0000, B = 0000, C = 0001\n
-    mov    [dx + 25],    ah     ; A = 0000, B = 0000, C = 0010\n
+    mov    [bx + 26],    al     ; A = 0000, B = 0000, C = 0001\n
+    mov    [bx + 25],    ah     ; A = 0000, B = 0000, C = 0010\n
     
 wrFile:
-    ;mov    dx,    offset buffer
+    mov    dx,    bx
     mov    cx,    29
     mov    ah,    40h
     mov    bx,    handle
@@ -175,5 +175,3 @@ Exit:
     mov    al,    0
     int    21h
     End    Start
-    
-    
