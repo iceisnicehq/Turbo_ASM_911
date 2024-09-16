@@ -71,7 +71,7 @@ continue:
     add    ax,    bx                     ; ax <- a+12*b*c+6
     cwd                                  ; dx:ax <- a+12*b*c+6
     idiv   cx                            ; dx:ax/cx
-    or     si,    00000h                 ; is file open?
+    test   si,    00000h                 ; is file open?
     jnz    not_exit                      ;    if yes then continue
     jmp    Exit                          ;    else Exit 
 not_exit:
