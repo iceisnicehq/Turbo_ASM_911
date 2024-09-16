@@ -23,27 +23,27 @@
 Start:
     mov    ax,    @data         ; make ds 
     mov    ds,    ax            ;      to DATASEG
-    mov    al,    [a]           ; mov al <- a
-    or     al,    [c]           ; is a = c? 
+    mov    al,    byte ptr [a]  ; mov al <- a
+    or     al,    byte ptr [c]  ; is a = c? 
     jnz    calc                 ;    if a != 0 and c != 0
     mov    al,    -128          ; al <-  -128
-    mov    [c],   al            ; a  <-  -128
-    mov    [b],   al            ; b  <-  -128
-    mov    [a],   al            ; a  <-  -128  
+    mov    byte ptr [c],   al   ; a  <-  -128
+    mov    byte ptr [b],   al   ; b  <-  -128
+    mov    byte ptr [a],   al   ; a  <-  -128  
     
 mkFile:
     mov    dx,    offset path
     mov    ah,    03Ch
     xor    cx,    cx
     int    21h
-    mov    [handle],    ax      ; ax <- handle (0005h)
-    mov    di,    [handle]      ; di <- ax
+    mov    word ptr [handle],    ax ; ax <- handle (0005h)
+    mov    di,    word ptr [handle]      ; di <- ax
 
      ; a goes from -128 to 127
      ; b goes from -128 to 127
      ; EQUATION d = (a + 12*b*c+6) / (65*c+7*a^2)
 calc:
-    mov    al,    [a]           ; al <- a
+    mov    al,     byte ptr [a]           ; al <- a
     cbw                         ; ax <- a
     mov    bx,    ax            ; bx <- a
     sal    ax,    3             ; ax <- 8*a
@@ -51,7 +51,7 @@ calc:
     imul   bx                   ; ax:dx <- 7*a^2, dx is undefined
     jo     wrBuffer
     mov    cx,    ax            ; cx <- 7*a^2  
-    mov    al,    [c]           ; al <- c 
+    mov    al,     byte ptr [c]           ; al <- c 
     cbw                         ; ax <- c 
     mov    dx,    ax            ; dx <- c 
     sal    dx,    6             ; dx <- 64*c 
@@ -65,7 +65,7 @@ continue:
     mov    dx,    ax            ; dx <- 4*c
     sal    ax,    1             ; ax <- 8*c    
     add    dx,    ax            ; dx <- 12*c <=> (4*c + 8*c)
-    mov    al,    [b]           ; al <- b
+    mov    al,    byte ptr [b]           ; al <- b
     cbw                         ; ax <- b
     imul   dx                   ; ax(:dx) <- 12*b*c, dx is undefined 
     jo     wrBuffer
@@ -85,51 +85,51 @@ wrBuffer:
         ;----------|
         ; write a  |
         ;----------|
-    mov    al,    [a]
+    mov    al,    byte ptr [a]
     test   al,    080h          ; is a negative?
     jns    posA
     neg    al                   ; get absolute value of a
 posA:
     aam
     or     al,    30h
-    mov    [bx + 7],    al      ; A = 0001, B = 0000, C = 0000\n
+    mov    byte ptr [bx + 7],    al      ; A = 0001, B = 0000, C = 0000\n
     mov    al,    ah
     aam
     or     ax,    3030h
-    mov    [bx + 6],    al      ; A = 0010, B = 0000, C = 0000\n
+    mov    byte ptr [bx + 6],    al      ; A = 0010, B = 0000, C = 0000\n
     mov    [bx + 5],    ah      ; A = 0100, B = 0000, C = 0000\n
         ;----------|
         ; write b  |
         ;----------|
-    mov    al,    [b]
+    mov    al,    byte ptr [b]
     test   al,   080h           ; is b negative?
     jns    posB
     neg    al                   ; get abs_value of b
 posB:
     aam
     or     al,    30h
-    mov    [bx + 17],    al     ; A = 0000, B = 0001, C = 0000\n
+    mov    byte ptr [bx + 17],    al     ; A = 0000, B = 0001, C = 0000\n
     mov    al,    ah
     aam
     or     ax,    3030h
-    mov    [bx + 16],    al     ; A = 0000, B = 0010, C = 0000\n
-    mov    [bx + 15],    ah     ; A = 0000, B = 0100, C = 0000\n
+    mov    byte ptr [bx + 16],    al     ; A = 0000, B = 0010, C = 0000\n
+    mov    byte ptr [bx + 15],    ah     ; A = 0000, B = 0100, C = 0000\n
         ;----------|
         ; write c  |
         ;----------|
-    mov    al,    [c]
+    mov    al,    byte ptr [c]
     test   al,   080h           ; is c negative?
     jns    posC
     neg    al                   ; abs val of c
 posC:
     aam
     or     al,    30h
-    mov    [bx + 27],    al     ; A = 0000, B = 0000, C = 1000\n
+    mov    byte ptr [bx + 27],    al     ; A = 0000, B = 0000, C = 1000\n
     mov    al,    ah
     aam
     or     ax,    3030h
-    mov    [bx + 26],    al     ; A = 0000, B = 0000, C = 0001\n
-    mov    [bx + 25],    ah     ; A = 0000, B = 0000, C = 0010\n
+    mov    byte ptr [bx + 26],    al     ; A = 0000, B = 0000, C = 0001\n
+    mov    byte ptr [bx + 25],    ah     ; A = 0000, B = 0000, C = 0010\n
     
 wrFile:
     mov    dx,    bx
@@ -139,29 +139,29 @@ wrFile:
     int    21h
   
 loop_iter:
-    inc    [c]
+    inc    byte ptr [c]
     jnz    negC
-    mov    [buffer+24],    020h ; A = 0000, B = 0000, C = 1000\n
+    mov    byte ptr [buffer+24],    020h ; A = 0000, B = 0000, C = 1000\n
 negC:
-    inc    [count_c]
+    inc    byte ptr [count_c]
     jz     c_max
     jmp    calc
 c_max:  
-    mov    [buffer+24],    2dh  ; A = 0000, B = 0000, C = 1000\n
-    inc    [b]
+    mov    byte ptr [buffer+24],    2dh  ; A = 0000, B = 0000, C = 1000\n
+    inc    byte ptr [b]
     jnz    negB
-    mov    [buffer+14],    020h ; A = 0000, B = 1000, C = 0000\n
+    mov    byte ptr [buffer+14],    020h ; A = 0000, B = 1000, C = 0000\n
 negB:
-    inc    [count_b]
+    inc    byte ptr [count_b]
     jz     b_max
     jmp    calc
 b_max:
-    mov    [buffer+14],    2dh  ; A = 0000, B = 0000, C = 1000\n
-    inc    [a]
+    mov    byte ptr [buffer+14],    2dh  ; A = 0000, B = 0000, C = 1000\n
+    inc    byte ptr [a]
     jnz    negA
-    mov    [buffer+4],     020h ; A = 1000, B = 0000, C = 0000\n
+    mov    byte ptr [buffer+4],     020h ; A = 1000, B = 0000, C = 0000\n
 negA:
-    inc    [count_a]  
+    inc    byte ptr [count_a]  
     jz     clFile
     jmp    calc
 
