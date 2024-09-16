@@ -32,8 +32,8 @@ Start:
     mov    di,    offset buffer          ; di <-  address of di
 mkFile:
     mov    dx,    offset path            ; dx <-  address of path
-    mov    ah,    03Ch             				 ; DOS function to create file
-    xor    cx,    cx													 ; specify normal file attributes
+    mov    ah,    03Ch                           ; DOS function to create file
+    xor    cx,    cx                                                     ; specify normal file attributes
     int    21h                           ; call DOS
     mov    si,    ax                     ; si <- file handle (0005h)
 
@@ -132,7 +132,7 @@ wrFile:
     mov    dx,    di
     mov    cx,    29
     mov    ah,    40h
-    mov    bx,    handle
+    mov    bx,    si
     int    21h
   
 loop_iter:
