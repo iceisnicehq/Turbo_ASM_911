@@ -26,9 +26,9 @@ Start:
     or     al,    byte ptr [c]           ; is a = c? 
     jnz    calc                          ;    if a != 0 and c != 0
     mov    al,    -128                   ; al <-  -128
-    mov    byte ptr [c],   al            ; a  <-  -128
+    mov    byte ptr [a],   al            ; a  <-  -128
     mov    byte ptr [b],   al            ; b  <-  -128
-    mov    byte ptr [a],   al            ; a  <-  -128  
+    mov    byte ptr [c],   al            ; c  <-  -128  
     mov    di,    offset buffer          ; di <-  address of buffer
 mkFile:
     mov    dx,    offset path            ; dx <-  address of path
