@@ -18,6 +18,20 @@ MAIN:
     MOV AX, @DATA     ; Load data segment into AX
     MOV DS, AX        ; Move AX into DS
     ; Your code logic goes here
+    MOV AX, 0AB9Ah   ; Load AX
+    MOV BX, 0002h    ; Load BX
+    MOV CX, 001Ch    ; Load CX
+    MOV DX, 1514h    ; Load DX
+
+    ; Set the index registers
+    MOV SI, 0014h    ; Load SI
+    MOV DI, 0026h    ; Load DI
+
+    ; Set the base pointer (BP) and stack pointer (SP)
+    MOV BP, 2540h    ; Load BP
+    MOV SP, 2DDEh    ; Load SP
+
+
 
     MOV AX, 4C00h     ; Exit program
     INT 21h
