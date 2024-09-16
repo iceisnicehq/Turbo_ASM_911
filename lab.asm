@@ -17,7 +17,6 @@
     a          db    ?
     b          db    ?
     c          db    ?
-    handle     dw    ?
     
 .code 
 Start:
@@ -36,8 +35,7 @@ mkFile:
     mov    ah,    03Ch             				 ; DOS function to create file
     xor    cx,    cx													 ; specify normal file attributes
     int    21h                           ; call DOS
-    mov    word ptr [handle],    ax      ; ax <- file handle (0005h)
-    mov    si,    word ptr [handle]      ; di <- ax
+    mov    si,    ax                     ; si <- file handle (0005h)
 
      ; a goes from -128 to 127
      ; b goes from -128 to 127
@@ -49,31 +47,31 @@ calc:
     sal    ax,    3                      ; ax <- 8*a
     sub    ax,    bx                     ; ax <- 7*a
     imul   bx                            ; ax:dx <- 7*a^2, dx is undefined
-    jo     wrBuffer
+    jo     wrBuffer                      ; if overflow
     mov    cx,    ax                     ; cx <- 7*a^2  
     mov    al,    byte ptr [c]           ; al <- c 
     cbw                                  ; ax <- c 
     mov    dx,    ax                     ; dx <- c 
     sal    dx,    6                      ; dx <- 64*c 
     add    dx,    ax                     ; dx <- 65*c 
-    add    cx,    dx                     ; cx <- cx + ax
+    add    cx,    dx                     ; cx <- cx + dx
     jnz    continue                      ; if denominator is zero
     jmp    loop_iter                     ;    skip loop
 continue:
-    jo     wrBuffer                      ; if overflow
+    jo     wrBuffer                      
     sal    ax,    2                      ; ax <- 4*c
     mov    dx,    ax                     ; dx <- 4*c
     sal    ax,    1                      ; ax <- 8*c    
     add    dx,    ax                     ; dx <- 12*c <=> (4*c + 8*c)
     mov    al,    byte ptr [b]           ; al <- b
     cbw                                  ; ax <- b
-    imul   dx                            ; ax(:dx) <- 12*b*c, dx is undefined 
+    imul   dx                            ; dx:ax <- 12*b*c, dx is undefined 
     jo     wrBuffer
     add    ax,    6                      ; ax <- 12*b*c+6
     jo     wrBuffer
     add    ax,    bx                     ; ax <- a+12*b*c+6
-    cwd                                  ; ax:dx <- a+12*b*c+6
-    idiv   cx                            ; ax:dx/cx
+    cwd                                  ; dx:ax <- a+12*b*c+6
+    idiv   cx                            ; dx:ax/cx
     or     si,    00000h                 ; is file open?
     jnz    not_exit                      ;    if yes then continue
     jmp    Exit                          ;    else Exit 
@@ -166,7 +164,7 @@ negA:
 
 clFile:
     mov    ah,    3Eh
-    mov    bx,    di
+    mov    bx,    si
     int    21h
     
 Exit:
