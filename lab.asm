@@ -1,6 +1,6 @@
 %TITLE    "Lab1"
     ;--------------------------------------------------------------|
-    ; d = (a + 12*b*c+6) / (65*c+7*a^2)   | 12 688 332       13:03 |
+    ; d = (a + 12*b*c+6) / (65*c+7*a^2)   | 12 688 332       12:56 |
     ;--------------------------------------------------------------|
     ; overflow is when the resulting value is bigger than 16bits(S)|
     ;--------------------------------------------------------------|
@@ -71,7 +71,7 @@ continue:
     add    ax,    bx                     ; ax <- a+12*b*c+6
     cwd                                  ; dx:ax <- a+12*b*c+6
     idiv   cx                            ; dx:ax/cx
-    test   si,    00000h                 ; is file open?
+    or     si,    00000h                 ; is file open?
     jnz    not_exit                      ;    if yes then continue
     jmp    Exit                          ;    else Exit 
 not_exit:
@@ -93,7 +93,7 @@ posA:
     aam
     or     ax,    3030h
     mov    byte ptr [di + 6],    al      ; A = 0010, B = 0000, C = 0000\n
-    mov    [bx + 5],    ah               ; A = 0100, B = 0000, C = 0000\n
+    mov    byte ptr [di + 5],    ah      ; A = 0100, B = 0000, C = 0000\n
         ;----------|
         ; write b  |
         ;----------|
