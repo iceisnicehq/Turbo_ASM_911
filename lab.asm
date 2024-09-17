@@ -34,24 +34,24 @@ mkFile:
     mov    si,    ax                     
 
 calc:
+    mov    al,    byte ptr [c] 
+    cbw                                  
+    mov    cx,    ax                     
+    sal    cx,    6                      
+    add    cx,    ax           
     mov    al,    byte ptr [a]           
     cbw                                  
-    mov    bx,    ax                     
-    sal    ax,    3                      
-    sub    ax,    bx                     
-    imul   bx                            
-    jo     wrBuffer                      
-    mov    cx,    ax                     
-    mov    al,    byte ptr [c]           
-    cbw                                  
     mov    dx,    ax                     
-    sal    dx,    6                      
-    add    dx,    ax                     
-    add    cx,    dx                     
+    sal    ax,    3                      
+    sub    ax,    dx                     
+    imul   dx                  
+    add    cx,    ax
+    adc    dx,    0
+    jz     
+                     
     jnz    continue                      
     jmp    loop_iter                     
-continue:
-    jo     wrBuffer                      
+continue:                      
     sal    ax,    2                      
     mov    dx,    ax                     
     sal    ax,    1                      
