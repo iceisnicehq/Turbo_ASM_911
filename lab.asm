@@ -48,6 +48,8 @@ calc:
     add    cx,    ax
     adc    dx,    0
     jz     
+   ; check if c is POS and overflow then exit
+   ; if c is neg then sub and sbb 
                      
     jnz    continue                      
     jmp    loop_iter                     
