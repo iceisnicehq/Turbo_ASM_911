@@ -5,19 +5,19 @@
 .stack    100h
 
 .data
-    path       db    'OUTPUT.TXT', 0
-    buffer     db    "A = -000, B = -000, C = -000", 0ah    
+    path       db    'outasm.TXT', 0
+    buffer     db    "A = -000, B = -000, C = -000", 0ah
+    a          db    ?
+    b          db    ?
+    c          db    ?    
     count_a    db    ?
     count_b    db    ?
     count_c    db    ?
-    a          db    ?
-    b          db    ?
-    c          db    ?
 
 .code 
 Start:
     mov    ax,    @data                  
-    mov    ds,    ax                     
+    mov    ds,    ax    
     mov    al,    byte ptr [a]           
     or     al,    byte ptr [c]           
     jnz    calc                          
@@ -32,45 +32,69 @@ mkFile:
     xor    cx,    cx                     
     int    21h                           
     mov    si,    ax                     
-
+    ; EQUATION    d = a + 12*b*c +6 / 65*c + 7*a^2
 calc:
-    mov    al,    byte ptr [c] 
-    cbw                                  
+    mov    al,    byte ptr [a]
+    mov    bl,    al  ; bl = a
+    imul   al
+    cmp    ax,    5929d
+    jae    wrBuffer   
+    xor    bp,    bp
+    mov    dx,    ax                     
+    sal    ax,    2
+    sub    ax,    dx
+    sal    dx,    2    
+    add    dx,    ax
+    jno    no_of
+    mov    bp,    07FFFh
+    sub    dx,    bp
+no_of:
+    mov    al,    byte ptr [c]           
+    mov    bh,    al   ; bh = c
+    cbw    
     mov    cx,    ax                     
     sal    cx,    6                      
-    add    cx,    ax           
-    mov    al,    byte ptr [a]           
-    cbw                                  
-    mov    dx,    ax                     
-    sal    ax,    3                      
-    sub    ax,    dx                     
-    imul   dx                  
     add    cx,    ax
-    adc    dx,    0
-    jz     
-   ; check if c is POS and overflow then exit
-   ; if c is neg then sub and sbb 
-                     
-    jnz    continue                      
-    jmp    loop_iter                     
-continue:                      
-    sal    ax,    2                      
+    add    cx,    dx
+    jo     wrBuffer
+    add    cx,    bp
+    jo     wrBuffer
+    jnz    continue
+    jmp    loop_iter
+continue:
+    mov    al,    bh  ; al = c
+    cbw    
+    sal    ax,    2   
     mov    dx,    ax                     
-    sal    ax,    1                      
-    add    dx,    ax                     
+    sal    dx,    1                      
+    add    dx,    ax
+    mov    al,    bl
+    cbw
+    mov    bp,    ax 
     mov    al,    byte ptr [b]           
     cbw                                  
-    imul   dx                            
-    jo     wrBuffer
-    add    ax,    6                      
-    jo     wrBuffer
-    add    ax,    bx                     
-    cwd                                  
-    idiv   cx                            
-    or     si,    00000h                 
-    jnz    not_exit                      
-    jmp    Exit                          
-not_exit:
+    imul   dx
+;    js     dx_ax_neg
+;    ;jmp    dx_ax_pos???
+;    ; positive
+;dx_ax_neg:
+;    add    bx,    6
+;    js     bx_6_neg
+;    add    ax,    bx
+;    
+;    ; bx_6 is positive
+;bx_6_neg:
+;    add    ax, bx
+;    sbb    dx, 0
+;      
+;    ;CASE   ax (12*b*c) + bx (a+6):
+;    ;    match  ax < 0 and bx < 0: add ax, bx AND adc dx, 0
+;    ;    match  ax > 0 and bx < 0: add ax, bx AND  
+;    ;    match  ax > 0 and bx > 0: add ax, bx AND 
+;    ;    match  ax < 0 and bx > 0: add ax, bx AND 
+;    add    ax,    bx                     
+;    cwd                                  
+;    idiv   cx                            
     jmp    loop_iter 
 
 wrBuffer:
@@ -125,6 +149,8 @@ wrFile:
     int    21h
 
 loop_iter:
+    or     si,    0000h
+    jz     Exit
     inc    byte ptr [c]
     jnz    negC
     mov    byte ptr [di + 24],    020h   
