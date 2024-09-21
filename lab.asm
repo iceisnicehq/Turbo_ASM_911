@@ -5,7 +5,7 @@
 .stack    100h
 
 .data
-    path       db    'outasm.TXT', 0
+    path       db    'output.TXT', 0
     buffer     db    "A = -000, B = -000, C = -000", 0ah
     a          db    ?
     b          db    ?
@@ -78,14 +78,15 @@ continue:
 ;    ;jmp    dx_ax_pos???
 ;    ; positive
 ;dx_ax_neg:
-;    add    bx,    6
-;    js     bx_6_neg
-;    add    ax,    bx
-;    
+    add    bp,    6
+    js     bx_6_neg
+    add    ax,    bp
+    adc    dx,    0
+    jmp    SHORT division
 ;    ; bx_6 is positive
-;bx_6_neg:
-;    add    ax, bx
-;    sbb    dx, 0
+bx_6_neg: ; smth is wrong
+    add    ax, bp
+    sbb    dx, 0
 ;      
 ;    ;CASE   ax (12*b*c) + bx (a+6):
 ;    ;    match  ax < 0 and bx < 0: add ax, bx AND adc dx, 0
@@ -93,12 +94,11 @@ continue:
 ;    ;    match  ax > 0 and bx > 0: add ax, bx AND 
 ;    ;    match  ax < 0 and bx > 0: add ax, bx AND 
 ;    add    ax,    bx                     
-;    cwd                                  
-;    idiv   cx                            
-    jmp    loop_iter 
-
+;    cwd
+division:                                  
+    idiv   cx                            
+    jmp    SHORT loop_iter 
 wrBuffer:
-
     mov    al,    byte ptr [a]
     test   al,    080h                   
     jns    posA
@@ -112,7 +112,6 @@ posA:
     or     ax,    3030h
     mov    byte ptr [di + 6],    al      
     mov    byte ptr [di + 5],    ah      
-
     mov    al,    byte ptr [b]
     test   al,   080h                    
     jns    posB
@@ -126,7 +125,6 @@ posB:
     or     ax,    3030h
     mov    byte ptr [di + 16],    al     
     mov    byte ptr [di + 15],    ah     
-
     mov    al,    byte ptr [c]
     test   al,   080h                    
     jns    posC
@@ -140,14 +138,12 @@ posC:
     or     ax,    3030h
     mov    byte ptr [di + 26],    al     
     mov    byte ptr [di + 25],    ah     
-
 wrFile:
     mov    dx,    di
     mov    cx,    29
     mov    ah,    40h
     mov    bx,    si
     int    21h
-
 loop_iter:
     or     si,    0000h
     jz     Exit
@@ -176,12 +172,10 @@ negA:
     inc    byte ptr [count_a]  
     jz     clFile
     jmp    calc
-
 clFile:
     mov    ah,    3Eh
     mov    bx,    si
     int    21h
-
 Exit:
     mov    ah,    04Ch
     mov    al,    0
