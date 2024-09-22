@@ -74,27 +74,56 @@ continue:
     mov    al,    byte ptr [b]           
     cbw                                  
     imul   dx
-;    js     dx_ax_neg
-;    ;jmp    dx_ax_pos???
-;    ; positive
-;dx_ax_neg:
     add    bp,    6
-    js     bx_6_neg
     add    ax,    bp
+    jno    division
+    js     pos_of
+    ; if ax is big pos and bp is big pos and the sum is > 65535 then cf = 1
+    ; CASE dx:ax is positive    sf = 0
+    ;       ax << 65535
+    ;           bp is neg -> just add ax, bp
+    ;           bp is pos -> just add ax, bp
+    ;       ax = 65535
+    ;           bp is neg -> just add ax, bp 
+    ;           bp is pos -> add ax, bp AND inc dx  (if carry)
+    ;       ax = 32767
+    ;           bp is neg -> just add ax, bp
+    ;           bp is pos -> just add ax, bp
+    ;       ax = +0
+    ;           bp is neg -> add ax, bp AND dec dx (if burrow)
+    ;           bp is pos -> just add ax, bp
+    ;       |bp| > ax
+    ;          bp is neg  -> add ax, bp AND dec dx (if burrow)
+    ;          bp is pos  -> just add ax, bp
+    ; CASE dx:ax is negative
+    ;       ax << -65536  IDEA jb
+    ;           bp is neg -> just add ax, bp 
+    ;           bp is pos -> just add ax, bp
+    ;       ax = -65536   IDEA jb
+    ;           bp is neg -> add ax, bp AND dec dx (if carry)
+    ;           bp is pos -> just add ax, bp
+    ;       ax = -32768
+    ;           bp is neg -> just add ax, bp
+    ;           bp is pos -> just add ax, bp
+    ;       ax = -0
+    ;           bp is neg -> add ax, bp AND dec dx (if burrow)
+    ;           bp is pos -> just add ax, bp
+    ;       |bp| > ax
+    ;           bp is neg -> just add ax, bp
+    ;           bp is pos -> add ax, bp AND inc dx (if burrow)
+
+    
+    ; if of then check if signed
+    ; if of of pos + pos then sf = 1 and cf = 0
+    ; if of of neg+neg then sf = 0  and  cf = 1 for any neg+neg
+    ; what if carry was generated?
+    ; if big ax + bp is > 65535 then cf = 1 and i should add it to dx
+    ; if 
+    js     bx_6_neg
+
     adc    dx,    0
-    jmp    SHORT division
-;    ; bx_6 is positive
-bx_6_neg: ; smth is wrong
-    add    ax, bp
-    sbb    dx, 0
-;      
-;    ;CASE   ax (12*b*c) + bx (a+6):
-;    ;    match  ax < 0 and bx < 0: add ax, bx AND adc dx, 0
-;    ;    match  ax > 0 and bx < 0: add ax, bx AND  
-;    ;    match  ax > 0 and bx > 0: add ax, bx AND 
-;    ;    match  ax < 0 and bx > 0: add ax, bx AND 
-;    add    ax,    bx                     
-;    cwd
+
+
 division:                                  
     idiv   cx                            
     jmp    SHORT loop_iter 
