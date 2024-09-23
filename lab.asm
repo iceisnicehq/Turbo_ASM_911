@@ -5,8 +5,8 @@
 .stack    100h
 
 .data
-    path       db    'output.TXT', 0
-    buffer     db    "A = -000, B = -000, C = -000", 0ah
+    path       db    'outtest.TXT', 0
+    buffer     db    "A = -000, B = -000, C = -000", 0dh, 0ah
     a          db    ?
     b          db    ?
     c          db    ?    
@@ -70,47 +70,68 @@ continue:
     add    dx,    ax
     mov    al,    bl
     cbw
-    mov    bp,    ax 
+    mov    bx,    ax 
+    add    bx,    6
     mov    al,    byte ptr [b]           
     cbw                                  
     imul   dx
-    add    bp,    6
-    add    ax,    bp
-    jno    division
-    js     pos_of
-    ; if ax is big pos and bp is big pos and the sum is > 65535 then cf = 1
-    ; CASE dx:ax is positive    sf = 0
-    ;       ax << 65535
-    ;           bp is neg -> just add ax, bp
-    ;           bp is pos -> just add ax, bp
-    ;       ax = 65535
-    ;           bp is neg -> just add ax, bp 
-    ;           bp is pos -> add ax, bp AND inc dx  (if carry)
-    ;       ax = 32767
-    ;           bp is neg -> just add ax, bp
-    ;           bp is pos -> just add ax, bp
-    ;       ax = +0
-    ;           bp is neg -> add ax, bp AND dec dx (if burrow)
-    ;           bp is pos -> just add ax, bp
-    ;       |bp| > ax
-    ;          bp is neg  -> add ax, bp AND dec dx (if burrow)
-    ;          bp is pos  -> just add ax, bp
+    js     neg_of
+    cmp    ax, 32767
+    jae    above7FFF
+    add    ax, bx
+    jns    no_burrow
+    dec    dx
+no_burrow:
+    jmp    SHORT division
+above7FFF:
+    add    ax, bx
+    jns    no_carry
+    inc    dx
+no_carry:
+    jmp    SHORT division
+neg_of:
+    cmp    ax, -32768
+    jbe    above8000
+    add    ax, bx
+    jns    no_carr
+    dec    dx
+no_carr:
+    jmp    SHORT division
+above8000:
+    cmp    bx, ax
     ; CASE dx:ax is negative
-    ;       ax << -65536  IDEA jb
-    ;           bp is neg -> just add ax, bp 
-    ;           bp is pos -> just add ax, bp
-    ;       ax = -65536   IDEA jb
-    ;           bp is neg -> add ax, bp AND dec dx (if carry)
-    ;           bp is pos -> just add ax, bp
+    ;       ax << -65536  
+    ;           bp is neg -> just add ax, bp    sf = 1  cf = 1
+    ;           bp is pos -> just add ax, bp    sf = 1
+    ;       ax = -65536   
+    ;           bp is neg -> add ax, bp AND dec dx (if carry) sf = 1
+    ;           bp is pos -> just add ax, bp    NO F
     ;       ax = -32768
-    ;           bp is neg -> just add ax, bp
-    ;           bp is pos -> just add ax, bp
+    ;           bp is neg -> just add ax, bp    cf = 1 of = 1
+    ;           bp is pos -> just add ax, bp    sf = 1
     ;       ax = -0
-    ;           bp is neg -> add ax, bp AND dec dx (if burrow)
-    ;           bp is pos -> just add ax, bp
+    ;           bp is neg -> add ax, bp AND dec dx (if burrow) sf = 1
+    ;           bp is pos -> just add ax, bp    NO F
     ;       |bp| > ax
-    ;           bp is neg -> just add ax, bp
-    ;           bp is pos -> add ax, bp AND inc dx (if burrow)
+    ;           bp is neg -> just add ax, bp    sf = 1
+    ;           bp is pos -> add ax, bp AND inc dx (if burrow) sf = 1
+    ; CASE dx:ax is positive    sf = 0
+    ;       ax << 65535       
+    ;           bp is neg -> just add ax, bp    sf = 1  cf = 1
+    ;           bp is pos -> just add ax, bp    sf = 1
+    ;       ax = 65535
+    ;           bp is neg -> just add ax, bp    sf = 1  cf = 1
+    ;           bp is pos -> add ax, bp AND inc dx  (if carry)  cf = 1
+    ;       ax = 32767
+    ;           bp is neg -> just add ax, bp    cf = 1
+    ;           bp is pos -> just add ax, bp    sf = 1  of = 1
+    ;       ax = +0
+    ;           bp is neg -> add ax, bp AND dec dx (if burrow)  sf = 1
+    ;           bp is pos -> just add ax, bp    NO F
+    ;       |bp| > ax
+    ;          bp is neg  -> add ax, bp AND dec dx (if burrow)  sf = 1
+    ;          bp is pos  -> just add ax, bp    NO F
+
 
     
     ; if of then check if signed
@@ -119,11 +140,6 @@ continue:
     ; what if carry was generated?
     ; if big ax + bp is > 65535 then cf = 1 and i should add it to dx
     ; if 
-    js     bx_6_neg
-
-    adc    dx,    0
-
-
 division:                                  
     idiv   cx                            
     jmp    SHORT loop_iter 
@@ -169,7 +185,7 @@ posC:
     mov    byte ptr [di + 25],    ah     
 wrFile:
     mov    dx,    di
-    mov    cx,    29
+    mov    cx,    30
     mov    ah,    40h
     mov    bx,    si
     int    21h
