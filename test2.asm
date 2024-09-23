@@ -22,6 +22,9 @@ MAIN:
     MOV BX, 0002h    ; Load BX
     MOV CX, 001Ch    ; Load CX
     MOV DX, 1514h    ; Load DX
+     mov es, ax
+    sub ax, 255h
+    mov ss, ax
 
     ; Set the index registers
     MOV SI, 0014h    ; Load SI
@@ -48,3 +51,5 @@ MOV CL, [BX+SI]      ; Load the byte from memory at BX + SI into CL
     INT 21h
 
 END MAIN
+   
+   
