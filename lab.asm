@@ -98,7 +98,19 @@ neg_of:
 no_carr:
     jmp    SHORT division
 above8000:
-    cmp    bx, ax
+    add   ax, bx
+    js    signed
+    jc    add_carry
+    jmp   SHORT division
+add_carry:
+    inc   dx
+signed:
+    jc    dec_carry
+    jmp   SHORT division
+dec_carry:
+    dec   dx
+    
+
     ; CASE dx:ax is negative
     ;       ax << -65536  
     ;           bp is neg -> just add ax, bp    sf = 1  cf = 1
@@ -113,8 +125,8 @@ above8000:
     ;           bp is neg -> add ax, bp AND dec dx (if burrow) sf = 1
     ;           bp is pos -> just add ax, bp    NO F
     ;       |bp| > ax
-    ;           bp is neg -> just add ax, bp    sf = 1
-    ;           bp is pos -> add ax, bp AND inc dx (if burrow) sf = 1
+    ;           bp is neg -> just add ax, bp    cf = 1 sf = 1
+    ;           bp is pos -> add ax, bp AND inc dx (if burrow) sf = 0 cf = 1
     ; CASE dx:ax is positive    sf = 0
     ;       ax << 65535       
     ;           bp is neg -> just add ax, bp    sf = 1  cf = 1
@@ -140,7 +152,9 @@ above8000:
     ; what if carry was generated?
     ; if big ax + bp is > 65535 then cf = 1 and i should add it to dx
     ; if 
-division:                                  
+division:
+        ; TODO: CHECK OF for div and optionally for zero
+        ; make exceptions file
     idiv   cx                            
     jmp    SHORT loop_iter 
 wrBuffer:
