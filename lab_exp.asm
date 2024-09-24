@@ -5,14 +5,19 @@
 .stack    100h
 
 .data
-    path       db    'outtest.TXT', 0
-    buffer     db    "A = -000, B = -000, C = -000", 0dh, 0ah
-    a          db    ?
-    b          db    ?
-    c          db    ?    
-    count_a    db    ?
-    count_b    db    ?
-    count_c    db    ?
+    path            db    'outtest.TXT', 0
+    error           db    'errors.txt', 0
+    buffer          db    "A = -000, B = -000, C = -000", 0dh, 0ah
+    a               db    ?
+    b               db    ?
+    c               db    ?    
+    count_a         db    ?
+    count_b         db    ?
+    count_c         db    ?
+    old_offset      dw    ?
+    old_segment     dw    ?
+    handleOF        dw    ?
+    handleZO        dw    ?
 
 .code 
 Start:
@@ -20,18 +25,40 @@ Start:
     mov    ds,    ax    
     mov    al,    byte ptr [a]           
     or     al,    byte ptr [c]           
-    jnz    calc                          
+    jnz    calc
+    ; Save old interrupt vector
+    xor ax, ax
+    mov es, ax
+    mov ax, es:[0000]    ; Get offset of old interrupt handler
+    mov [old_offset], ax
+    mov ax, es:[0000+2]  ; Get segment of old interrupt handler
+    mov [old_segment], ax
+
+    ; Install new interrupt handler
+    cli                 ; Disable interrupts
+    mov word ptr es:[0000], offset new_handler
+    mov word ptr es:[0000+2], cs
+    sti                 ; Enable interrupts
+    
     mov    al,    -128                   
     mov    byte ptr [a],   al            
     mov    byte ptr [b],   al            
     mov    byte ptr [c],   al            
     mov    di,    offset buffer          
-mkFile:
+mkOfFile:
     mov    dx,    offset path            
     mov    ah,    03Ch                   
     xor    cx,    cx                     
     int    21h                           
-    mov    si,    ax                     
+    mov    [handleOF],    ax
+    mov    si,    [handleOF] 
+mkErrFile:
+    mov    dx,    offset error            
+    mov    ah,    03Ch                   
+    xor    cx,    cx                     
+    int    21h                           
+    mov    [handleZO],    ax
+
     ; EQUATION    d = a + 12*b*c +6 / 65*c + 7*a^2
 calc:
     mov    al,    byte ptr [a]
@@ -59,9 +86,6 @@ no_of:
     jo     wrBuffer
     add    cx,    bp
     jo     wrBuffer
-    jnz    continue
-    jmp    loop_iter
-continue:
     mov    al,    bh  ; al = c
     cbw    
     sal    ax,    2   
@@ -155,8 +179,9 @@ dec_carry:
 division:
         ; TODO: CHECK OF for div and optionally for zero
         ; make exceptions file
-    idiv   cx                            
-    jmp    SHORT loop_iter 
+    idiv   cx
+    jmp    loop_iter
+     
 wrBuffer:
     mov    al,    byte ptr [a]
     test   al,    080h                   
@@ -203,9 +228,11 @@ wrFile:
     mov    ah,    40h
     mov    bx,    si
     int    21h
+    mov    si,    [handleOF]
 loop_iter:
-    or     si,    0000h
-    jz     Exit
+    xor    cx, cx
+    or     si,    cx
+    jz     Exit_int
     inc    byte ptr [c]
     jnz    negC
     mov    byte ptr [di + 24],    020h   
@@ -233,10 +260,39 @@ negA:
     jmp    calc
 clFile:
     mov    ah,    3Eh
-    mov    bx,    si
+    mov    bx,    [handleOF]
     int    21h
+    mov    bx,    [handleZO]
+    int    21h
+Exit_int:
+    cli
+    mov ax, [old_offset]
+    mov es:[0000], ax
+    mov ax, [old_segment]
+    mov es:[0000+2], ax
+    sti
 Exit:
+        ; Restore old interrupt vector before exiting    
     mov    ah,    04Ch
     mov    al,    0
     int    21h
+new_handler proc
+; pushes three words to the stack
+    pop  bx
+    pop  bx
+    pop  bx
+    ;    push ds
+
+    ; Set up data segment for the message
+    ; mov ax, @data
+    ;mov ds, ax
+
+    ; Display the error message
+    mov si, [handleZO]
+
+    ; Clean up and return from interrupt
+    ;pop ds
+    jmp wrBuffer
+new_handler endp    
+    
     End    Start
