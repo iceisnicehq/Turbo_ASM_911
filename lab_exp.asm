@@ -36,7 +36,7 @@ Start:
 
     ; Install new interrupt handler
     cli                 ; Disable interrupts
-    mov word ptr es:[0000], offset new_handler
+    mov word ptr es:[0000], offset DivFaultErr
     mov word ptr es:[0000+2], cs
     sti                 ; Enable interrupts
     
@@ -276,23 +276,14 @@ Exit:
     mov    ah,    04Ch
     mov    al,    0
     int    21h
-new_handler proc
+DivFaultErr proc
 ; pushes three words to the stack
+    ;int  3h
     pop  bx
     pop  bx
     pop  bx
-    ;    push ds
-
-    ; Set up data segment for the message
-    ; mov ax, @data
-    ;mov ds, ax
-
-    ; Display the error message
     mov si, [handleZO]
-
-    ; Clean up and return from interrupt
-    ;pop ds
     jmp wrBuffer
-new_handler endp    
+DivFaultErr endp 
     
     End    Start
