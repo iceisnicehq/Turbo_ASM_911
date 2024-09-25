@@ -1,3 +1,4 @@
 # Gitlab
 gitlab_creds are <br>
-daniyar.sabirov.00:Hesoyam=250k
+daniyar.sabirov.00
+Cheat for money h equ 2 five zero k
