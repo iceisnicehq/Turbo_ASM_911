@@ -42,7 +42,7 @@ MAIN:
     ; Set the base pointer (BP) and stack pointer (SP)
     MOV BP, 20a0h    ; Load BP
     MOV SP, 293eh    ; Load SP
-    int 3
+
 mov ax, -28734
 mov [bx+di+2], sp
 mov bl, 32h
@@ -54,7 +54,7 @@ mov bp, 8457
 mov ah, es:[bx-5]
 mov dx, ax
 mov cx, es:[bx+di+3]
-mov si, [bp+9]
+mov si, [bp+9] ; NE RABOTAET
 mov cl, dh
 mov ax, cx
 mov [bx+di-12], ah
