@@ -17,10 +17,10 @@
 MAIN:
     MOV AX, @DATA     ; Load data segment into AX
     MOV DS, AX        ; Move AX into DS
+    add ax, 2
+    mov es, ax
     xor ax, ax
     mov ss, ax
-    mov ax, 020ch
-    mov es, ax
     ; Your code logic goes here
     ;set pf, af, of
     ;zf, sf, df are ZERO
@@ -42,7 +42,7 @@ MAIN:
     ; Set the base pointer (BP) and stack pointer (SP)
     MOV BP, 20a0h    ; Load BP
     MOV SP, 293eh    ; Load SP
-
+    int 3
 mov ax, -28734
 mov [bx+di+2], sp
 mov bl, 32h
@@ -51,7 +51,7 @@ mov di, 36
 mov dx, 29578
 mov ds:[bx+di+3], dx
 mov bp, 8457
-mov ax, es:[bx-5]
+mov ah, es:[bx-5]
 mov dx, ax
 mov cx, es:[bx+di+3]
 mov si, [bp+9]
