@@ -30,18 +30,14 @@ MAIN:
  ;   or ax, 0000000b
  ;   push ax
   ;  popf
-    MOV AX, 071ach   ; Load AX
-    MOV BX, 0000h    ; Load BX
-    MOV CX, 001eh    ; Load CX
-    MOV DX, 0f7aeh    ; Load DX
-
-    ; Set the index registers
-    MOV SI, 0010h    ; Load SI
-    MOV DI, 0020h    ; Load DI
-
-    ; Set the base pointer (BP) and stack pointer (SP)
-    MOV BP, 20a0h    ; Load BP
-    MOV SP, 293eh    ; Load SP
+    mov ax, AB9Ah
+    mov bx, 0006h
+    mov cx, 0018h
+    mov dx, 2110h
+    mov si, 001Ch
+    mov di, 0032h
+    mov bp, 2540h
+    mov sp, 2DDEh
 
 mov ax, -28734
 mov [bx+di+2], sp
