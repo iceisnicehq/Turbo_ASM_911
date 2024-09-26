@@ -39,7 +39,17 @@ MAIN:
     mov bp, 2540h
     mov sp, 2DDEh
 
-
+mov al, [bx]
+mov ch, [si+5]
+mov dx, [di]
+mov cx, [si+3h]
+mov cl, [bx+si]
+mov ah, [bx+di+2]
+mov cx, [si+bp+3]
+mov ax, [bp+8h]
+mov dx, [di+10h]
+mov cl, [bx+si]
+mov ah, [bx+di+2]
 
 
 
