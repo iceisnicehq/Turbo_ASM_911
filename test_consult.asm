@@ -39,26 +39,7 @@ MAIN:
     mov bp, 2540h
     mov sp, 2DDEh
 
-mov ax, -28734
-mov [bx+di+2], sp
-mov bl, 32h
-mov cl, es:[15]
-mov di, 36
-mov dx, 29578
-mov ds:[bx+di+3], dx
-mov bp, 8457
-mov ah, es:[bx-5]
-mov dx, ax
-mov cx, es:[bx+di+3]
-mov si, [bp+9] ; NE RABOTAET
-mov cl, dh
-mov ax, cx
-mov [bx+di-12], ah
-mov dx, -19235
-mov ch, dl
-mov ds:[15h], cx
-mov ax, es:[di+10]
-mov dh, al
+
 
 
 
