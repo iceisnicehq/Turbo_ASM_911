@@ -5,9 +5,9 @@
 .stack    100h
 
  ;KOHCTAHTbI
-MAX            EQU    87
-MIN            EQU    -87
-CYCLES         EQU    255 - MAX + MIN
+MAX            =      87
+MIN            =      -87
+CYCLES         =      255 - MAX + MIN
 
 .data
     path       db    'OUTASM.TXT', 0
@@ -69,13 +69,13 @@ no_of:
     jnz    continue
     jmp    loop_iter
 continue:
-    mov    al,    c;bh  
+    mov    al,    bh;c  
     cbw    
     sal    ax,    2   
     mov    dx,    ax                     
     sal    dx,    1                      
     add    dx,    ax
-    mov    al,    a;bl
+    mov    al,    bl;a
     cbw
     mov    bx,    ax 
     mov    al,    byte ptr [b]           
