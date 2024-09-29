@@ -72,7 +72,8 @@ no_of:
 continue:
     mov    al,    bh;c  
     cbw    
-    sal    ax,    2   
+    sal    ax,    1
+    sal    ax,    1  
     mov    dx,    ax                     
     sal    dx,    1                      
     add    dx,    ax
