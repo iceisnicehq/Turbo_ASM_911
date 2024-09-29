@@ -10,19 +10,20 @@ MIN            =     -87
 CYCLES         =     255 - MAX + MIN
 
 .data
-    path       db    'outtest.TXT', 0
+    path       db    'OUTASM.TXT', 0
     buffer     db    "A =  000, B =  000, C =  000", 0dh, 0ah
     a          db    ?
     count_a    db    ?
     b          db    ?
     count_b    db    ?
-    c          db    ?    
+    c          db    ?
     count_c    db    ?
 
 .code 
 Start:
     mov    ax,    @data                  
     mov    ds,    ax  
+    jmp continue
     mov    al,    byte ptr [a]           
     or     al,    byte ptr [c]           
     jnz    calc                          
@@ -68,13 +69,13 @@ no_of:
     jnz    continue
     jmp    loop_iter
 continue:
-    mov    al,    bh  
+    mov    al,    c;bh  
     cbw    
     sal    ax,    2   
     mov    dx,    ax                     
     sal    dx,    1                      
     add    dx,    ax
-    mov    al,    bl
+    mov    al,    a;bl
     cbw
     mov    bx,    ax 
     mov    al,    byte ptr [b]           
