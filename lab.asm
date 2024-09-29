@@ -5,9 +5,9 @@
 .stack    100h
 
  ;KOHCTAHTbI
-MAX            =     87
-MIN            =     -87
-CYCLES         =     255 - MAX + MIN
+MAX            EQU    87
+MIN            EQU    -87
+CYCLES         EQU    255 - MAX + MIN
 
 .data
     path       db    'OUTASM.TXT', 0
