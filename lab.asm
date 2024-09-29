@@ -4,28 +4,34 @@
 .model    small
 .stack    100h
 
+ ;KOHCTAHTbI
+MAX            =     87
+MIN            =     -87
+CYCLES         =     255 - MAX + MIN
+
 .data
     path       db    'outtest.TXT', 0
-    buffer     db    "A = -000, B = -000, C = -000", 0dh, 0ah
+    buffer     db    "A =  000, B =  000, C =  000", 0dh, 0ah
     a          db    ?
-    b          db    ?
-    c          db    ?    
     count_a    db    ?
+    b          db    ?
     count_b    db    ?
+    c          db    ?    
     count_c    db    ?
 
 .code 
 Start:
     mov    ax,    @data                  
-    mov    ds,    ax    
+    mov    ds,    ax  
     mov    al,    byte ptr [a]           
     or     al,    byte ptr [c]           
     jnz    calc                          
-    mov    al,    -128                   
-    mov    byte ptr [a],   al            
-    mov    byte ptr [b],   al            
-    mov    byte ptr [c],   al            
-    mov    di,    offset buffer          
+    mov    al,    MIN
+    mov    ah,    CYCLES
+    mov    word ptr [a],   ax                      
+    mov    word ptr [b],   ax
+    mov    word ptr [c],   ax  
+    mov    di,    offset buffer
 mkFile:
     mov    dx,    offset path            
     mov    ah,    03Ch                   
@@ -35,7 +41,7 @@ mkFile:
     ; EQUATION    d = a + 12*b*c +6 / 65*c + 7*a^2
 calc:
     mov    al,    byte ptr [a]
-    mov    bl,    al  ; bl = a
+    mov    bl,    al  
     imul   al
     cmp    ax,    5929d
     jae    wrBuffer   
@@ -50,7 +56,7 @@ calc:
     sub    dx,    bp
 no_of:
     mov    al,    byte ptr [c]           
-    mov    bh,    al   ; bh = c
+    mov    bh,    al   
     cbw    
     mov    cx,    ax                     
     sal    cx,    6                      
@@ -62,7 +68,7 @@ no_of:
     jnz    continue
     jmp    loop_iter
 continue:
-    mov    al,    bh  ; al = c
+    mov    al,    bh  
     cbw    
     sal    ax,    2   
     mov    dx,    ax                     
@@ -71,97 +77,28 @@ continue:
     mov    al,    bl
     cbw
     mov    bx,    ax 
-    add    bx,    6
     mov    al,    byte ptr [b]           
     cbw                                  
     imul   dx
-    js     neg_of
-    cmp    ax, 32767
-    jae    above7FFF
-    add    ax, bx
-    jns    no_burrow
-    dec    dx
-no_burrow:
+    add    bx,    6
+    js     neg_bx
+    add    ax,    bx
+    adc    dx,    0
     jmp    SHORT division
-above7FFF:
-    add    ax, bx
-    jns    no_carry
-    inc    dx
-no_carry:
-    jmp    SHORT division
-neg_of:
-    cmp    ax, -32768
-    jbe    above8000
-    add    ax, bx
-    jns    no_carr
-    dec    dx
-no_carr:
-    jmp    SHORT division
-above8000:
-    add   ax, bx
-    js    signed
-    jc    add_carry
-    jmp   SHORT division
-add_carry:
-    inc   dx
-signed:
-    jc    dec_carry
-    jmp   SHORT division
-dec_carry:
-    dec   dx
-    
-
-    ; CASE dx:ax is negative
-    ;       ax << -65536  
-    ;           bp is neg -> just add ax, bp    sf = 1  cf = 1
-    ;           bp is pos -> just add ax, bp    sf = 1
-    ;       ax = -65536   
-    ;           bp is neg -> add ax, bp AND dec dx (if carry) sf = 1
-    ;           bp is pos -> just add ax, bp    NO F
-    ;       ax = -32768
-    ;           bp is neg -> just add ax, bp    cf = 1 of = 1
-    ;           bp is pos -> just add ax, bp    sf = 1
-    ;       ax = -0
-    ;           bp is neg -> add ax, bp AND dec dx (if burrow) sf = 1
-    ;           bp is pos -> just add ax, bp    NO F
-    ;       |bp| > ax
-    ;           bp is neg -> just add ax, bp    cf = 1 sf = 1
-    ;           bp is pos -> add ax, bp AND inc dx (if burrow) sf = 0 cf = 1
-    ; CASE dx:ax is positive    sf = 0
-    ;       ax << 65535       
-    ;           bp is neg -> just add ax, bp    sf = 1  cf = 1
-    ;           bp is pos -> just add ax, bp    sf = 1
-    ;       ax = 65535
-    ;           bp is neg -> just add ax, bp    sf = 1  cf = 1
-    ;           bp is pos -> add ax, bp AND inc dx  (if carry)  cf = 1
-    ;       ax = 32767
-    ;           bp is neg -> just add ax, bp    cf = 1
-    ;           bp is pos -> just add ax, bp    sf = 1  of = 1
-    ;       ax = +0
-    ;           bp is neg -> add ax, bp AND dec dx (if burrow)  sf = 1
-    ;           bp is pos -> just add ax, bp    NO F
-    ;       |bp| > ax
-    ;          bp is neg  -> add ax, bp AND dec dx (if burrow)  sf = 1
-    ;          bp is pos  -> just add ax, bp    NO F
-
-
-    
-    ; if of then check if signed
-    ; if of of pos + pos then sf = 1 and cf = 0
-    ; if of of neg+neg then sf = 0  and  cf = 1 for any neg+neg
-    ; what if carry was generated?
-    ; if big ax + bp is > 65535 then cf = 1 and i should add it to dx
-    ; if 
+neg_bx:
+    neg    bx
+    sub    ax,    bx
+    sbb    dx,    0
 division:
-        ; TODO: CHECK OF for div and optionally for zero
-        ; make exceptions file
     idiv   cx                            
     jmp    SHORT loop_iter 
-wrBuffer:
+    
+wrBuffer:   
     mov    al,    byte ptr [a]
     test   al,    080h                   
     jns    posA
-    neg    al                            
+    neg    al
+    mov    byte ptr [di + 4],     02dh      
 posA:
     aam
     or     al,    30h
@@ -174,7 +111,8 @@ posA:
     mov    al,    byte ptr [b]
     test   al,   080h                    
     jns    posB
-    neg    al                            
+    neg    al
+    mov    byte ptr [di + 14],    2dh     
 posB:
     aam
     or     al,    30h
@@ -187,7 +125,8 @@ posB:
     mov    al,    byte ptr [c]
     test   al,   080h                    
     jns    posC
-    neg    al                            
+    neg    al
+    mov    byte ptr [di + 24],    2dh        
 posC:
     aam
     or     al,    30h
@@ -203,32 +142,28 @@ wrFile:
     mov    ah,    40h
     mov    bx,    si
     int    21h
+    mov    byte ptr [di +  4],     020h 
+    mov    byte ptr [di + 14],     020h 
+    mov    byte ptr [di + 24],     020h 
 loop_iter:
     or     si,    0000h
     jz     Exit
     inc    byte ptr [c]
-    jnz    negC
-    mov    byte ptr [di + 24],    020h   
-negC:
     inc    byte ptr [count_c]
     jz     c_max
     jmp    calc
-c_max:  
-    mov    byte ptr [di + 24],    2dh    
+c_max:
+    mov    byte ptr [c],    MIN
+    mov    byte ptr [count_c],    CYCLES
     inc    byte ptr [b]
-    jnz    negB
-    mov    byte ptr [di + 14],    020h   
-negB:
     inc    byte ptr [count_b]
     jz     b_max
     jmp    calc
 b_max:
-    mov    byte ptr [di + 14],    2dh    
+    mov    byte ptr [b],    MIN
+    mov    byte ptr [count_b],    CYCLES
     inc    byte ptr [a]
-    jnz    negA
-    mov    byte ptr [di + 4],     020h   
-negA:
-    inc    byte ptr [count_a]  
+    inc    byte ptr [count_a]
     jz     clFile
     jmp    calc
 clFile:
@@ -240,3 +175,13 @@ Exit:
     mov    al,    0
     int    21h
     End    Start
+    
+    
+;OF COMBS
+    ;A = -024, |B| > 88, C = -062
+    ;A = -023, |B| > 95, C = -057
+    ;A =  023, |B| > 95, C = -057
+    ;A =  024, |B| > 88, C = -062
+;
+;ZF COMBS
+    ;A = 000, B = ..., C = 000
