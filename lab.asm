@@ -49,9 +49,8 @@ calc:
     xor    bp,    bp
     mov    dx,    ax                     
     sal    ax,    1
-    sal    ax,    1
     add    ax,    dx
-    sal    dx,    1    
+    sal    ax,    1
     add    dx,    ax
     jno    no_of
     mov    bp,    07FFFh
