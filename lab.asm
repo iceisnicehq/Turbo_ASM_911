@@ -49,7 +49,7 @@ calc:
     xor    bp,    bp
     mov    dx,    ax                     
     sal    ax,    1
-    add    ax,    dx
+    add    dx,    ax
     sal    ax,    1
     add    dx,    ax
     jno    no_of
