@@ -5,13 +5,14 @@
 .stack    100h
 
  ;KOHCTAHTbI
-MAX            =      87
-MIN            =      -87
-CYCLES         =      255 - MAX + MIN
+MAX            EQU    87
+MIN            EQU    -87
+CYCLES         EQU    255 - MAX + MIN
 
 .data
     path       db    'OUTASM.TXT', 0
     buffer     db    "A =  000, B =  000, C =  000", 0dh, 0ah
+.data?
     a          db    ?
     count_a    db    ?
     b          db    ?
@@ -23,7 +24,6 @@ CYCLES         =      255 - MAX + MIN
 Start:
     mov    ax,    @data                  
     mov    ds,    ax  
-    jmp continue
     mov    al,    byte ptr [a]           
     or     al,    byte ptr [c]           
     jnz    calc                          
