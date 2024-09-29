@@ -70,12 +70,12 @@ no_of:
     jmp    loop_iter
 continue:
     mov    al,    bh;c  
-    cbw    
-    sal    ax,    1
-    sal    ax,    1  
-    mov    dx,    ax                     
-    sal    dx,    1                      
+    cbw
+    mov    dx,    ax    
+    sal    dx,    1
     add    dx,    ax
+    sal    dx,    1                      
+    add    dx,    dx
     mov    al,    bl;a
     cbw
     mov    bx,    ax 
