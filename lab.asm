@@ -92,7 +92,9 @@ neg_bx:
     sub    ax,    bx
     sbb    dx,    0
 division:
-    idiv   cx                            
+    idiv   cx
+    or     si,    0000h
+    jz     Exit                            
     jmp    SHORT loop_iter 
     
 wrBuffer:   
@@ -148,8 +150,6 @@ wrFile:
     mov    byte ptr [di + 14],     020h 
     mov    byte ptr [di + 24],     020h 
 loop_iter:
-    or     si,    0000h
-    jz     Exit
     inc    byte ptr [c]
     inc    byte ptr [count_c]
     jz     c_max
