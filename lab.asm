@@ -75,7 +75,7 @@ continue:
     sal    dx,    1
     add    dx,    ax
     sal    dx,    1                      
-    add    dx,    dx
+    sal    dx,    1
     mov    al,    bl;a
     cbw
     mov    bx,    ax 
