@@ -94,8 +94,8 @@ neg_bx:
 division:
     idiv   cx
     or     si,    0000h
-    jz     Exit                            
-    jmp    SHORT loop_iter 
+    jnz    loop_iter                           
+    jmp    Exit
     
 wrBuffer:   
     mov    al,    byte ptr [a]
