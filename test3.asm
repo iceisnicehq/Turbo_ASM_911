@@ -1,6 +1,6 @@
-.486
-.MODEL SMALL
 
+.MODEL SMALL
+.486
 .STACK 100h  
 
 .data       
