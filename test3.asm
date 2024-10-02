@@ -17,7 +17,11 @@
 .code       
 start:
     MOV AX, @data    
-    MOV DS, AX        
+    MOV DS, AX
+    add ax, 2
+mov es, ax
+add ax, 45d
+mov ss, ax        
     XOR AX, AX
 
     MOV EAX, 018A8h   ;test
