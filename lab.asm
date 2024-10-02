@@ -1,7 +1,7 @@
 %TITLE    "Lab1"
 
-.186
 .model    small
+.186
 .stack    100h
 
  ;KOHCTAHTbI
