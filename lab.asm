@@ -66,7 +66,7 @@ no_of:
     jo     wrBuffer
     add    cx,    bp
     jo     wrBuffer
-    or     si,    0000h
+    or     si,    si
     jnz    loop_iter
     jmp    numerator
 wrBuffer:   
