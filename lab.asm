@@ -5,8 +5,8 @@
 .stack    100h
 
  ;KOHCTAHTbI
-MAX            EQU    87
-MIN            EQU    -87
+MAX            EQU    127
+MIN            EQU    -128
 CYCLES         EQU    255 - MAX + MIN
 
 .data
@@ -67,32 +67,8 @@ no_of:
     add    cx,    bp
     jo     wrBuffer
     or     si,    0000h
-    jnz    loop_iter                
-    mov    al,    bh;c  
-    cbw
-    mov    dx,    ax    
-    sal    dx,    1
-    add    dx,    ax
-    sal    dx,    1                      
-    sal    dx,    1
-    mov    al,    bl;a
-    cbw
-    mov    bx,    ax 
-    mov    al,    byte ptr [b]           
-    cbw                                  
-    imul   dx
-    add    bx,    6
-    js     neg_bx
-    add    ax,    bx
-    adc    dx,    0
-    jmp    SHORT division
-neg_bx:
-    neg    bx
-    sub    ax,    bx
-    sbb    dx,    0
-division:
-    idiv   cx
-    jmp    Exit
+    jnz    loop_iter
+    jmp    numerator
 wrBuffer:   
     mov    al,    byte ptr [a]
     test   al,    080h                   
@@ -168,6 +144,32 @@ clFile:
     mov    ah,    3Eh
     mov    bx,    si
     int    21h
+    jmp    SHORT Exit
+numerator:
+    mov    al,    bh;c  
+    cbw
+    mov    dx,    ax    
+    sal    dx,    1
+    add    dx,    ax
+    sal    dx,    1                      
+    sal    dx,    1
+    mov    al,    bl;a
+    cbw
+    mov    bx,    ax 
+    mov    al,    byte ptr [b]           
+    cbw                                  
+    imul   dx
+    add    bx,    6
+    js     neg_bx
+    add    ax,    bx
+    adc    dx,    0
+    jmp    SHORT division
+neg_bx:
+    neg    bx
+    sub    ax,    bx
+    sbb    dx,    0
+division:
+    idiv   cx
 Exit:
     mov    ah,    04Ch
     mov    al,    0
