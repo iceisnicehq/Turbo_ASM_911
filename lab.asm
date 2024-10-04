@@ -66,9 +66,8 @@ no_of:
     jo     wrBuffer
     add    cx,    bp
     jo     wrBuffer
-    jnz    continue
-    jmp    loop_iter
-continue:
+    or     si,    0000h
+    jnz    loop_iter                
     mov    al,    bh;c  
     cbw
     mov    dx,    ax    
@@ -93,10 +92,7 @@ neg_bx:
     sbb    dx,    0
 division:
     idiv   cx
-    or     si,    0000h
-    jnz    loop_iter                           
     jmp    Exit
-    
 wrBuffer:   
     mov    al,    byte ptr [a]
     test   al,    080h                   
