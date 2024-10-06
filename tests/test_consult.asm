@@ -30,7 +30,7 @@ MAIN:
  ;   or ax, 0000000b
  ;   push ax
   ;  popf
-    mov ax, AB9Ah
+  mov ax, 0AB9Ah
     mov bx, 0006h
     mov cx, 0018h
     mov dx, 2110h
@@ -38,7 +38,7 @@ MAIN:
     mov di, 0032h
     mov bp, 2540h
     mov sp, 2DDEh
-
+    int 3
 mov al, [bx]
 mov ch, [si+5]
 mov dx, [di]
