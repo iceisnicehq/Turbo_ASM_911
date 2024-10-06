@@ -4,9 +4,9 @@
 .186
 .stack    100h
 
- ;KOHCTAHTbI
- MAX            EQU    10
- MIN            EQU    -10
+;KOHCTAHTbI
+MAX            EQU    127
+MIN            EQU    -128
 CYCLES         EQU    255 - MAX + MIN
 
 .data
@@ -21,11 +21,10 @@ CYCLES         EQU    255 - MAX + MIN
     count_c    db    ?
 
 .code
-
 Start:
     mov    ax,    @data                  
-    mov    ds,    ax  
-    call time
+    mov    ds,    ax   
+  CALL time
     mov    al,    byte ptr [a]           
     or     al,    byte ptr [c]           
     jnz    calc                          
@@ -173,11 +172,11 @@ neg_bx:
 division:
     idiv   cx
 Exit:
-    call time
+  CALL time
     mov    ah,    04Ch
     mov    al,    0
     int    21h
-    
+   ;End    Start  
 time PROC
 ;Hour Part
 MOV AH,2CH    ; To get System Time
