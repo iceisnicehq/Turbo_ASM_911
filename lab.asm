@@ -20,10 +20,12 @@ CYCLES         EQU    255 - MAX + MIN
     c          db    ?
     count_c    db    ?
 
-.code 
+.code
+
 Start:
     mov    ax,    @data                  
     mov    ds,    ax  
+    INCLUDE time.asm
     mov    al,    byte ptr [a]           
     or     al,    byte ptr [c]           
     jnz    calc                          
@@ -68,7 +70,32 @@ no_of:
     jo     wrBuffer
     or     si,    si
     jnz    loop_iter
-    jmp    numerator
+numerator:
+    mov    al,    bh;c  
+    cbw
+    mov    dx,    ax    
+    sal    dx,    1
+    add    dx,    ax
+    sal    dx,    1                      
+    sal    dx,    1
+    mov    al,    bl;a
+    cbw
+    mov    bx,    ax 
+    mov    al,    byte ptr [b]           
+    cbw                                  
+    imul   dx
+    add    bx,    6
+    js     neg_bx
+    add    ax,    bx
+    adc    dx,    0
+    jmp    SHORT division
+neg_bx:
+    neg    bx
+    sub    ax,    bx
+    sbb    dx,    0
+division:
+    idiv   cx
+    jmp    SHORT  Exit
 wrBuffer:   
     mov    al,    byte ptr [a]
     test   al,    080h                   
@@ -144,33 +171,8 @@ clFile:
     mov    ah,    3Eh
     mov    bx,    si
     int    21h
-    jmp    SHORT Exit
-numerator:
-    mov    al,    bh;c  
-    cbw
-    mov    dx,    ax    
-    sal    dx,    1
-    add    dx,    ax
-    sal    dx,    1                      
-    sal    dx,    1
-    mov    al,    bl;a
-    cbw
-    mov    bx,    ax 
-    mov    al,    byte ptr [b]           
-    cbw                                  
-    imul   dx
-    add    bx,    6
-    js     neg_bx
-    add    ax,    bx
-    adc    dx,    0
-    jmp    SHORT division
-neg_bx:
-    neg    bx
-    sub    ax,    bx
-    sbb    dx,    0
-division:
-    idiv   cx
 Exit:
+    INCLUDE time.asm
     mov    ah,    04Ch
     mov    al,    0
     int    21h
