@@ -17,7 +17,7 @@
 MAIN:
     MOV AX, @DATA     ; Load data segment into AX
     MOV DS, AX        ; Move AX into DS
-    add ax, -1
+    add ax, 1
     mov es, ax
     sub ax, 255h
     mov ss, ax
