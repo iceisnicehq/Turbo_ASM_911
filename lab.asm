@@ -5,8 +5,8 @@
 .stack    100h
 
  ;KOHCTAHTbI
-MAX            EQU    127
-MIN            EQU    -128
+ MAX            EQU    10
+ MIN            EQU    -10
 CYCLES         EQU    255 - MAX + MIN
 
 .data
@@ -20,10 +20,12 @@ CYCLES         EQU    255 - MAX + MIN
     c          db    ?
     count_c    db    ?
 
-.code 
+.code
+
 Start:
     mov    ax,    @data                  
     mov    ds,    ax  
+    call time
     mov    al,    byte ptr [a]           
     or     al,    byte ptr [c]           
     jnz    calc                          
@@ -68,32 +70,7 @@ no_of:
     jo     wrBuffer
     or     si,    si
     jnz    loop_iter
-numerator:
-    mov    al,    bh;c  
-    cbw
-    mov    dx,    ax    
-    sal    dx,    1
-    add    dx,    ax
-    sal    dx,    1                      
-    sal    dx,    1
-    mov    al,    bl;a
-    cbw
-    mov    bx,    ax 
-    mov    al,    byte ptr [b]           
-    cbw                                  
-    imul   dx
-    add    bx,    6
-    js     neg_bx
-    add    ax,    bx
-    adc    dx,    0
-    jmp    SHORT division
-neg_bx:
-    neg    bx
-    sub    ax,    bx
-    sbb    dx,    0
-division:
-    idiv   cx
-    jmp    SHORT  Exit
+    jmp    numerator
 wrBuffer:   
     mov    al,    byte ptr [a]
     test   al,    080h                   
@@ -169,13 +146,103 @@ clFile:
     mov    ah,    3Eh
     mov    bx,    si
     int    21h
+    jmp    SHORT Exit
+numerator:
+    mov    al,    bh;c  
+    cbw
+    mov    dx,    ax    
+    sal    dx,    1
+    add    dx,    ax
+    sal    dx,    1                      
+    sal    dx,    1
+    mov    al,    bl;a
+    cbw
+    mov    bx,    ax 
+    mov    al,    byte ptr [b]           
+    cbw                                  
+    imul   dx
+    add    bx,    6
+    js     neg_bx
+    add    ax,    bx
+    adc    dx,    0
+    jmp    SHORT division
+neg_bx:
+    neg    bx
+    sub    ax,    bx
+    sbb    dx,    0
+division:
+    idiv   cx
 Exit:
+    call time
     mov    ah,    04Ch
     mov    al,    0
     int    21h
-    End    Start
     
-    
+time PROC
+;Hour Part
+MOV AH,2CH    ; To get System Time
+INT 21H
+MOV AL,CH     ; Hour is in CH
+AAM
+MOV BX,AX
+MOV DL,BH      ; Since the values are in BX, BH Part
+ADD DL,30H     ; ASCII Adjustment
+MOV AH,02H     ; To Print in DOS
+INT 21H
+MOV DL,BL      ; BL Part 
+ADD DL,30H     ; ASCII Adjustment
+MOV AH,02H     ; To Print in DOS
+INT 21H
+
+MOV DL,':'
+MOV AH,02H    ; To Print : in DOS
+INT 21H
+
+;Minutes Part
+MOV AH,2CH    ; To get System Time
+INT 21H
+MOV AL,CL     ; Minutes is in CL
+AAM
+MOV BX,AX
+MOV DL,BH      ; Since the values are in BX, BH Part
+ADD DL,30H     ; ASCII Adjustment
+MOV AH,02H     ; To Print in DOS
+INT 21H
+MOV DL,BL      ; BL Part 
+ADD DL,30H     ; ASCII Adjustment
+MOV AH,02H     ; To Print in DOS
+INT 21H
+
+MOV DL,':'    ; To Print : in DOS
+MOV AH,02H
+INT 21H
+
+;Seconds Part
+MOV AH,2CH    ; To get System Time
+INT 21H
+MOV AL,DH     ; Seconds is in DH
+AAM
+MOV BX,AX
+MOV DL,BH      ; Since the values are in BX, BH Part
+ADD DL,30H     ; ASCII Adjustment
+MOV AH,02H     ; To Print in DOS
+INT 21H
+MOV DL,BL      ; BL Part 
+ADD DL,30H     ; ASCII Adjustment
+MOV AH,02H     ; To Print in DOS
+INT 21H
+
+
+mov ah, 02h
+mov dl, 13d
+int 21h
+mov dl, 10d
+mov ah, 02h
+int 21h
+ret
+time ENDP
+
+End    Start
 ;OF COMBS
     ;A = -024, |B| > 88, C = -062
     ;A = -023, |B| > 95, C = -057
