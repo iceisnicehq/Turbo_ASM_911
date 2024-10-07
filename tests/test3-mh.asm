@@ -17,6 +17,18 @@ MAIN:
     MOV AX, @DATA
     MOV DS, AX         ; Set DS to data segment base
     
+    ADD AX, 2          ; ES = DS + 2
+    MOV ES, AX
+    
+    MOV AX, DS
+    ADD AX, 21          
+    MOV SS, AX
+        ; Initialize flags
+    PUSHF              ; Push flags to stack
+    POP AX             ; AX = FL (7287h)
+    OR AX, 7287h       ; Set flags CF=1, PF=1, AF=0, ZF=0, SF=1, DF=0, OF=0
+    PUSH AX            ; Push modified flags back to stack
+    POPF               ; Pop them to FL
     ; Set up initial values of registers
     MOV AX, 18A8h      ; AX = 18A8h
     MOV BX, 1234h      ; BX = 1234h
@@ -27,23 +39,7 @@ MAIN:
     MOV BP, 0010h      ; BP = 0010h
     MOV SP, 00ECh      ; SP = 00ECh
 
-    ; Set ES and SS relative to DS
-    MOV AX, DS
-    ADD AX, 2          ; ES = DS + 2
-    MOV ES, AX
-    
-    MOV AX, DS
-    ADD AX, 21          
-    MOV SS, AX
 
-    ; Initialize flags
-    push ax
-    PUSHF              ; Push flags to stack
-    POP AX             ; AX = FL (7287h)
-    OR AX, 7287h       ; Set flags CF=1, PF=1, AF=0, ZF=0, SF=1, DF=0, OF=0
-    PUSH AX            ; Push modified flags back to stack
-    POPF               ; Pop them to FL
-    pop ax
     ; Instructions follow here (from the previous program)
     
     ; 1) lea di,ds:[si+12h]
