@@ -54,7 +54,7 @@ calc:
     sal    ax,    1
     add    dx,    ax
     jno    no_of
-    mov    bp,    07FFFh
+    mov    bp,    20000d
     sub    dx,    bp
 no_of:
     mov    al,    byte ptr [c]           
@@ -63,9 +63,8 @@ no_of:
     mov    cx,    ax                     
     sal    cx,    6                      
     add    cx,    ax
-    add    cx,    dx
-    jo     wrBuffer
     add    cx,    bp
+    add    cx,    dx
     jo     wrBuffer
     or     si,    si
     jnz    loop_iter
