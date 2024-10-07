@@ -1,10 +1,10 @@
-%TITLE    "Lab1"
+%TITLE    "Lab1" ;7 827 456
 
 .model    small
 .186
 .stack    100h
 
- ;KOHCTAHTbI
+;KOHCTAHTbI
 MAX            EQU    127
 MIN            EQU    -128
 CYCLES         EQU    255 - MAX + MIN
@@ -20,10 +20,10 @@ CYCLES         EQU    255 - MAX + MIN
     c          db    ?
     count_c    db    ?
 
-.code 
+.code
 Start:
     mov    ax,    @data                  
-    mov    ds,    ax  
+    mov    ds,    ax   
     mov    al,    byte ptr [a]           
     or     al,    byte ptr [c]           
     jnz    calc                          
@@ -53,7 +53,7 @@ calc:
     sal    ax,    1
     add    dx,    ax
     jno    no_of
-    mov    bp,    07FFFh
+    mov    bp,    20000d
     sub    dx,    bp
 no_of:
     mov    al,    byte ptr [c]           
@@ -62,9 +62,8 @@ no_of:
     mov    cx,    ax                     
     sal    cx,    6                      
     add    cx,    ax
-    add    cx,    dx
-    jo     wrBuffer
     add    cx,    bp
+    add    cx,    dx
     jo     wrBuffer
     or     si,    si
     jnz    loop_iter
@@ -174,9 +173,8 @@ Exit:
     mov    ah,    04Ch
     mov    al,    0
     int    21h
-    End    Start
-    
-    
+    End    Start  
+
 ;OF COMBS
     ;A = -024, |B| > 88, C = -062
     ;A = -023, |B| > 95, C = -057
