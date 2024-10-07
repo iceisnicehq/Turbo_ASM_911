@@ -3,7 +3,7 @@
 .STACK 100h
 
 .DATA
-array DB 12h, 23h, 34h, 45h, 56h, 67h, 78h, 89h, 9Ah, ABh, BCh, CDh, 10h, EFh, F0h, 20h
+array DB 12h, 23h, 34h, 45h, 56h, 67h, 78h, 89h, 9Ah, 0ABh, 0BCh, 0CDh, 10h, 0EFh, 0F0h, 20h
       DB 41h, 42h, 43h, 44h, 45h, 46h, 47h, 48h, 49h, 4Ah, 4Bh, 4Ch, 4Dh, 4Eh, 4Fh, 40h
       DB 31h, 32h, 3Dh, 34h, 35h, 36h, 34h, 12h, 39h, 3Ah, 3Bh, 3Ch, 3Dh, 3Eh, 3Fh, 30h
       DB 51h, 52h, 53h, 54h, 55h, 56h, 57h, 58h, 59h, 5Ah, 5Bh, 5Ch, 5Dh, 5Eh, 5Fh, 50h
