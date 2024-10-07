@@ -37,12 +37,13 @@ MAIN:
     MOV SS, AX
 
     ; Initialize flags
+    push ax
     PUSHF              ; Push flags to stack
     POP AX             ; AX = FL (7287h)
     OR AX, 7287h       ; Set flags CF=1, PF=1, AF=0, ZF=0, SF=1, DF=0, OF=0
     PUSH AX            ; Push modified flags back to stack
     POPF               ; Pop them to FL
-
+    pop ax
     ; Instructions follow here (from the previous program)
     
     ; 1) lea di,ds:[si+12h]
