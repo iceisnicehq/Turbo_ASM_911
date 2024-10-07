@@ -33,7 +33,7 @@ MAIN:
     MOV ES, AX
     
     MOV AX, DS
-    ADD AX, 4          ; SS = DS + 4
+    ADD AX, 21          
     MOV SS, AX
 
     ; Initialize flags
