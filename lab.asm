@@ -5,9 +5,10 @@
 .stack    100h
 
 ;KOHCTAHTbI
-MIN            EQU    -128
-MAX            EQU    127
+MIN            EQU    -1
+MAX            EQU    1
 CYCLES         EQU    255 - MAX + MIN
+MIN&CYC        EQU    MIN*100h+CYCLES
 
 .data
     path       db    'OUTTEST.TXT', 0
@@ -28,9 +29,8 @@ Start:
   CALL time
     mov    al,    byte ptr [a]           
     or     al,    byte ptr [c]           
-    jnz    calc      
-    mov    al,    CYCLES
-    mov    ah,    MIN
+    jnz    calc              
+    mov    ax,    MIN&CYC
     mov    word ptr [count_a],   ax                      
     mov    word ptr [count_b],   ax
     mov    word ptr [count_c],   ax  
@@ -128,15 +128,13 @@ loop_iter:
     jz     c_max
     jmp    calc
 c_max:
-    mov    byte ptr [c],    MIN
-    mov    byte ptr [count_c],    CYCLES
+    mov    word ptr [count_c],    MIN&CYC
     add    word ptr [count_b],    0101h
     cmp    byte ptr [count_b],    00h
     jz     b_max
     jmp    calc
 b_max:
-    mov    byte ptr [b],    MIN
-    mov    byte ptr [count_b],    CYCLES
+    mov    word ptr [count_b],    MIN&CYC
     add    word ptr [count_a],    0101h
     cmp    byte ptr [count_a],    00h
     jz     clFile
