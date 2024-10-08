@@ -5,13 +5,13 @@
 .stack    100h
 
 ;KOHCTAHTbI
-MIN            EQU    -1
-MAX            EQU    1
+MIN            EQU    -128
+MAX            EQU    127
 CYCLES         EQU    255 - MAX + MIN
 MIN&CYC        EQU    MIN*100h+CYCLES
 
 .data
-    path       db    'OUTASM.TXT', 0
+    path       db    'OUTTEST.TXT', 0
     buffer     db    "A =  000, B =  000, C =  000", 0dh, 0ah
 .data?
     count_a    db    ?
@@ -82,8 +82,8 @@ posA:
     mov    al,    ah
     aam
     or     ax,    3030h
-    mov    byte ptr [di + 6],    al      
-    mov    byte ptr [di + 5],    ah      
+    xchg   ah, al
+    mov    word ptr [di + 5],    ax        
     mov    al,    byte ptr [b]
     test   al,   080h                    
     jns    posB
@@ -96,8 +96,8 @@ posB:
     mov    al,    ah
     aam
     or     ax,    3030h
-    mov    byte ptr [di + 16],    al     
-    mov    byte ptr [di + 15],    ah     
+    xchg   ah,    al    
+    mov    word ptr [di + 15],    ax     
     mov    al,    byte ptr [c]
     test   al,   080h                    
     jns    posC
@@ -110,8 +110,8 @@ posC:
     mov    al,    ah
     aam
     or     ax,    3030h
-    mov    byte ptr [di + 26],    al     
-    mov    byte ptr [di + 25],    ah     
+    xchg   ah, al
+    mov    word ptr [di + 25],    ax    
 wrFile:
     mov    dx,    di
     mov    cx,    30
@@ -173,6 +173,7 @@ Exit:
     mov    al,    0
     int    21h
     End    Start  
+
 
 
 
