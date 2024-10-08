@@ -11,7 +11,7 @@ CYCLES         EQU    255 - MAX + MIN
 MIN&CYC        EQU    MIN*100h+CYCLES
 
 .data
-    path       db    'OUTTEST.TXT', 0
+    path       db    'OUTASM.TXT', 0
     buffer     db    "A =  000, B =  000, C =  000", 0dh, 0ah
 .data?
     count_a    db    ?
