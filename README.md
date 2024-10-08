@@ -1,6 +1,6 @@
 # ASSEMBLY
 
-<b>TEST2 TABLE<b/>
+<b>TEST2 TABLE (REAL)-part1<b/>
 |  | 00 | 01 | 02 | 03 | 04 | 05 | 06 | 07 | 08 | 09 | 0A | 0B | 0C | 0D | 0E | 0F |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 00 | 12h | 23h | 34h | 45h | 56h | 67h | 78h | 89h | 9Ah | 0ABh | 0BCh | 0CDh | 0DEh | 0EFh | 0F0h | 20h |
@@ -9,6 +9,19 @@
 | 30 | 21h | 22h | 23h | 24h | 25h | 26h | 27h | 28h | 29h | 2Ah | 2Bh | 2Ch | 2Dh | 2Eh | 2Fh | 20h |
 | 40 | 31h | 32h | 33h | 34h | 35h | 36h | 37h | 38h | 39h | 3Ah | 3Bh | 3Ch | 3Dh | 3Eh | 3Fh | 30h |
 | 50 | 41h | 42h | 43h | 44h | 45h | 46h | 47h | 48h | 49h | 4Ah | 4Bh | 4Ch | 4Dh | 4Eh | 4Fh | 40h |
+| 60 | 51h | 52h | 53h | 54h | 55h | 56h | 57h | 58h | 59h | 5Ah | 5Bh | 5Ch | 5Dh | 5Eh | 5Fh | 50h |
+| 70 | 61h | 62h | 63h | 64h | 65h | 66h | 67h | 68h | 69h | 6Ah | 6Bh | 6Ch | 6Dh | 6Eh | 6Fh | 60h |
+
+<b>TEST2 TABLE (REAL)-part2<b/>
+
+|  | 00 | 01 | 02 | 03 | 04 | 05 | 06 | 07 | 08 | 09 | 0A | 0B | 0C | 0D | 0E | 0F |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 00 | 12h | 23h | 34h | 45h | 0CDh | 2Fh | 0FCh | 0FEh | 09Ah | 0ABh | 0BCh | 0CDh | 02Fh | 0FCh | 0FEh | 0FFh |
+| 10 | 02Fh | 0FCh | 0FEh | 0FFh | 02Fh | 0FCh | 0FEh | 0FFh | 02Fh | 0FCh | 0FEh | 0FFh | 02Fh | 0FCh | 0FEh | 0FFh |
+| 20 | 02Fh | 0FCh | 0FEh | 0FFh | 02Fh | 0FCh | 0FEh | 0FFh | 02Fh | 0FCh | 0FEh | 0FFh | 02Fh | 0FCh | 0FEh | 0FFh |
+| 30 | 21h | 22h | 23h | 24h | 02Fh | 02Fh | 02Fh | 02Fh | 02Fh | 02Fh | 02Fh | 02Fh | 02Fh | 0FCh | 0FEh | 0FFh |
+| 40 | 45h | 34h | 45h | 45h | 45h | 56h | 67h | 9Ah | 0ABh | 0BCh | 0CDh | 0ABh | 0BCh | 0BCh | 0CDh | 09Ah |
+| 50 | 02Fh | 9Fh | 0ABh | 9Ah | 0ABh | 9Ah | 0ABh | 0BCh | 0CDh | 48h | 49h | 4Ah | 4Bh | 4Ch | 4Dh | 4Eh | 4Fh | 40h |
 | 60 | 51h | 52h | 53h | 54h | 55h | 56h | 57h | 58h | 59h | 5Ah | 5Bh | 5Ch | 5Dh | 5Eh | 5Fh | 50h |
 | 70 | 61h | 62h | 63h | 64h | 65h | 66h | 67h | 68h | 69h | 6Ah | 6Bh | 6Ch | 6Dh | 6Eh | 6Fh | 60h |
 
