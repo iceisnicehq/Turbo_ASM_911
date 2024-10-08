@@ -8,7 +8,7 @@
 MIN            EQU    -128
 MAX            EQU    127
 CYCLES         EQU    255 - MAX + MIN
-MIN&CYC        EQU    MIN*100h+CYCLES
+MIN&CYC        EQU    MIN * 100h + CYCLES
 
 .data
     path       db    'OUTASM.TXT', 0
