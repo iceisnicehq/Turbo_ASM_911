@@ -82,10 +82,10 @@ posA:
     mov    al,    ah
     aam
     or     ax,    3030h
-    xchg   ah, al
+    xchg   ah,    al
     mov    word ptr [di + 5],    ax        
     mov    al,    byte ptr [b]
-    test   al,   080h                    
+    test   al,    080h                    
     jns    posB
     neg    al
     mov    byte ptr [di + 14],    2dh     
@@ -99,7 +99,7 @@ posB:
     xchg   ah,    al    
     mov    word ptr [di + 15],    ax     
     mov    al,    byte ptr [c]
-    test   al,   080h                    
+    test   al,    080h                    
     jns    posC
     neg    al
     mov    byte ptr [di + 24],    2dh        
@@ -110,7 +110,7 @@ posC:
     mov    al,    ah
     aam
     or     ax,    3030h
-    xchg   ah, al
+    xchg   ah,    al
     mov    word ptr [di + 25],    ax    
 wrFile:
     mov    dx,    di
@@ -144,14 +144,14 @@ clFile:
     int    21h
     jmp    SHORT Exit
 numerator:
-    mov    al,    bh;c  
+    mov    al,    bh 
     cbw
     mov    dx,    ax    
     sal    dx,    1
     add    dx,    ax
     sal    dx,    1                      
     sal    dx,    1
-    mov    al,    bl;a
+    mov    al,    bl
     cbw
     mov    bx,    ax 
     mov    al,    byte ptr [b]           
