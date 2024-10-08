@@ -8,7 +8,7 @@
                DB 02fh, 0fch, 0feh, 0ffh, 02fh, 0fch, 0feh, 0ffh, 02fh, 0fch, 0feh, 0ffh, 02fh, 0fch, 0feh, 0ffh
                DB 21h, 22h, 23h, 24h, 02fh, 02fh, 02fh, 02fh, 02fh, 02fh, 02fh, 02fh, 02fh, 02fh, 0fch, 0feh, 0ffh
                DB 45h, 34h, 45h, 45h, 45h, 56h, 67h, 9ah, 0abh, 0bch, 0cdh, 0abh, 0bch, 0bch, 0cdh, 09ah
-               DB 02fh, 9fh, 0abh, 9ah, 0abh, 9ah, 0abh, 0bch, 0cdh, 48h, 49h, 4ah, 4bh, 4ch, 4dh, 4eh, 4fh, 40h
+               DB 02fh, 9ah, 0abh, 9ah, 0abh, 0bch, 0cdh, 48h, 49h, 4ah, 4bh, 4ch, 4dh, 4eh, 4fh, 40h
                DB 51h, 52h, 53h, 54h, 55h, 56h, 57h, 58h, 59h, 5Ah, 5Bh, 5Ch, 5Dh, 5Eh, 5Fh, 50h
                DB 61h, 62h, 63h, 64h, 65h, 66h, 67h, 68h, 69h, 6Ah, 6Bh, 6Ch, 6Dh, 6Eh, 6Fh, 60h
 .CODE        ; Start of code segment
