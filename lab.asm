@@ -5,8 +5,8 @@
 .stack    100h
 
 ;KOHCTAHTbI
-MIN            EQU    -1
-MAX            EQU    1
+MIN            EQU    -128
+MAX            EQU    127
 CYCLES         EQU    255 - MAX + MIN
 MIN&CYC        EQU    MIN*100h+CYCLES
 
@@ -83,8 +83,8 @@ posA:
     mov    al,    ah
     aam
     or     ax,    3030h
-    mov    byte ptr [di + 6],    al      
-    mov    byte ptr [di + 5],    ah      
+    xchg   ah, al
+    mov    word ptr [di + 5],    ax        
     mov    al,    byte ptr [b]
     test   al,   080h                    
     jns    posB
@@ -97,8 +97,8 @@ posB:
     mov    al,    ah
     aam
     or     ax,    3030h
-    mov    byte ptr [di + 16],    al     
-    mov    byte ptr [di + 15],    ah     
+    xchg   ah,    al    
+    mov    word ptr [di + 15],    ax     
     mov    al,    byte ptr [c]
     test   al,   080h                    
     jns    posC
@@ -111,8 +111,8 @@ posC:
     mov    al,    ah
     aam
     or     ax,    3030h
-    mov    byte ptr [di + 26],    al     
-    mov    byte ptr [di + 25],    ah     
+    xchg   ah, al
+    mov    word ptr [di + 25],    ax    
 wrFile:
     mov    dx,    di
     mov    cx,    30
