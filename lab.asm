@@ -1,24 +1,25 @@
-%TITLE    "Lab1"
+%TITLE    "Lab1" ;7 827 456
 
 .model    small
 .186
 .stack    100h
 
 ;KOHCTAHTbI
-MAX            EQU    127
 MIN            EQU    -128
+MAX            EQU    127
 CYCLES         EQU    255 - MAX + MIN
 
 .data
-    path       db    'OUTASM.TXT', 0
+    path       db    'OUTTEST.TXT', 0
     buffer     db    "A =  000, B =  000, C =  000", 0dh, 0ah
 .data?
-    a          db    ?
     count_a    db    ?
-    b          db    ?
+    a          db    ?
     count_b    db    ?
-    c          db    ?
+    b          db    ?
     count_c    db    ?
+    c          db    ?
+
 
 .code
 Start:
@@ -28,11 +29,11 @@ Start:
     mov    al,    byte ptr [a]           
     or     al,    byte ptr [c]           
     jnz    calc                          
-    mov    al,    MIN
-    mov    ah,    CYCLES
-    mov    word ptr [a],   ax                      
-    mov    word ptr [b],   ax
-    mov    word ptr [c],   ax  
+    mov    ah,    MIN
+    mov    al,    CYCLES
+    mov    word ptr [count_a],   ax                      
+    mov    word ptr [count_b],   ax
+    mov    word ptr [count_c],   ax  
     mov    di,    offset buffer
 mkFile:
     mov    dx,    offset path            
@@ -122,22 +123,22 @@ wrFile:
     mov    byte ptr [di + 14],     020h 
     mov    byte ptr [di + 24],     020h 
 loop_iter:
-    inc    byte ptr [c]
-    inc    byte ptr [count_c]
+    add    word ptr [count_c],     0101h
+    cmp    byte ptr [count_c],     00h
     jz     c_max
     jmp    calc
 c_max:
     mov    byte ptr [c],    MIN
     mov    byte ptr [count_c],    CYCLES
-    inc    byte ptr [b]
-    inc    byte ptr [count_b]
+    add    word ptr [count_b],    0101h
+    cmp    byte ptr [count_b],    00h
     jz     b_max
     jmp    calc
 b_max:
     mov    byte ptr [b],    MIN
     mov    byte ptr [count_b],    CYCLES
-    inc    byte ptr [a]
-    inc    byte ptr [count_a]
+    add    word ptr [count_a],    0101h
+    cmp    byte ptr [count_a],    00h
     jz     clFile
     jmp    calc
 clFile:
