@@ -27,9 +27,9 @@ Start:
     mov    ds,    ax   
     mov    al,    byte ptr [a]           
     or     al,    byte ptr [c]           
-    jnz    calc                          
-    mov    ah,    MIN
+    jnz    calc    
     mov    al,    CYCLES
+    mov    ah,    MIN
     mov    word ptr [count_a],   ax                      
     mov    word ptr [count_b],   ax
     mov    word ptr [count_c],   ax  
