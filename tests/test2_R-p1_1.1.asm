@@ -38,6 +38,7 @@ mov cl, es:[25] ;3
 mov bh, dl
 mov [di+6], bp
 mov dx, 30480
+mov bh, ch
 mov ds:[bx+di-12], cx
 mov bp, 7210
 mov ah, es:[bx-10]
