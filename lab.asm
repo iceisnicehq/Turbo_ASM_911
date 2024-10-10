@@ -3,48 +3,56 @@
 .model    small
 .186
 .stack    100h
-
+; i have ax bx cx dx si di bp
+; si holds file handle
+; ax and dx are used for calcs,
+; di holds the offset of the buffer 
+; bp is free 
 ;KOHCTAHTbI
 MIN            EQU    -128
+MIN_WRD        EQU    MIN * 100h
+MIN_WRD_FF     EQU    MIN_WRD + 0FFh
 MAX            EQU    127
-CYCLES         EQU    255 - MAX + MIN
-MIN&CYC        EQU    MIN*100h+CYCLES
+
 
 .data
-    path       db    'OUTTEST.TXT', 0
-    buffer     db    "A =  000, B =  000, C =  000", 0dh, 0ah
+    path       db    'OUTASM.TXT', 0
+    buffer     db    "A = 0000, B = 0000, C = 0000", 0dh, 0ah
 .data?
-    count_a    db    ?
     a          db    ?
-    count_b    db    ?
-    b          db    ?
-    count_c    db    ?
     c          db    ?
+    d          dw    ?
+    b          db    ?
 
 
 .code
 Start:
     mov    ax,    @data                  
-    mov    ds,    ax   
-  CALL time
-    mov    al,    byte ptr [a]           
-    or     al,    byte ptr [c]           
-    jnz    calc              
-    mov    ax,    MIN&CYC
-    mov    word ptr [count_a],   ax                      
-    mov    word ptr [count_b],   ax
-    mov    word ptr [count_c],   ax  
-    mov    di,    offset buffer
+    mov    ds,    ax  
+    mov    es,    ax
+    ;mov    ax,    word ptr [a]           
+    ;or     al,    ah           
+    ;jnz    calc              
 mkFile:
     mov    dx,    offset path            
     mov    ah,    03Ch                   
     xor    cx,    cx                     
-    int    21h                           
-    mov    si,    ax                     
+    int    21h                            
+init:
+    lea    di,    [buffer + 26]
+    std 
+    mov    ah,    MIN
+    mov    si,    ax ; si_h = c_iter
+    mov    al,    ah ; bp_h = b_iter
+    mov    bp,    ax ; bp_l = a_iter  
     ; EQUATION    d = a + 12*b*c +6 / 65*c + 7*a^2
 calc:
-    mov    al,    byte ptr [a]
-    mov    bl,    al  
+    jmp    wrBuffer
+    mov    ax,    bp
+    cbw
+    mov    bx,    ax
+    sal    ax,    1
+    ;add          
     imul   al
     cmp    ax,    5929d
     jae    wrBuffer   
@@ -57,8 +65,7 @@ calc:
     jno    no_of
     mov    bp,    20000d
     sub    dx,    bp
-no_of:
-    mov    al,    byte ptr [c]           
+no_of:  
     mov    bh,    al   
     cbw    
     mov    cx,    ax                     
@@ -68,178 +75,145 @@ no_of:
     add    cx,    dx
     jo     wrBuffer
     or     si,    si
-    jnz    loop_iter
-    jmp    numerator
-wrBuffer:   
-    mov    al,    byte ptr [a]
+    ;jnz    loop_iter
+    ;jmp    numerator
+wrBuffer:
+    mov    bx,    di
+    mov    dx,    2b2dh
+    
+    mov    cl,    dh
+    mov    ax,    si
+    mov    al,    ah   
+    test   al,    080h                    
+    jns    posC
+    neg    al
+    mov    cl,    dl       
+posC:
+    aam
+    mov    ch,    al
+    mov    al,    ah
+    aam
+    xchg   ch,    ah
+    or     ax,    3030h
+    stosw   
+    mov    ax,    cx
+    or     ah,    30h
+    stosw
+    sub    di,    6
+    
+    mov    ax,    bp
+    mov    al,    ah
+    mov    cl,    dh
+    test   al,    080h                    
+    jns    posB
+    neg    al
+    mov    cl,    dl    
+posB:
+    aam
+    mov    ch,    al
+    mov    al,    ah
+    aam
+    xchg   ch,    ah
+    or     ax,    3030h
+    stosw   
+    mov    ax,    cx
+    or     ah,    30h
+    stosw
+    sub    di,    6
+    
+    mov    ax,    bp
+    mov    cl,    dh
     test   al,    080h                   
     jns    posA
     neg    al
-    mov    byte ptr [di + 4],     02dh      
+    mov    cl,    dl     
 posA:
     aam
-    or     al,    30h
-    mov    byte ptr [di + 7],    al      
+    mov    ch,    al
     mov    al,    ah
     aam
+    xchg   ch,    ah
     or     ax,    3030h
-    xchg   ah, al
-    mov    word ptr [di + 5],    ax        
-    mov    al,    byte ptr [b]
-    test   al,   080h                    
-    jns    posB
-    neg    al
-    mov    byte ptr [di + 14],    2dh     
-posB:
-    aam
-    or     al,    30h
-    mov    byte ptr [di + 17],    al     
-    mov    al,    ah
-    aam
-    or     ax,    3030h
-    xchg   ah,    al    
-    mov    word ptr [di + 15],    ax     
-    mov    al,    byte ptr [c]
-    test   al,   080h                    
-    jns    posC
-    neg    al
-    mov    byte ptr [di + 24],    2dh        
-posC:
-    aam
-    or     al,    30h
-    mov    byte ptr [di + 27],    al     
-    mov    al,    ah
-    aam
-    or     ax,    3030h
-    xchg   ah, al
-    mov    word ptr [di + 25],    ax    
+    stosw   
+    mov    ax,    cx
+    or     ah,    30h
+    stosw
+    sub    di,    2
+    
 wrFile:
     mov    dx,    di
+    mov    di,    bx
     mov    cx,    30
     mov    ah,    40h
     mov    bx,    si
+    xor    bh,    bh
     int    21h
-    mov    byte ptr [di +  4],     020h 
-    mov    byte ptr [di + 14],     020h 
-    mov    byte ptr [di + 24],     020h 
+    
+    ;mov    si,    ax ; si_h = c_iter
+    ;mov    al,    ah ; bp_h = b_iter
+    ;mov    bp,    ax ; bp_l = a_iter    
 loop_iter:
-    add    word ptr [count_c],     0101h
-    cmp    byte ptr [count_c],     00h
-    jz     c_max
+    add    si,    0100h
+    ; how to check if si_h = MAX
+    mov    ax,    si
+    cmp    ah,    MAX
+    jg     c_max
     jmp    calc
 c_max:
-    mov    word ptr [count_c],    MIN&CYC
-    add    word ptr [count_b],    0101h
-    cmp    byte ptr [count_b],    00h
-    jz     b_max
+    or     si,    MIN_WRD
+    add    bp,    0100h
+    mov    ax,    bp
+    cmp    ah,    MAX
+    jg     b_max
     jmp    calc
 b_max:
-    mov    word ptr [count_b],    MIN&CYC
-    add    word ptr [count_a],    0101h
-    cmp    byte ptr [count_a],    00h
-    jz     clFile
+    add    bp,    0001h
+    and    bp,    MIN_WRD_FF
+    mov    ax,    bp
+    cmp    al,    MAX
+    jg     clFile
     jmp    calc
 clFile:
     mov    ah,    3Eh
     mov    bx,    si
     int    21h
     jmp    SHORT Exit
-numerator:
-    mov    al,    bh;c  
-    cbw
-    mov    dx,    ax    
-    sal    dx,    1
-    add    dx,    ax
-    sal    dx,    1                      
-    sal    dx,    1
-    mov    al,    bl;a
-    cbw
-    mov    bx,    ax 
-    mov    al,    byte ptr [b]           
-    cbw                                  
-    imul   dx
-    add    bx,    6
-    js     neg_bx
-    add    ax,    bx
-    adc    dx,    0
-    jmp    SHORT division
-neg_bx:
-    neg    bx
-    sub    ax,    bx
-    sbb    dx,    0
-division:
-    idiv   cx
+;numerator:
+;    mov    al,    bh 
+;    cbw
+;    mov    dx,    ax    
+;    sal    dx,    1
+;    add    dx,    ax
+;    sal    dx,    1                      
+;    sal    dx,    1
+;    mov    al,    bl
+;    cbw
+;    mov    bx,    ax 
+;    mov    al,    byte ptr [b]           
+;    cbw                                  
+;    imul   dx
+;    add    bx,    6
+;    js     neg_bx
+;    add    ax,    bx
+;    adc    dx,    0
+;    jmp    SHORT division
+;neg_bx:
+;    neg    bx
+;    sub    ax,    bx
+;    sbb    dx,    0
+;division:
+;    idiv   cx
+;    mov    d,     ax
 Exit:
-  CALL time
     mov    ah,    04Ch
     mov    al,    0
     int    21h
-   ;End    Start  
-time PROC
-;Hour Part
-MOV AH,2CH    ; To get System Time
-INT 21H
-MOV AL,CH     ; Hour is in CH
-AAM
-MOV BX,AX
-MOV DL,BH      ; Since the values are in BX, BH Part
-ADD DL,30H     ; ASCII Adjustment
-MOV AH,02H     ; To Print in DOS
-INT 21H
-MOV DL,BL      ; BL Part 
-ADD DL,30H     ; ASCII Adjustment
-MOV AH,02H     ; To Print in DOS
-INT 21H
-
-MOV DL,':'
-MOV AH,02H    ; To Print : in DOS
-INT 21H
-
-;Minutes Part
-MOV AH,2CH    ; To get System Time
-INT 21H
-MOV AL,CL     ; Minutes is in CL
-AAM
-MOV BX,AX
-MOV DL,BH      ; Since the values are in BX, BH Part
-ADD DL,30H     ; ASCII Adjustment
-MOV AH,02H     ; To Print in DOS
-INT 21H
-MOV DL,BL      ; BL Part 
-ADD DL,30H     ; ASCII Adjustment
-MOV AH,02H     ; To Print in DOS
-INT 21H
-
-MOV DL,':'    ; To Print : in DOS
-MOV AH,02H
-INT 21H
-
-;Seconds Part
-MOV AH,2CH    ; To get System Time
-INT 21H
-MOV AL,DH     ; Seconds is in DH
-AAM
-MOV BX,AX
-MOV DL,BH      ; Since the values are in BX, BH Part
-ADD DL,30H     ; ASCII Adjustment
-MOV AH,02H     ; To Print in DOS
-INT 21H
-MOV DL,BL      ; BL Part 
-ADD DL,30H     ; ASCII Adjustment
-MOV AH,02H     ; To Print in DOS
-INT 21H
+    End    Start  
 
 
-mov ah, 02h
-mov dl, 13d
-int 21h
-mov dl, 10d
-mov ah, 02h
-int 21h
-ret
-time ENDP
 
-End    Start
+
+
 ;OF COMBS
     ;A = -024, |B| > 88, C = -062
     ;A = -023, |B| > 95, C = -057
