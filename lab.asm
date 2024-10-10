@@ -9,10 +9,11 @@
 ; di holds the offset of the buffer 
 ; bp is free 
 ;KOHCTAHTbI
-MIN            EQU    -128
+MIN            EQU    123
 MIN_WRD        EQU    MIN * 100h
 MIN_WRD_FF     EQU    MIN_WRD + 0FFh
 MAX            EQU    127
+CYCLES         EQU    255 - MAX
 
 
 .data
@@ -79,7 +80,7 @@ no_of:
     ;jmp    numerator
 wrBuffer:
     mov    bx,    di
-    mov    dx,    2b2dh
+    mov    dx,    202dh
     
     mov    cl,    dh
     mov    ax,    si
@@ -156,21 +157,25 @@ loop_iter:
     add    si,    0100h
     ; how to check if si_h = MAX
     mov    ax,    si
-    cmp    ah,    MAX
-    jg     c_max
+    add    ah,    CYCLES
+    jz     c_max
     jmp    calc
-c_max:
-    or     si,    MIN_WRD
-    add    bp,    0100h
+c_max:   
+    mov    ax,    si
+    mov    ah,    MIN
+    mov    si,    ax
     mov    ax,    bp
-    cmp    ah,    MAX
+    inc    ah
+    mov    bp,    ax
+    sub    ah,    MAX
     jg     b_max
     jmp    calc
 b_max:
-    add    bp,    0001h
-    and    bp,    MIN_WRD_FF
     mov    ax,    bp
-    cmp    al,    MAX
+    inc    al
+    mov    ah,    MIN
+    mov    bp,    ax
+    sub    al,    MAX
     jg     clFile
     jmp    calc
 clFile:
