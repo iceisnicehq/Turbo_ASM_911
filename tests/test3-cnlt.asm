@@ -23,11 +23,12 @@ sub ax, 287h
 mov ss, ax        
     XOR AX, AX
     ; set flags 
-mov ax, 7206
+mov ax, 7206h
 push ax
 popf
+cld
     MOV EAX, 018A8h   ;test
-    MOV EBX, 1234h    ;test2
+    MOV EBX, 0AB9Bh    ;test2
     MOV ECX, 9F02h    
     MOV EDX, 0024h    
 
@@ -81,23 +82,23 @@ int 3
     
     cmpxchg dx, cx
     
-    mov cl, es:[10]
+    mov cl, es:[10h]
     
-    sub cl, 77
+    sub cl, 73
     
-    mov cx, 4
+    mov cx, 7
     
     movzx si, cl
     
-    rep movsw
+    rep movsb
     
-    adc word ptr ds:[si+4], 14
+    adc dword ptr ds:[si+2], 8
     
     cwde
     
     movsw
     
-    les bx, es:[bx+si+12]
+    les bx, es:[bx+si+18h]
 
 
 
