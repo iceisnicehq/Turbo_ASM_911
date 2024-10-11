@@ -23,6 +23,9 @@ add ax, 45d
 mov ss, ax        
     XOR AX, AX
     ; set flags 
+mov ax, 7206
+push ax
+popf
     MOV EAX, 018A8h   ;test
     MOV EBX, 1234h    ;test2
     MOV ECX, 9F02h    
