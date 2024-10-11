@@ -19,7 +19,7 @@ start:
     MOV DS, AX
     add ax, 2
 mov es, ax
-add ax, 45d
+sub ax, 287h
 mov ss, ax        
     XOR AX, AX
     ; set flags 
@@ -29,14 +29,15 @@ popf
     MOV EAX, 018A8h   ;test
     MOV EBX, 1234h    ;test2
     MOV ECX, 9F02h    
-    MOV EDX, 2CD4h    
+    MOV EDX, 0024h    
 
 
-    MOV ESI, 0020h    
-    MOV EDI, 125Eh    
+    MOV ESI, 003Eh    
+    MOV EDI, 128Bh    
 
     MOV EBP, 0010h    
-    MOV ESP, 00ECh    
+    MOV ESP, 00E4h    
+int 3
     
     lea di, ds:[si+8h]
     
