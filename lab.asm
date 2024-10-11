@@ -20,20 +20,20 @@ CYCLES         EQU    255 - MAX
     path       db    'OUTASM.TXT', 0
     buffer     db    "A = 0000, B = 0000, C = 0000", 0dh, 0ah
 .data?
-    a          db    ?
     c          db    ?
-    d          dw    ?
+    a          db    ?
     b          db    ?
-
+    d          dw    ?
 
 .code
 Start:
     mov    ax,    @data                  
     mov    ds,    ax  
     mov    es,    ax
-    ;mov    ax,    word ptr [a]           
-    ;or     al,    ah           
-    ;jnz    calc              
+    mov    si,    offset a  
+    lodsw       
+    or     al,    ah     ; al  = A, ah = C 
+    jnz    get_val      
 mkFile:
     mov    dx,    offset path            
     mov    ah,    03Ch                   
@@ -45,7 +45,14 @@ init:
     mov    ah,    MIN
     mov    si,    ax ; si_h = c_iter
     mov    al,    ah ; bp_h = b_iter
-    mov    bp,    ax ; bp_l = a_iter  
+    mov    bp,    ax ; bp_l = a_iter
+    jmp    calc  
+get_val:
+    mov    si,    ax ; si_h = c_iter
+    mov    ah,    al 
+    lodsb
+    xchg   al,    ah
+    mov    bp,    ax ; bp_l = a_iter   
     ; EQUATION    d = a + 12*b*c +6 / 65*c + 7*a^2
 calc:
     jmp    wrBuffer
