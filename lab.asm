@@ -9,10 +9,11 @@
 ; di holds the offset of the buffer 
 ; bp is free 
 ;KOHCTAHTbI
-MIN            EQU    123
+MIN            EQU    124
 MIN_WRD        EQU    MIN * 100h
 MIN_WRD_FF     EQU    MIN_WRD + 0FFh
 MAX            EQU    127
+MAX_WRD        EQU    MAX * 100h
 CYCLES         EQU    255 - MAX
 
 
@@ -32,8 +33,8 @@ Start:
     mov    es,    ax
     mov    si,    offset a  
     lodsw       
-    or     al,    ah     ; al  = A, ah = C 
-    jnz    get_val      
+    or     al,    ah     ; al  = A, ah = C
+    ;jnz    get_val      
 mkFile:
     mov    dx,    offset path            
     mov    ah,    03Ch                   
@@ -164,26 +165,28 @@ loop_iter:
     add    si,    0100h
     ; how to check if si_h = MAX
     mov    ax,    si
-    add    ah,    CYCLES
-    jz     c_max
-    jmp    calc
-c_max:   
+    xor    al,    al
+    cmp    ax,    MAX_WRD+0100h
+    jnz    not_max
+;c max
     mov    ax,    si
     mov    ah,    MIN
     mov    si,    ax
     mov    ax,    bp
     inc    ah
+    xor    al,    al
     mov    bp,    ax
-    sub    ah,    MAX
-    jg     b_max
-    jmp    calc
-b_max:
+    cmp    ax,    MAX_WRD+0100h
+    jnz    not_max
+;b max
     mov    ax,    bp
     inc    al
     mov    ah,    MIN
     mov    bp,    ax
-    sub    al,    MAX
-    jg     clFile
+    xor    ah,    ah
+    cmp    ax,    MAX_WRD+0100h
+    jnz    clFile
+not_max:
     jmp    calc
 clFile:
     mov    ah,    3Eh
@@ -208,6 +211,11 @@ clFile:
 ;    js     neg_bx
 ;    add    ax,    bx
 ;    adc    dx,    0
+
+
+
+
+
 ;    jmp    SHORT division
 ;neg_bx:
 ;    neg    bx
@@ -215,8 +223,9 @@ clFile:
 ;    sbb    dx,    0
 ;division:
 ;    idiv   cx
-;    mov    di, si
-;    stosw
+;    and    si,    00FFh
+;    mov    di,    si
+;    stosw     
 Exit:
     mov    ah,    04Ch
     mov    al,    0
