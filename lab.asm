@@ -215,7 +215,8 @@ clFile:
 ;    sbb    dx,    0
 ;division:
 ;    idiv   cx
-;    mov    d,     ax
+;    mov    di, si
+;    stosw
 Exit:
     mov    ah,    04Ch
     mov    al,    0
