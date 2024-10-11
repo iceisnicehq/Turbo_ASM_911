@@ -165,8 +165,8 @@ loop_iter:
     add    si,    0100h
     ; how to check if si_h = MAX
     mov    ax,    si
-    xor    al,    al
-    cmp    ax,    MAX_WRD+0100h
+    dec    ah
+    cmp    ah,    MAX
     jnz    not_max
 ;c max
     mov    ax,    si
@@ -174,17 +174,17 @@ loop_iter:
     mov    si,    ax
     mov    ax,    bp
     inc    ah
-    xor    al,    al
     mov    bp,    ax
-    cmp    ax,    MAX_WRD+0100h
+    dec    ah
+    cmp    ah,    MAX
     jnz    not_max
 ;b max
     mov    ax,    bp
     inc    al
     mov    ah,    MIN
     mov    bp,    ax
-    xor    ah,    ah
-    cmp    ax,    MAX_WRD+0100h
+    dec    al
+    cmp    al,    MAX
     jnz    clFile
 not_max:
     jmp    calc
