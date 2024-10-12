@@ -9,10 +9,10 @@
 ; di holds the offset of the buffer 
 ; bp is free 
 ;KOHCTAHTbI
-MIN            EQU    1
-MAX            EQU    3
+MIN            EQU    -128
+MAX            EQU    127
 
-
+JUMPS 
 .data
     path       db    'OUTASM.TXT', 0
     buffer     db    "A = 0000, B = 0000, C = 0000", 0dh, 0ah
@@ -21,7 +21,6 @@ MAX            EQU    3
     c          db    ?
     b          db    ?
     d          dw    ?
-
 .code
 Start:
     mov    ax,    @data                  
@@ -43,7 +42,7 @@ init:
     mov    si,    ax ; si_h = c_iter
     mov    al,    ah ; bp_h = b_iter
     mov    bp,    ax ; bp_l = a_iter
-    jmp    calc  
+    jmp    SHORT calc  
 get_val:
     mov    ch,    al
     lodsb ; al = b
@@ -53,37 +52,38 @@ get_val:
     mov    bp,    cx ; bp_l = a_iter   
     ; EQUATION    d = a + 12*b*c +6 / 65*c + 7*a^2
 calc:
-    jmp    wrBuffer
-    
-    
+    ;bp_h  = b
+    ;bp_l  = a
+    ;si_h  = c
     mov    ax,    bp
     cbw
     mov    bx,    ax
-    sal    ax,    1
-    ;add          
-    imul   al
-    cmp    ax,    5929d
-    jae    wrBuffer   
-    xor    bp,    bp
-    mov    dx,    ax                     
-    sal    ax,    1
-    add    dx,    ax
-    sal    ax,    1
-    add    dx,    ax
-    jno    no_of
-    mov    bp,    20000d
-    sub    dx,    bp
-no_of:  
-    mov    bh,    al   
-    cbw    
-    mov    cx,    ax                     
-    sal    cx,    6                      
+    sal    ax,    3
+    sub    ax,    bx
+    imul   bx
+    mov    bh,    ch
+    or     dx,    dx
+    jnz    wrBuffer
+    mov    dx,    ax
+    mov    ax,    si
+    mov    al,    ah
+    cbw
+    mov    cx,    ax
+    sal    ax,    6
     add    cx,    ax
-    add    cx,    bp
+    js     negative
     add    cx,    dx
-    jo     wrBuffer
-    or     si,    si
-    ;jnz    loop_iter
+    js     wrBuffer
+    jc     wrBuffer
+    jmp    SHORT check_loop
+negative:
+    neg    cx
+    sub    dx,    cx
+    jc     check_loop
+    js     wrBuffer
+check_loop:
+    test   si,    00FFh
+    jnz    loop_iter
     ;jmp    numerator
 wrBuffer:
     mov    bx,    di
@@ -218,8 +218,6 @@ clFile:
 ;    sbb    dx,    0
 ;division:
 ;    idiv   cx
-;    and    si,    00FFh
-;    mov    di,    si
 ;    stosw     
 Exit:
     mov    ah,    04Ch
