@@ -9,20 +9,16 @@
 ; di holds the offset of the buffer 
 ; bp is free 
 ;KOHCTAHTbI
-MIN            EQU    124
-MIN_WRD        EQU    MIN * 100h
-MIN_WRD_FF     EQU    MIN_WRD + 0FFh
-MAX            EQU    127
-MAX_WRD        EQU    MAX * 100h
-CYCLES         EQU    255 - MAX
+MIN            EQU    1
+MAX            EQU    3
 
 
 .data
     path       db    'OUTASM.TXT', 0
     buffer     db    "A = 0000, B = 0000, C = 0000", 0dh, 0ah
 .data?
-    c          db    ?
     a          db    ?
+    c          db    ?
     b          db    ?
     d          dw    ?
 
@@ -49,14 +45,17 @@ init:
     mov    bp,    ax ; bp_l = a_iter
     jmp    calc  
 get_val:
+    mov    ch,    al
+    lodsb ; al = b
+    mov    di,    si
     mov    si,    ax ; si_h = c_iter
-    mov    ah,    al 
-    lodsb
-    xchg   al,    ah
-    mov    bp,    ax ; bp_l = a_iter   
+    mov    cl,    al
+    mov    bp,    cx ; bp_l = a_iter   
     ; EQUATION    d = a + 12*b*c +6 / 65*c + 7*a^2
 calc:
     jmp    wrBuffer
+    
+    
     mov    ax,    bp
     cbw
     mov    bx,    ax
@@ -162,30 +161,26 @@ wrFile:
     ;mov    al,    ah ; bp_h = b_iter
     ;mov    bp,    ax ; bp_l = a_iter    
 loop_iter:
+    mov    ax,    si
     add    si,    0100h
     ; how to check if si_h = MAX
-    mov    ax,    si
-    dec    ah
     cmp    ah,    MAX
-    jnz    not_max
+    jl     not_max
 ;c max
     mov    ax,    si
     mov    ah,    MIN
     mov    si,    ax
     mov    ax,    bp
-    inc    ah
-    mov    bp,    ax
-    dec    ah
+    add    bp,    0100h
     cmp    ah,    MAX
-    jnz    not_max
+    jl     not_max
 ;b max
-    mov    ax,    bp
+    mov    cl,    al
     inc    al
     mov    ah,    MIN
     mov    bp,    ax
-    dec    al
-    cmp    al,    MAX
-    jnz    clFile
+    cmp    cl,    MAX
+    jnl     clFile
 not_max:
     jmp    calc
 clFile:
