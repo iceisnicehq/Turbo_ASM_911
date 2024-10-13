@@ -167,6 +167,7 @@ not_max:
 clFile:
     mov    ah,    3Eh
     mov    bx,    si
+    xor    bh,    bh
     int    21h
     jmp    SHORT Exit
 numerator:
