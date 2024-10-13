@@ -97,7 +97,7 @@ posC:
     mov    ax,    cx
     or     ah,    30h
     stosw
-    dec    di;,    6
+    dec    di
     mov    ax,    bp
     mov    al,    ah
     mov    cl,    dh
@@ -116,7 +116,7 @@ posB:
     mov    ax,    cx
     or     ah,    30h
     stosw
-    dec    di;,    6
+    dec    di
     mov    ax,    bp
     mov    cl,    dh
     test   al,    080h                   
