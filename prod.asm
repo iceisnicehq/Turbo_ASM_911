@@ -11,9 +11,9 @@ MAX            EQU    127
     path       db    'A_B_C.TXT', 0
     buffer     db    "0000_0000_0000", 0dh, 0ah
 .data?
-    a          db    ?
-    c          db    ?
-    b          db    ?
+    a          db    1
+    c          db    3
+    b          db    80
     d          dw    ?
 .code
 Start:
@@ -22,7 +22,7 @@ Start:
     mov    es,    ax
     mov    si,    offset a  
     lodsw       
-    or     al,    ah   
+    or     ax,    ax   
     jnz    get_val      
 mkFile:
     mov    dx,    offset path            
@@ -38,11 +38,12 @@ init:
     mov    bp,    ax
     jmp    SHORT calc  
 get_val:
-    mov    ch,    al
+    mov    cl,    al
     lodsb
     mov    di,    si
-    mov    si,    ax 
-    mov    cl,    al
+    mov    ch,    al
+    xor    al,    al
+    mov    si,    ax
     mov    bp,    cx  
     ; EQUATION    d = a + 12*b*c +6 / 65*c + 7*a^2
 calc:
@@ -52,7 +53,6 @@ calc:
     sal    ax,    3
     sub    ax,    bx
     imul   bx
-    mov    bh,    ch
     or     dx,    dx
     jnz    wrBuffer
     mov    dx,    ax
@@ -97,7 +97,7 @@ posC:
     mov    ax,    cx
     or     ah,    30h
     stosw
-    dec    di
+    dec    di;,    6
     mov    ax,    bp
     mov    al,    ah
     mov    cl,    dh
@@ -116,7 +116,7 @@ posB:
     mov    ax,    cx
     or     ah,    30h
     stosw
-    dec    di
+    dec    di;,    6
     mov    ax,    bp
     mov    cl,    dh
     test   al,    080h                   
@@ -198,7 +198,7 @@ Exit:
     mov    ah,    04Ch
     mov    al,    0
     int    21h
-    End    Start  
+   End    Start  
 
 
 
