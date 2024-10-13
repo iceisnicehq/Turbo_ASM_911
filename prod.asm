@@ -7,10 +7,9 @@
 MIN            EQU    -128
 MAX            EQU    127
 
-JUMPS 
 .data
-    path       db    'OUTASM.TXT', 0
-    buffer     db    "A = 0000, B = 0000, C = 0000", 0dh, 0ah
+    path       db    'A_B_C.TXT', 0
+    buffer     db    "0000_0000_0000", 0dh, 0ah
 .data?
     a          db    ?
     c          db    ?
@@ -31,7 +30,7 @@ mkFile:
     xor    cx,    cx                     
     int    21h                            
 init:
-    lea    di,    [buffer + 26]
+    lea    di,    [buffer + 12]
     std 
     mov    ah,    MIN
     mov    si,    ax
@@ -98,7 +97,7 @@ posC:
     mov    ax,    cx
     or     ah,    30h
     stosw
-    sub    di,    6
+    dec    di;,    6
     mov    ax,    bp
     mov    al,    ah
     mov    cl,    dh
@@ -117,7 +116,7 @@ posB:
     mov    ax,    cx
     or     ah,    30h
     stosw
-    sub    di,    6
+    dec    di;,    6
     mov    ax,    bp
     mov    cl,    dh
     test   al,    080h                   
@@ -135,16 +134,16 @@ posA:
     mov    ax,    cx
     or     ah,    30h
     stosw
-    sub    di,    2
+    inc    di
+    inc    di
 wrFile:
     mov    dx,    di
     mov    di,    bx
-    mov    cx,    30
+    mov    cx,    16
     mov    ah,    40h
     mov    bx,    si
     xor    bh,    bh
     int    21h
-
 loop_iter:
     mov    ax,    si
     add    si,    0100h
@@ -185,7 +184,7 @@ numerator:
     add    bx,    6
     js     neg_bx
     add    ax,    bx
-    adc    dx,    0s
+    adc    dx,    0
     jmp    SHORT division
 neg_bx:
     neg    bx
