@@ -47,7 +47,6 @@ get_val:
     mov    bx,    cx  
     ; EQUATION    d = a + 12*b*c +6 / 65*c + 7*a^2
 calc:
-    ;jmp wrBuffer
     mov    al,    bl
     cbw
     mov    bp,    ax
@@ -80,7 +79,6 @@ check_loop:
     jmp    numerator
 wrBuffer:
     mov    bp,    di
-    ;mov    dx,    202dh
     mov    cl,    20h
     mov    ax,    si
     mov    al,    ah   
@@ -99,7 +97,7 @@ posC:
     mov    ax,    cx
     or     ah,    30h
     stosw
-    dec    di;,    6
+    dec    di
     mov    al,    bh
     mov    cl,    20h
     test   al,    080h                    
@@ -117,7 +115,7 @@ posB:
     mov    ax,    cx
     or     ah,    30h
     stosw
-    dec    di;,    6
+    dec    di
     mov    al,    bl
     mov    cl,    20h
     test   al,    080h                   
