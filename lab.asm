@@ -4,13 +4,13 @@
 .186
 .stack    100h
 
-MIN            EQU    -128
-MAX            EQU    127
+MIN            EQU    -10
+MAX            EQU    10
 
 .data
     path       db    'A_B_C.TXT', 0
     buffer     db    "0000_0000_0000", 0dh, 0ah
-.data?
+;.data?
     a          db    1
     c          db    3
     b          db    80
@@ -34,12 +34,14 @@ init:
     lea    di,    [buffer + 12]
     std 
     mov    ah,    MIN
-; si_h = c_iter 
+    ; si_h = c_iter 
 ; bp_h = b_iter
-; bp_l = a_iter    
-    mov    si,    ax 
+; bp_l = a_iter 
+; bh = b
+; bl = a
+    mov    si,    ax
     mov    al,    ah 
-    mov    bp,    ax
+    mov    bx,    ax
     jmp    SHORT calc  
 get_val:
     mov    cl,    al
@@ -48,15 +50,16 @@ get_val:
     mov    ch,    al
     xor    al,    al
     mov    si,    ax
-    mov    bp,    cx  
+    mov    bx,    cx  
     ; EQUATION    d = a + 12*b*c +6 / 65*c + 7*a^2
 calc:
-    mov    ax,    bp
+    ;jmp wrBuffer
+    mov    al,    bl
     cbw
-    mov    bx,    ax
+    mov    bp,    ax
     sal    ax,    3
-    sub    ax,    bx
-    imul   bx
+    sub    ax,    bp
+    imul   bp
     or     dx,    dx
     jnz    wrBuffer
     mov    dx,    ax
@@ -81,15 +84,15 @@ check_loop:
     jnz    loop_iter
     jmp    numerator
 wrBuffer:
-    mov    bx,    di
-    mov    dx,    202dh
-    mov    cl,    dh
+    mov    bp,    di
+    ;mov    dx,    202dh
+    mov    cl,    20h
     mov    ax,    si
     mov    al,    ah   
     test   al,    080h                    
     jns    posC
     neg    al
-    mov    cl,    dl       
+    mov    cl,    2dh       
 posC:
     aam
     mov    ch,    al
@@ -102,13 +105,12 @@ posC:
     or     ah,    30h
     stosw
     dec    di;,    6
-    mov    ax,    bp
-    mov    al,    ah
-    mov    cl,    dh
+    mov    al,    bh
+    mov    cl,    20h
     test   al,    080h                    
     jns    posB
     neg    al
-    mov    cl,    dl    
+    mov    cl,    2dh    
 posB:
     aam
     mov    ch,    al
@@ -121,12 +123,12 @@ posB:
     or     ah,    30h
     stosw
     dec    di;,    6
-    mov    ax,    bp
-    mov    cl,    dh
+    mov    al,    bl
+    mov    cl,    20h
     test   al,    080h                   
     jns    posA
     neg    al
-    mov    cl,    dl     
+    mov    cl,    2dh     
 posA:
     aam
     mov    ch,    al
@@ -142,30 +144,31 @@ posA:
     inc    di
 wrFile:
     mov    dx,    di
-    mov    di,    bx
+    mov    di,    bp
     mov    cx,    16
     mov    ah,    40h
+    mov    bp,    bx
     mov    bx,    si
     xor    bh,    bh
     int    21h
+    mov    bx,    bp
 loop_iter:
     mov    ax,    si
-    add    si,    0100h
     cmp    ah,    MAX
-    jl     not_max
-    mov    ax,    si
-    mov    ah,    MIN
+    jl     c_iter
+    cmp    bh,    MAX
+    jl     b_iter
+    cmp    bl,    MAX
+    jnl    clFile
+a_iter:
+    inc    bl
+    mov    bh,    MIN-1
+b_iter:
+    mov    ah,    MIN-1
     mov    si,    ax
-    mov    ax,    bp
-    add    bp,    0100h
-    cmp    ah,    MAX
-    jl     not_max
-    mov    cl,    al
-    inc    al
-    mov    ah,    MIN
-    mov    bp,    ax
-    cmp    cl,    MAX
-    jnl     clFile
+    inc    bh    
+c_iter:
+    add    si,    0100h
 not_max:
     jmp    calc
 clFile:
@@ -175,8 +178,7 @@ clFile:
     int    21h
     jmp    SHORT Exit
 numerator:
-    mov    ax,    bp
-    mov    al,    ah 
+    mov    al,    bh
     cbw
     mov    dx,    ax    
     sal    dx,    1
@@ -186,9 +188,9 @@ numerator:
     mov    al,    ah
     cbw
     imul   dx
-    add    bx,    6
+    add    bp,    6
     js     neg_bx
-    add    ax,    bx
+    add    ax,    bp
     adc    dx,    0
     jmp    SHORT division
 neg_bx:
