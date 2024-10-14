@@ -78,11 +78,11 @@ add ax, si
     nop
     bswap eax
     
-    imul si
+    mul si
     
     cmpxchg dx, cx
     
-    mov cl, es:[12h]             ; Changed offset from 11h to 12h
+    mov ch, es:[12h]             ; Changed offset from 11h to 12h
     
     sub cl, 71                   ; Changed subtraction value from 72 to 71
     
