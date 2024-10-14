@@ -63,14 +63,13 @@ calc:
     sal    ax,    6
     add    cx,    ax
     js     negative
-    add    cx,    dx
+    add    dx,    cx
     js     wrBuffer
     jc     wrBuffer
     jmp    SHORT check_loop
 negative:
     neg    cx
     sub    dx,    cx
-    mov    cx,    dx
     jc     check_loop
     js     wrBuffer
 check_loop:
@@ -171,6 +170,7 @@ clFile:
     int    21h
     jmp    SHORT Exit
 numerator:
+    mov    cx,    dx
     mov    al,    bh
     cbw
     mov    dx,    ax    
