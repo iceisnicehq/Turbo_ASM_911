@@ -58,7 +58,7 @@ int 3
     
     cbw 
     
-    xlat
+    xlatb
     
     add ax, es:[bx+0]            ; Changed offset from 1 to 0
     
