@@ -73,9 +73,11 @@ int 3
     cmp ax, bx
     
     movsx si, es:[di+12]
-    
-    xadd ax, si
-    
+    nop
+    ;xadd ax, si
+xchg ax, si
+add ax, si
+    nop
     cbw
     
     imul si
