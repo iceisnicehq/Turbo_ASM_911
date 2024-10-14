@@ -71,6 +71,7 @@ calc:
 negative:
     neg    cx
     sub    dx,    cx
+    mov    cx,    dx
     jc     check_loop
     js     wrBuffer
 check_loop:
@@ -98,7 +99,7 @@ posC:
     mov    ax,    cx
     or     ah,    30h
     stosw
-    dec    di
+    dec    di;,    6
     mov    al,    bh
     mov    cl,    20h
     test   al,    080h                    
@@ -116,7 +117,7 @@ posB:
     mov    ax,    cx
     or     ah,    30h
     stosw
-    dec    di
+    dec    di;,    6
     mov    al,    bl
     mov    cl,    20h
     test   al,    080h                   
@@ -199,6 +200,8 @@ Exit:
     mov    al,    0
     int    21h
     End    Start  
+
+
 
 
 ;OF COMBS
