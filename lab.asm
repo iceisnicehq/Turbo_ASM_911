@@ -4,16 +4,16 @@
 .186
 .stack    100h
 
-MIN            EQU    -10
-MAX            EQU    10
+MIN            EQU    -128
+MAX            EQU    127
 
 .data
     path       db    'A_B_C.TXT', 0
     buffer     db    "0000_0000_0000", 0dh, 0ah
-;.data?
-    a          db    1
-    c          db    3
-    b          db    80
+.data?
+    a          db    ?
+    c          db    ?
+    b          db    ?
     d          dw    ?
 .code
 Start:
