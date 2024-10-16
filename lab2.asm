@@ -4,8 +4,8 @@
 ; the input is in cmd
 ; enter should mark the end
 
-; can i use stack???
-; proccessor model???
+; can i use stack - NO
+; proccessor model - 386
 
 ; С использованием строковых команд собрать в выделенном буфере текст, 
 ; включающий в себя каждое пятое слово исходного текста. 
