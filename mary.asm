@@ -1,4 +1,4 @@
-.model small
+.model small ; 12 583 167
 .186
 .stack 100h
 .data
@@ -26,6 +26,7 @@ start:
     int     21h
     mov     [handle], ax  
     mov	    al, -128  
+    int 3
     mov     bh, al ;A
     mov     bl, al ;C
     mov     cl, al ;B
@@ -46,42 +47,87 @@ example:  ; EXAMPLE = 9*a^2 + 42*b - c / a^3 + 6*c
     mov     al, bh  
     cbw             
     imul    bp 
-    js      nega3
     or      dx, dx
-    jnz     wof
+    jz      positive
+    cmp     dx, 0FFFFh
+    jz      negative
+    jmp     SHORT wof
 LOCALS @@
-    mov     di, ax
-    sal     si, 1   ; 6c
-    jns     @@pos
-    neg     si
-    sub     di, si
-    jc      next
-    js      wof
-    jmp     check
-@@pos:
-    add     di, si
-    js      wof
+positive:
+    sal     si, 1
+    js      @@negative
+    add     ax, si
+    js      wof      
     jc      wof
-    ; posit ax
-    jmp     check
+    jmp     SHORT check
+@@negative:
+    neg     si
+    sub     ax, si
+    jc      check
+    js      wof
+    jmp     SHORT check
+negative:
+; -32 ... -1  | sf = 0 cf = 0
+; -32 ... 127 | sf = 1 cf = 0
+; -09 ... 122 | sf = 0 cf = 1
+    sal     si, 1
+    js      @@negative
+    add     ax, si
+    xchg    ax, si
+    lahf
+    ;AH := EFLAGS(SF:ZF:0:AF:0:PF:1:CF).
+    test ah, 10000001b
+    jz   wof  
+ ;   jc      wof
 
-nega3:
-    cmp     dx, 0ffffh
-    jnz     wof
-    ; negative ax
-    mov     di, ax
-    sal     si, 1   ; 6c 
-    jns     @@pos
+    jmp     SHORT check
+; @@check:
+;     jns     wof 
+;     jmp     SHORT check
+@@negative:
     neg     si
-    sub     di, si
-    jc      wof
+    sub     ax, si
     jns     wof
-        jmp     check
+    jc      wof
+    ; negative i wont have of if 
+    ; 6c is positive then if sf = 0 it's of, if cf = 0 it's of
+    ; 6c is negative then if sf = 1 it's of, if cf = 1 it's of 
+    ; positive no of if 
+    ; 6c is positive then if sf = 1 it's of, if cf = 1 it's of
+    ; 6c is negative then if cf = 0 it's of, if sf = 1 it's of
 
-@@pos:
-    add     di, ax
-    jns    wof
-    jnc    wof
+;     mov     di, ax
+;     sal     si, 1   ; 6c
+;     jns     @@pos
+;     neg     si
+;     sub     di, si
+;     jc      next
+;     js      wof
+;     jmp     check
+; @@pos:
+;     add     di, si
+;     js      wof
+;     jc      wof
+;     ; posit ax
+;     jmp     check
+
+; nega3:
+;     cmp     dx, 0ffffh
+;     jnz     wof
+;     ; negative ax
+;     mov     di, ax
+;     sal     si, 1   ; 6c 
+;     jns     @@pos
+;     neg     si
+;     sub     di, si
+;     jc      wof
+;     jns     wof
+;         jmp     check
+
+; @@pos:
+;     add     di, ax
+;     jns    wof
+;     jnc    wof
 check:
     cmp     [handle], 0
     jnz    next
@@ -220,5 +266,6 @@ close:
     mov     bx, [handle]
     int     21h
     mov     ah, 4Ch
+    mov     al, 0
     int     21h  
 end start
