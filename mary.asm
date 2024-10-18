@@ -2,12 +2,13 @@
 .186
 .stack 100h
 .data
+FileName    db  "overflow.txt", 0
+buffer  db  '0000, 0000, 0000', 0Dh, 0Ah
 C   db  ?
 A   db  ?
 B   db  ?
-FileName    db  "overflow.txt", 0
-handle  dw  ?
-buffer  db  '0000, 0000, 0000', 0Dh, 0Ah
+D   dw  ?
+JUMPS
 .code
 start:
 ; cx: ch  = b, cl = desc
@@ -17,14 +18,13 @@ start:
     mov     ds, ax
     mov     bx, word ptr A
     mov     cl, B
-    ;;;;;;;;;cmp     bx, 0000h
-    or      bx, bx
+    or      bx, cx
     jne     example
     mov     ah, 3ch
     xor     cx, cx
     mov     dx, offset FileName
     int     21h
-    mov     [handle], ax  
+    mov     ch, al  
     mov	    al, -128  
     int 3
     mov     bh, al ;A
@@ -51,7 +51,7 @@ example:  ; EXAMPLE = 9*a^2 + 42*b - c / a^3 + 6*c
     jz      positive
     cmp     dx, 0FFFFh
     jz      negative
-    jmp     SHORT wof
+    jmp     wof
 LOCALS @@
 positive:
     sal     si, 1
@@ -67,9 +67,6 @@ positive:
     js      wof
     jmp     SHORT check
 negative:
-; -32 ... -1  | sf = 0 cf = 0
-; -32 ... 127 | sf = 1 cf = 0
-; -09 ... 122 | sf = 0 cf = 1
     sal     si, 1
     js      @@negative
     add     ax, si
@@ -77,108 +74,64 @@ negative:
     lahf
     ;AH := EFLAGS(SF:ZF:0:AF:0:PF:1:CF).
     test ah, 10000001b
+    xchg    ax, si
     jz   wof  
- ;   jc      wof
-
     jmp     SHORT check
-; @@check:
-;     jns     wof 
-;     jmp     SHORT check
 @@negative:
     neg     si
     sub     ax, si
     jns     wof
     jc      wof
-    ; negative i wont have of if 
-    ; 6c is positive then if sf = 0 it's of, if cf = 0 it's of
-    ; 6c is negative then if sf = 1 it's of, if cf = 1 it's of 
-    ; positive no of if 
-    ; 6c is positive then if sf = 1 it's of, if cf = 1 it's of
-    ; 6c is negative then if cf = 0 it's of, if sf = 1 it's of
-
-;     mov     di, ax
-;     sal     si, 1   ; 6c
-;     jns     @@pos
-;     neg     si
-;     sub     di, si
-;     jc      next
-;     js      wof
-;     jmp     check
-; @@pos:
-;     add     di, si
-;     js      wof
-;     jc      wof
-;     ; posit ax
-;     jmp     check
-
-; nega3:
-;     cmp     dx, 0ffffh
-;     jnz     wof
-;     ; negative ax
-;     mov     di, ax
-;     sal     si, 1   ; 6c 
-;     jns     @@pos
-;     neg     si
-;     sub     di, si
-;     jc      wof
-;     jns     wof
-;         jmp     check
-
-; @@pos:
-;     add     di, ax
-;     jns    wof
-;     jnc    wof
 check:
-    cmp     [handle], 0
+    or     ch, ch
     jnz    next
-;    jmp    chislitel
-; chislitel:
-;     mov     al, bl  
-;     cbw           
-;     sal     ax, 1   
-;     mov     si, ax  
-;     sal     ax, 1   
-;     add     si, ax 
+  jmp    chislitel
+chislitel:
+    mov     al, bl  
+    cbw           
+    sal     ax, 1   
+    mov     si, ax  
+    sal     ax, 1   
+    add     si, ax 
     
-;     mov     al, bh 
-;     imul    al      
-;     mov     bp, ax      
-;     mov     al, bh  
-;     cbw             
-;     imul    bp 
-;     mov     dx, ax 
-;     jo      wof
-;     add     si, dx  
-;     jz      next    
-;     mov     ax, bp
-;     sal     ax, 1
-;     sal     ax, 1
-;     sal     ax, 1
-;     add     bp, ax
-;     mov     al, cl ;al=B  
-;     cbw
-;     mov     dx, ax
-;     sal     ax, 1
-;     sal     ax, 1
-;     add     ax, dx
-;     sal     dx, 1
-;     sal     dx, 1
-;     sal     dx, 1
-;     sal     dx, 1
-;     add     ax, dx
-;     sal     ax, 1
-;     mov     di, ax  
-;     mov     al, bl  
-;     cbw  
-;     add     bp, di  
-;     sub     bp, ax  
-;     mov     ax, bp
-;     cwd
-;     idiv    si
-;     cmp     [handle], 0
-;     jnz     next
-;     mov     ah, 4Ch
-;     int     21h
+    mov     al, bh 
+    imul    al      
+    mov     bp, ax      
+    mov     al, bh  
+    cbw             
+    imul    bp 
+    mov     dx, ax 
+    jo      wof
+    add     si, dx  
+    jz      next    
+    mov     ax, bp
+    sal     ax, 1
+    sal     ax, 1
+    sal     ax, 1
+    add     bp, ax
+    mov     al, cl ;al=B  
+    cbw
+    mov     dx, ax
+    sal     ax, 1
+    sal     ax, 1
+    add     ax, dx
+    sal     dx, 1
+    sal     dx, 1
+    sal     dx, 1
+    sal     dx, 1
+    add     ax, dx
+    sal     ax, 1
+    mov     di, ax  
+    mov     al, bl  
+    cbw  
+    add     bp, di  
+    sub     bp, ax  
+    mov     ax, bp
+    cwd
+    idiv    si
+    mov     D,  ax
+    mov     ah, 4Ch
+    int     21h
 next:
     inc     bl
     cmp     bl, 128d
@@ -200,15 +153,12 @@ wof:
     mov     di, bx
     mov	    bp, cx
     mov     al, bh
-    cbw 
-    cmp     ax, 0
+    cmp     al, 0
+    mov     [buffer], 2Bh
     jge     pA
     mov     [buffer], 2Dh
-    neg     ax
-    jmp     nextA    
-pA:
-    mov     [buffer], 2Bh
-nextA:   
+    neg     ax   
+pA:  
     aam
     add     al, 30H
     mov     [buffer+3], al
@@ -218,15 +168,12 @@ nextA:
     mov     [buffer+2], al
     mov     [buffer+1], ah
     mov     al, cl
-    cbw 
-    cmp     ax, 0
+    mov     [buffer+6], 2Bh
+    cmp     al, 0
     jge     pB
     mov     [buffer+6], 2Dh
-    neg     ax
-    jmp     nextB   
-pB:
-    mov     [buffer+6], 2Bh
-nextB:   
+    neg     ax 
+pB: 
     aam
     add     al, 30H
     mov     [buffer+9], al
@@ -236,15 +183,12 @@ nextB:
     mov     [buffer+8], al
     mov     [buffer+7], ah
     mov     al, bl
-    cbw 
-    cmp     ax, 0
+    mov     [buffer+12], 2Bh
+    cmp     al, 0
     jge     pC
     mov     [buffer+12], 2Dh
-    neg     ax
-    jmp     nextC    
+    neg     ax 
 pC:
-    mov     [buffer+12], 2Bh
-nextC:   
     aam
     add     al, 30H
     mov     [buffer+15], al
@@ -256,14 +200,17 @@ nextC:
     mov     dx, offset buffer
     mov     cx, 18
     mov     ah, 40h          
-    mov     bx, [handle]     
+    mov     bx, bp  
+    mov     bl, bh 
+    xor     bh, bh  
     int     21h 
     mov	    cx, bp 
     mov     bx, di  
     jmp     next
 close:
     mov     ah, 3Eh
-    mov     bx, [handle]
+    mov     bl, ch
+    xor     bh, bh
     int     21h
     mov     ah, 4Ch
     mov     al, 0
