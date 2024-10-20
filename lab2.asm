@@ -12,84 +12,141 @@
 ; При этом второе слово собранного вами текста должно быть инвертированным по порядку букв. 
 ; Исходный текст вводится с клавиатуры. 
 ; Вывод собранного текста – на экран и в файл.
-.MODEL SMALL
-.STACK 100h
+.model SMALL
+.386
+.stack 100h
 
-.DATA
-    naming DB 20 DUP('$')    ; Reserve space for up to 20 characters
-    prompt DB 'Enter your naming: $'
-    greeting DB 'Hi, $'
-    newline DB 0Dh, 0Ah, '$'  ; Carriage return and line feed for formatting
-    backspace DB 08h, ' ', 08h, '$'  ; Backspace, space, backspace to clear a char
 
-.CODE
-MAIN PROC
-    ; Initialize the data segment
-    MOV AX, @DATA
-    MOV DS, AX
+.data
+    prompt      db      'Enter your prompt:', '$'
+    backspace   db      ' ', 08h, '$'  ; Backspace, space, backspace to clear a char
+    limit       db      0Dh, 0Ah, 'LIMIT REACHED','$'  ; Carriage return and line feed for formatting
+    greeting    db      0Dh, 0Ah, 'Output: ','$'
+.data?
+    space       db      ?
+    buffer      db      256 DUP(?)    ; Reserve space for up to 20 characters
+.code
+Start:
+    mov     ax,    @data
+    mov     ds,    ax
+    mov     es,    ax
+    mov    space, 20h
+    mov     ah,    09h        
+    mov     dx,    offset prompt    
+    int     21h 
 
-    ; Display the prompt
-    MOV AH, 09h           ; DOS function: Display string
-    LEA DX, prompt        ; Load address of the prompt
-    INT 21h               ; Call DOS interrupt
+    ; read user input character by character
+    mov     di,    offset buffer             ; si will track the number of characters entered
+    mov     bp,    di
+    add     bp,    35 ; 20 char limit
+print_space:
+    mov     dl,    20h
+    mov     ah,    02h
+    int     21h
+read_char:
+    cmp     di, bp            ; check if the input limit (20 chars) is reached
+    je      end_input_limit         ; if yes, ignore further input
+    mov     ah,   01h          
+    int     21h  
+               
+    cmp     al,   20h           ; check if enter (carriage return) was pressed
+    jne      no_second_space
+    dec     di
+    scasb
+    jne      no_second_space
+    mov     dl,   08h
+    mov     ah,   02h
+    int     21h
+    jmp     read_char
+no_second_space:
+    cmp     al,   0dh           ; check if enter (carriage return) was pressed
+    je      end_input          ; if enter is pressed, end input
 
-    ; Read user input character by character
-    MOV SI, 0             ; SI will track the number of characters entered
+    cmp     al,   08h           ; check if backspace was pressed
+    je      del_character    ; if backspace, jump to handle it
 
-READ_CHAR:
-    MOV AH, 01h           ; DOS function: Read a character from input
-    INT 21h               ; Call DOS interrupt
+    
+    ; store the entered character in the buffer array
+    stosb
 
-    CMP AL, 0Dh           ; Check if Enter (carriage return) was pressed
-    JE END_INPUT          ; If Enter is pressed, end input
+    ; echo the entered character to the screen
 
-    CMP AL, 08h           ; Check if Backspace was pressed
-    JE HANDLE_BACKSPACE    ; If Backspace, jump to handle it
 
-    CMP SI, 20            ; Check if the input limit (20 chars) is reached
-    JAE READ_CHAR         ; If yes, ignore further input
+    jmp     read_char          ; continue reading more characters
 
-    ; Store the entered character in the naming array
-    MOV [naming + SI], AL
-    INC SI                 ; Move to the next position in the array
+del_character:
+    cmp     di,   offset buffer              ; if no characters were entered, ignore backspace
+    je print_space
 
-    ; Echo the entered character to the screen
-    MOV AH, 02h            ; DOS function: Display a character
-    INT 21h
+    dec di                 ; move back in the buffer buffer
 
-    JMP READ_CHAR          ; Continue reading more characters
+    mov ah, 09h            ; dos function: display string
+    lea dx, backspace      ; display backspace, space, backspace
+    int 21h
 
-HANDLE_BACKSPACE:
-    CMP SI, 0              ; If no characters were entered, ignore backspace
-    JE READ_CHAR
+    jmp read_char          ; continue reading more characters
+end_input_limit:
+    mov ah, 09h
+    lea dx, limit
+    int 21h
+end_input:
+    int 3
+    mov al, 20h   ; add the string terminator after the last character
+    stosb
+    mov bp, di
+    mov di, offset buffer
+    mov si, di
+    mov bx, 4
+space_5th:
+        cmp di, bp
+        jz no5th
+    scasb
+    jnz space_5th
+    dec bx
+    jnz space_5th
+        xchg si, di
+moving:
+    movsb
+    cmp al, byte ptr [di]
+    jnz moving
+    mov byte ptr [di], '$'
+    mov bx, 4
+    dec di
+    cmp di, bp
+    jnz space_5th
+no5th:
+mov al, '$'
+stosb
 
-    DEC SI                 ; Move back in the naming buffer
-    MOV AH, 09h            ; DOS function: Display string
-    LEA DX, backspace      ; Display backspace, space, backspace
-    INT 21h
+;     mov cx, ax
+;     xor ch, ch
+;     mov di, offset buffer
+;     mov al, 20h
+; 5th:
+;     ;mov si, di
+;     scasb
+;     jne iter
+;     dec bx
+;     jnz  not_5th
+;     mov bx, cx
+;     mov si 
+; not_5th:
+; iter:
+;     loop 5th
 
-    JMP READ_CHAR          ; Continue reading more characters
 
-END_INPUT:
-    MOV [naming + SI], '$'   ; Add the string terminator after the last character
+    ; display greeting "hi, "
+    mov ah, 09h
+    lea dx, greeting
+    int 21h
 
-    ; Add a newline before the greeting for better formatting
-    MOV AH, 09h
-    LEA DX, newline
-    INT 21h
+    ; display the entered buffer
+    mov ah, 09h
+    lea dx, buffer           ; dx points to the buffer buffer
+    int 21h                ; display the entered buffer
 
-    ; Display greeting "Hi, "
-    MOV AH, 09h
-    LEA DX, greeting
-    INT 21h
-
-    ; Display the entered naming
-    MOV AH, 09h
-    LEA DX, naming           ; DX points to the naming buffer
-    INT 21h                ; Display the entered naming
-
-    ; Exit the program
-    MOV AH, 4Ch            ; DOS function: Terminate program
-    INT 21h
-MAIN ENDP
-END MAIN
+Exit:
+    ; exit the program
+    mov ah, 4ch            ; dos function: terminate program
+    int 21h
+    End Start
