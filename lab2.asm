@@ -16,6 +16,8 @@
 .386
 .stack 100h
 maxSize         EQU     256
+leftkey         EQU     4Bh
+rightkey        EQU     4Dh
 ; cld lodsb std stosb
 .data
     prompt      db      'Enter your prompt:', '$'
@@ -46,17 +48,16 @@ print_space:
     mov     ah,    02h
     int     21h
 read_char:
-    cmp     di, bp            ; check if the input limit (20 chars) is reached
-    je      end_input_limit         ; if yes, ignore further input
     mov     ah,   01h          
     int     21h  
-               
+    cmp     di, bp            ; check if the input limit (20 chars) is reached
+    je      end_input_limit         ; if yes, ignore further input    
     cmp     al,   20h           ; check if enter (carriage return) was pressed
     jne     no_second_space
     dec     di
     inc     bx
     scasb
-    jne     no_second_space
+    jne      no_second_space
     dec     bx
     mov     dl,   08h
     mov     ah,   02h
@@ -68,20 +69,16 @@ no_second_space:
 
     cmp     al,   08h           ; check if backspace was pressed
     je      del_character    ; if backspace, jump to handle it
-
     
     ; store the entered character in the buffer array
     stosb
     inc cx
     ; echo the entered character to the screen
-
-
     jmp     read_char          ; continue reading more characters
-
 del_character:
     cmp     di,   si              ; if no characters were entered, ignore backspace
     je print_space
-
+    dec cx
     dec di                 ; move back in the buffer buffer
 
     mov ah, 02h            ; dos function: display string
@@ -99,6 +96,7 @@ end_input:
     int 3
     cmp bx, 5
     jnl no_error
+
     mov ah, 09h
     mov dx, offset shrtStr 
     int 21h
@@ -106,10 +104,11 @@ end_input:
 no_error:
     mov al, 0   ; add the string terminator after the last character
     stosb
+    ; inc cx
 
-
-    mov di, offset buffer
-    mov dx, di
+    mov di, si
+    mov bp, di
+    add bp, cx
     mov si, di
     mov ax, 0420h
     ;xor bp, bp
@@ -129,7 +128,6 @@ moving:
     ;mov dl, cl
     xor cx, cx
     not cx
-    cld
     repnz scasb
     not cx
     dec dh
@@ -166,10 +164,11 @@ skip:
     loop fifth_wrd
 output:
     xchg si, di
-    dec di
+    ; dec di
     mov al, 0
     stosb
     mov cx, di
+    sub cx, offset buffer
     ; mov cx, di
     ; mov ax, 0120h
     ; mov di, offset buffer
