@@ -112,7 +112,7 @@ no_error:
     mov dx, di
     mov si, di
     mov ax, 0420h
-    xor bp, bp
+    ;xor bp, bp
     ; mov cx, 0ffffh
     ; cld
     ; repnz scasb
@@ -126,7 +126,7 @@ fifth_wrd:
     jnz skip
 moving:
     ; mov al, 20h
-    mov bx, cx
+    ;mov dl, cl
     xor cx, cx
     not cx
     cld
@@ -144,135 +144,52 @@ reverse:
     dec si
     dec si
     loop reverse
-    mov cl, ah
+    ;mov cl, ah
+    mov cl, al
     add si, cx
     mov dh, 2
     jmp reset
-; 12 23 45 67 89 9A 1B BC DE 1F         LB 3C     4D 5E 6F 19 20
+; 12h, 23h, 34h, 45h, 56h, 67h, 78h, 89h, 9Ah, 0ABh, 0BCh, 0CDh, 0DEh, 0EFh, 0F0h, 20h, 01h, 02h, 03h, 04h, 05h, 06h, 07h, 08h, 09h, 0Ah, 0Bh, 0Ch, 0Dh, 0Eh, 0Fh, 00h, 11h, 12h, 13h, 14h, 15h, 16h, 17h, 18h, 19h, 1Ah, 1Bh, 1Ch, 1Dh, 1Eh, 1Fh, 10h
 not_reverse:
     sub di, cx
-    add bp, cx
-    sub bx, cx
+    ;add bp, cx
+    ;sub bx, cx
     xchg si, di
     rep movsb
 reset:
-    or   bx, bx
-    jz   output
+    cmp   bp, di
+    jle   output
     xchg si, di
-    mov cx, bx
+    ;mov cx, bx
     mov ah, 4
 skip:
     loop fifth_wrd
+output:
     xchg si, di
     dec di
-    mov al, 20h
+    mov al, 0
     stosb
     mov cx, di
-    mov ax, 0120h
-    mov di, offset buffer
-    mov si, di
+    ; mov cx, di
+    ; mov ax, 0120h
+    ; mov di, offset buffer
+    ; mov si, di
 
 
-
-
-
-output:
-    ; display greeting "hi, "
     mov ah, 09h
     lea dx, greeting
     int 21h
-    lea dx, [buffer]
-
+    mov dx, offset buffer
+    sub cx, dx
+    
     MOV BX, 1       ; BX = pointer to string
-   ; MOV DX, DI       ; DX = destination index (DI is used to point to string location)
-    
-    ; Set CX to the length of the string
-    MOV CX, bp       ; CX = length of string (from StrLength)
-    
-    ; Alternate entry point: In case we want to handle the string another way
-    ; DS:DX points to the string address for output
-    
-    ; DOS interrupt for writing to file or device
+    ;MOV CX, bp       ; CX = length of string (from StrLength)
+
     MOV AH, 40h      ; DOS function: write to file or device
     INT 21h          ; Call DOS (AX will hold the number of chars written)
-    ; display the entered buffer
-    ; mov ah, 09h
-    ; lea dx, buffer           ; dx points to the buffer buffer
-    ; int 21h                ; display the entered buffer
 
 exit:
     ; exit the program
     mov ah, 4ch            ; dos function: terminate program
     int 21h
     End Start
-; PROC strLength
-
-;     mov al, 20h
-;     mov cx, 0ffffh
-;     cld
-;     repnz scasb
-;     not cx
-;     dec cx
-; ENDP strLength
-
-; PROC strInsert
-;     ; ax = LenInsertion
-;     ; cx = ChartToMove
-;     xchg si, di
-;     call strLength
-;     xchg si, di
-;     mov  ax, cx
-;     call strLength
-;     sub cx, dx
-;     inc cx
-;     ;;;;
-; ENDP strInsert
-;     ; bx = s1 index
-    
-; PROC - StrWrite: This procedure writes a string to the standard output
-PROC StrWrite
-    ; Call StrLength to get the length of the string
-    CALL StrLength
-    
-StrWrite2:
-    ; Save modified registers
-    PUSH AX
-    PUSH BX
-    PUSH DX
-    
-    ; Prepare registers for output
-    MOV BX, DX       ; BX = pointer to string
-    MOV DX, DI       ; DX = destination index (DI is used to point to string location)
-    
-    ; Set CX to the length of the string
-    MOV CX, AX       ; CX = length of string (from StrLength)
-    
-    ; Alternate entry point: In case we want to handle the string another way
-    ; DS:DX points to the string address for output
-    
-    ; DOS interrupt for writing to file or device
-    MOV AH, 40h      ; DOS function: write to file or device
-    INT 21h          ; Call DOS (AX will hold the number of chars written)
-    
-    ; Restore registers
-    POP DX
-    POP BX
-    POP AX
-    
-    RET              ; Return to the caller
-
-ENDP
-
-; StrWrite2 - alternate procedure entry point (if needed)
-PROC StrWrite2
-    ; Restore registers and return to caller
-    POP DX
-    POP BX
-    POP AX
-    RET              ; Return from alternate entry
-
-ENDP
-
-; StrLength: Placeholder for string length procedure (not provided)
-; Presumably, this procedure calculates the length of the string
-; and returns it in AX for further processing in StrWrite.
