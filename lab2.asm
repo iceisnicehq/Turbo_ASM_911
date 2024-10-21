@@ -15,24 +15,22 @@
 .model SMALL
 .386
 .stack 100h
-
+maxSize         EQU     256
 ; cld lodsb std stosb
 .data
     prompt      db      'Enter your prompt:', '$'
-    backspace   db      ' ', 08h, '$'  ; Backspace, space, backspace to clear a char
     limit       db      0Dh, 0Ah, 'LIMIT REACHED','$'  ; Carriage return and line feed for formatting
     greeting    db      0Dh, 0Ah, 'Output: ','$'
-    shrtStr       db      0Dh, 0Ah, 'String too short','$'
+    shrtStr     db      0Dh, 0Ah, 'String too short','$'
     space       db      ?
-    buffer      db      256 DUP(?)    ; Reserve space for up to 20 characters
-    asciiZ      db      ?
+    buffer      db      maxSize+2 DUP(?)    ; Reserve space for up to 20 characters
 .code
 Start:
     mov     ax,    @data
     mov     ds,    ax
-    mov     es,    ax
+    mov     es,    ax ; for es:di
 
-    mov     ah,    09h        
+    mov     ah,    09h       ; print string
     mov     dx,    offset prompt    
     int     21h 
 
@@ -42,7 +40,7 @@ Start:
     stosb
     mov     si,    di
     mov     bp,    di
-    add     bp,    256 ; 20 char limit
+    add     bp,    maxSize ; 20 char limit
 print_space:
     mov     dl,    20h
     mov     ah,    02h
@@ -54,11 +52,11 @@ read_char:
     int     21h  
                
     cmp     al,   20h           ; check if enter (carriage return) was pressed
-    jne      no_second_space
+    jne     no_second_space
     dec     di
     inc     bx
     scasb
-    jne      no_second_space
+    jne     no_second_space
     dec     bx
     mov     dl,   08h
     mov     ah,   02h
@@ -86,8 +84,10 @@ del_character:
 
     dec di                 ; move back in the buffer buffer
 
-    mov ah, 09h            ; dos function: display string
-    lea dx, backspace      ; display backspace, space, backspace
+    mov ah, 02h            ; dos function: display string
+    mov dl, 20h      ; display backspace, space, backspace
+    int 21h
+    mov dl, 08h
     int 21h
 
     jmp read_char          ; continue reading more characters
