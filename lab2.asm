@@ -3,7 +3,7 @@
 ; if the word that needs to be reversed doesnt exist a program should throw an error
 ; the input is in cmd
 ; enter should mark the end
-
+; 0ah ; can be more spacews
 ; can i use stack - NO
 ; proccessor model - 386
 
