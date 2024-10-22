@@ -104,15 +104,15 @@ end_input:
     int 3
     cmp bx, 5
     jnl no_error
-
+    mov bx, cx
     mov ah, 09h
     mov dx, offset shrtStr 
     int 21h
     jmp exit
 no_error:
-    ; mov al, 0   ; add the string terminator after the last character
-    ; stosb
-    ; inc cx
+    mov al, 20h   ; add the string terminator after the last character
+    stosb
+    inc cx
 
     mov di, si
     mov bp, di
@@ -175,30 +175,16 @@ skip:
     loop fifth_wrd
 output:
     xchg si, di
-    ; dec di
     mov al, 0
     stosb
-    ; sub di, si
-    ; mov cx, di
-    ; sub cx, offset buffer
-    ; mov cx, di
-    ; mov ax, 0120h
-    ; mov di, offset buffer
-    ; mov si, di
+
 
 
     mov ah, 09h
     mov dx, offset greeting
     int 21h
     mov dx, offset buffer
-    mov di, dx
-     xor cx, cx
-    not cx
-    repnz scasb
-    not cx
-    dec cx
-    sub cx, dx
-    
+    mov cx, bx
     MOV BX, 1       ; BX = pointer to string
     ;MOV CX, bp       ; CX = length of string (from StrLength)
 
@@ -208,5 +194,6 @@ output:
 exit:
     ; exit the program
     mov ah, 4ch            ; dos function: terminate program
+    dec al 
     int 21h
     End Start
