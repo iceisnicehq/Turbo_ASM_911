@@ -57,7 +57,7 @@ read_char:
     dec     di
     inc     bx
     scasb
-    jne      no_second_space
+    jne     no_second_space
     dec     bx
     mov     dl,   08h
     mov     ah,   02h
@@ -77,12 +77,20 @@ no_second_space:
     jmp     read_char          ; continue reading more characters
 del_character:
     cmp     di,   si              ; if no characters were entered, ignore backspace
-    je print_space
+    je      print_space
+    mov al, 20h
+    mov dl, al      ; display backspace, space, backspace
     dec cx
     dec di                 ; move back in the buffer buffer
+    scasb
+    jne not_space
+    dec bx
+not_space:
+    dec di
+
 
     mov ah, 02h            ; dos function: display string
-    mov dl, 20h      ; display backspace, space, backspace
+
     int 21h
     mov dl, 08h
     int 21h
@@ -184,12 +192,12 @@ output:
     int 21h
     mov dx, offset buffer
     mov di, dx
-    ;  xor cx, cx
-    ; not cx
-    ; repnz scasb
-    ; not cx
-    ; dec cx
-    ; sub cx, dx
+     xor cx, cx
+    not cx
+    repnz scasb
+    not cx
+    dec cx
+    sub cx, dx
     
     MOV BX, 1       ; BX = pointer to string
     ;MOV CX, bp       ; CX = length of string (from StrLength)
