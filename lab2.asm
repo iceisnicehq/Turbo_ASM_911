@@ -102,14 +102,14 @@ end_input:
     int 21h
     jmp exit
 no_error:
-    mov al, 0   ; add the string terminator after the last character
-    stosb
+    ; mov al, 0   ; add the string terminator after the last character
+    ; stosb
     ; inc cx
 
     mov di, si
     mov bp, di
     add bp, cx
-    mov si, di
+    ;mov si, di
     mov ax, 0420h
     ;xor bp, bp
     ; mov cx, 0ffffh
@@ -125,7 +125,7 @@ fifth_wrd:
     jnz skip
 moving:
     ; mov al, 20h
-    ;mov dl, cl
+    mov dl, cl
     xor cx, cx
     not cx
     repnz scasb
@@ -142,12 +142,13 @@ reverse:
     dec si
     dec si
     loop reverse
-    ;mov cl, ah
-    mov cl, al
+   ; mov cl, ah
+    mov cl, ah
     add si, cx
     mov dh, 2
     jmp reset
 ; 12h, 23h, 34h, 45h, 56h, 67h, 78h, 89h, 9Ah, 0ABh, 0BCh, 0CDh, 0DEh, 0EFh, 0F0h, 20h, 01h, 02h, 03h, 04h, 05h, 06h, 07h, 08h, 09h, 0Ah, 0Bh, 0Ch, 0Dh, 0Eh, 0Fh, 00h, 11h, 12h, 13h, 14h, 15h, 16h, 17h, 18h, 19h, 1Ah, 1Bh, 1Ch, 1Dh, 1Eh, 1Fh, 10h
+; aa bb cc dd 5ASD tt yy rr ii 6ASD 00 33 44 55 7ASD 88 22 11 55 8ASD 99 00 00 99   9ASD
 not_reverse:
     sub di, cx
     ;add bp, cx
@@ -158,7 +159,7 @@ reset:
     cmp   bp, di
     jle   output
     xchg si, di
-    ;mov cx, bx
+    mov cl, dl
     mov ah, 4
 skip:
     loop fifth_wrd
@@ -168,7 +169,7 @@ output:
     mov al, 0
     stosb
     mov cx, di
-    sub cx, offset buffer
+    ; sub cx, offset buffer
     ; mov cx, di
     ; mov ax, 0120h
     ; mov di, offset buffer
@@ -176,7 +177,7 @@ output:
 
 
     mov ah, 09h
-    lea dx, greeting
+    mov dx, offset greeting
     int 21h
     mov dx, offset buffer
     sub cx, dx
