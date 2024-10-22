@@ -12,12 +12,45 @@
 ; При этом второе слово собранного вами текста должно быть инвертированным по порядку букв. 
 ; Исходный текст вводится с клавиатуры. 
 ; Вывод собранного текста – на экран и в файл.
+
+
+; C:\>auto
+; Enter your prompt: @ ff f f f @@@ @ @ @ @ @ @ FFFF FFF FFFFE
+
+; Output: f @ FFFFE  @@@
+; C:\>auto
+; Enter your prompt: gg ddr cgcg gct ftctc g @ @gh @ @GDHqq@ @@ @ @ @ HJDHC
+
+; Output: ftctc @qqHDG@
+; C:\>
+
+; 4th7fdnui ngn nefgn reb gr erbg reh 435893458934759834 @@@ 3w49 #@*@ *2r98hwesro fj(*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@ @@@@@@@
+; LIMIT REACHED
+; Output: 73 iundf7ht4387t743jt
+; C:\>@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+; @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+; Bad command or filename - "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+; @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+
+; C:\>auto
+; Enter your prompt: @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+; @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+; @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+; @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+; LIMIT REACHED
+; String too short
+; C:\>auto
+; Enter your prompt: 
+; @ @@@@@@@@@@@@@@@@@@@ @ @ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+; LIMIT REACHED
+; String too short
+; C:\>
+
 .model SMALL
 .386
 .stack 100h
 maxSize         EQU     256
-leftkey         EQU     4Bh
-rightkey        EQU     4Dh
+
 ; cld lodsb std stosb
 .data
     prompt      db      'Enter your prompt:', '$'
@@ -25,7 +58,7 @@ rightkey        EQU     4Dh
     greeting    db      0Dh, 0Ah, 'Output: ','$'
     shrtStr     db      0Dh, 0Ah, 'String too short','$'
     space       db      ?
-    buffer      db      maxSize+2 DUP(?)    ; Reserve space for up to 20 characters
+    buffer      db      maxSize+1 DUP(?)    ; Reserve space for up to 20 characters
 .code
 Start:
     mov     ax,    @data
@@ -98,11 +131,11 @@ not_space:
     jmp read_char          ; continue reading more characters
 end_input_limit:
     mov ah, 09h
-    lea dx, limit
+    mov dx, offset limit
     int 21h
 end_input:
     int 3
-    cmp bx, 5
+    cmp bx, 4
     jnl no_error
     mov bx, cx
     mov ah, 09h
