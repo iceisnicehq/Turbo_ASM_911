@@ -82,7 +82,16 @@ print_space:
     int     21h
 read_char:
     mov     ah,   01h          
-    int     21h  
+    int     21h 
+    ; or      al, al
+    ; jnz     no_extd_char
+    ; int     21h
+    ; mov     dl, 20h
+    ; mov ah, 02h            ; dos function: display string
+    ; int 21h
+    ; mov dl, 08h
+    ; int 21h
+no_extd_char: 
     cmp     di, bp            ; check if the input limit (20 chars) is reached
     je      end_input_limit         ; if yes, ignore further input    
     cmp     al,   20h           ; check if enter (carriage return) was pressed
@@ -137,7 +146,7 @@ end_input:
     int 3
     cmp bx, 4
     jnl no_error
-    mov bx, cx
+xor bx, bx
     mov ah, 09h
     mov dx, offset shrtStr 
     int 21h
@@ -148,6 +157,7 @@ no_error:
     inc cx
 
     mov di, si
+    mov bx, si
     mov bp, di
     add bp, cx
     ;mov si, di
@@ -217,7 +227,10 @@ output:
     mov dx, offset greeting
     int 21h
     mov dx, offset buffer
-    mov cx, bx
+sub cx, bx
+add cx, di
+; not bx
+; mov cx, bx
     MOV BX, 1       ; BX = pointer to string
     ;MOV CX, bp       ; CX = length of string (from StrLength)
 
