@@ -53,10 +53,11 @@ maxSize         EQU     256
 
 ; cld lodsb std stosb
 .data
+    file        db      'output.txt', 0
     prompt      db      'Enter your prompt:', '$'
     limit       db      0Dh, 0Ah, 'LIMIT REACHED','$'  ; Carriage return and line feed for formatting
     greeting    db      0Dh, 0Ah, 'Output: ','$'
-    shrtStr     db      0Dh, 0Ah, 'String too short','$'
+    shrtStr     db      0Dh, 0Ah, 'Too short','$'
     space       db      ?
     buffer      db      maxSize+1 DUP(?)    ; Reserve space for up to 20 characters
 .code
@@ -79,19 +80,12 @@ Start:
 print_space:
     mov     dl,    20h
     mov     ah,    02h
+discard:
     int     21h
+
 read_char:
     mov     ah,   01h          
     int     21h 
-    ; or      al, al
-    ; jnz     no_extd_char
-    ; int     21h
-    ; mov     dl, 20h
-    ; mov ah, 02h            ; dos function: display string
-    ; int 21h
-    ; mov dl, 08h
-    ; int 21h
-no_extd_char: 
     cmp     di, bp            ; check if the input limit (20 chars) is reached
     je      end_input_limit         ; if yes, ignore further input    
     cmp     al,   20h           ; check if enter (carriage return) was pressed
@@ -218,6 +212,9 @@ skip:
     loop fifth_wrd
 output:
     xchg si, di
+    sub cx, bx
+add cx, di
+mov bp, cx
     mov al, 0
     stosb
 
@@ -227,8 +224,10 @@ output:
     mov dx, offset greeting
     int 21h
     mov dx, offset buffer
-sub cx, bx
-add cx, di
+    mov si, dx
+; sub cx, bx
+; add cx, di
+; mov bp, cx
 ; not bx
 ; mov cx, bx
     MOV BX, 1       ; BX = pointer to string
@@ -236,7 +235,20 @@ add cx, di
 
     MOV AH, 40h      ; DOS function: write to file or device
     INT 21h          ; Call DOS (AX will hold the number of chars written)
-
+mkFile:
+    mov    dx,    offset file            
+    mov    ah,    03Ch                   
+    xor    cx,    cx                     
+    int    21h   
+wrFile:
+    mov    dx,    si
+    mov    cx,    bp
+    mov    bx,    ax
+    mov    ah,    40h
+    int    21h
+clFile:
+    mov    ah,    3Eh
+    int    21h
 exit:
     ; exit the program
     mov ah, 4ch            ; dos function: terminate program
