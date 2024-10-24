@@ -173,8 +173,7 @@ fifth_wrd:
 moving:
     ; mov al, 20h
     mov dl, cl
-    xor cx, cx
-    not cx
+    mov cx, 0ffffh
     repnz scasb
     not cx
     dec dh
