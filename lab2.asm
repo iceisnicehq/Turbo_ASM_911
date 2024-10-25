@@ -67,6 +67,7 @@ Start:
     mov     ax,    @data
     mov     ds,    ax
     mov     es,    ax ; for es:di
+    
 
     mov     ah,    09h       ; print string
     mov     dx,    offset prompt    
@@ -77,23 +78,21 @@ Start:
     mov     al,    20h
     stosb
     mov     si,    di
-    mov     bp,    di
-    add     bp,    maxSize ; 20 char limit
+    mov     cx,    maxSize
+    ;  mov     bp,    di
+    ;  add     bp,    maxSize ; 20 char limit
 print_space:
     mov     dl,    20h
     mov     ah,    02h
-discard:
     int     21h
 
 read_char:
     mov     ah,   01h          
-    int     21h 
-    cmp     di, bp            ; check if the input limit (20 chars) is reached
-    je      end_input_limit         ; if yes, ignore further input    
+    int     21h    
     cmp     al,   20h           ; check if enter (carriage return) was pressed
     jne     no_second_space
+    inc     bx   ; a a a a with space at the end still prints
     dec     di
-    inc     bx
     scasb
     jne     no_second_space
     dec     bx
@@ -106,34 +105,28 @@ no_second_space:
     je      end_input          ; if enter is pressed, end input
 
     cmp     al,   08h           ; check if backspace was pressed
-    je      del_character    ; if backspace, jump to handle it
-    
-    ; store the entered character in the buffer array
-    stosb
-    inc cx
-    ; echo the entered character to the screen
-    jmp     read_char          ; continue reading more characters
-del_character:
+    jne     no_backspace    ; if backspace, jump to handle it
     cmp     di,   si              ; if no characters were entered, ignore backspace
     je      print_space
     mov al, 20h
-    mov dl, al      ; display backspace, space, backspace
-    dec cx
     dec di                 ; move back in the buffer buffer
     scasb
     jne not_space
     dec bx
 not_space:
     dec di
-
-
     mov ah, 02h            ; dos function: display string
-
+    mov dl, al      ; display backspace, space, backspace
     int 21h
     mov dl, 08h
     int 21h
+    jmp read_char
+no_backspace:
+    ; store the entered character in the buffer array
+    stosb
+    ; echo the entered character to the screen
+    loop     read_char          ; continue reading more characters
 
-    jmp read_char          ; continue reading more characters
 end_input_limit:
     mov ah, 09h
     mov dx, offset limit
@@ -150,7 +143,8 @@ xor bx, bx
 no_error:
     mov al, 20h   ; add the string terminator after the last character
     stosb
-    inc cx
+    sub cx, 258
+    not cx
 
     mov di, si
     mov bx, si
