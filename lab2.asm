@@ -213,9 +213,11 @@ skip:
     loop fifth_wrd
 output:
     xchg si, di
-    sub cx, bx
-add cx, di
-mov bp, cx
+    ;sub cx, bx
+;add cx, di
+;mov bp, cx
+sub bx, si
+neg bx
     mov al, 0
     stosb
 
@@ -224,28 +226,31 @@ mov bp, cx
     mov ah, 09h
     mov dx, offset greeting
     int 21h
+mkFile:
+    mov    dx,    offset file            
+    mov    ah,    03Ch                   
+    xor    cx,    cx                     
+    int    21h 
+mov si, ax
     mov dx, offset buffer
-    mov si, dx
+   ; mov si, dx
 ; sub cx, bx
 ; add cx, di
 ; mov bp, cx
 ; not bx
 ; mov cx, bx
+ MOV CX, bx       ; CX = length of string (from StrLength)
     MOV BX, 1       ; BX = pointer to string
-    ;MOV CX, bp       ; CX = length of string (from StrLength)
+   
 
     MOV AH, 40h      ; DOS function: write to file or device
     INT 21h          ; Call DOS (AX will hold the number of chars written)
-mkFile:
-    mov    dx,    offset file            
-    mov    ah,    03Ch                   
-    xor    cx,    cx                     
-    int    21h   
+  
 wrFile:
-    mov    dx,    si
-    mov    cx,    bp
-    mov    bx,    ax
-    mov    ah,    40h
+    ;mov    dx,    si
+    ;mov    cx,    bp
+    mov    bx,    si
+    ;mov    ah,    40h
     int    21h
 clFile:
     mov    ah,    3Eh
