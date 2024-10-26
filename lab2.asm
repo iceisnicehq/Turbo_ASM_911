@@ -87,8 +87,13 @@ print_space:
     int     21h
 
 read_char:
-    mov     ah,   01h          
-    int     21h    
+    xor     ah,   ah
+    int     16h 
+    or      al,   al
+    jz      read_char 
+    mov     dl,   al
+    mov     ah,   02h
+    int     21h
     cmp     al,   20h           ; check if enter (carriage return) was pressed
     jne     no_second_space
     inc     bx   ; a a a a with space at the end still prints
@@ -132,6 +137,13 @@ end_input_limit:
     mov dx, offset limit
     int 21h
 end_input:
+LOCALS @@
+    mov al, 20h
+    dec di
+    scasb
+    jne @@skip
+    dec bx
+@@skip:
     int 3
     cmp bx, 4
     jnl no_error
