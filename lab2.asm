@@ -56,18 +56,19 @@ maxSize         EQU     256
 ; cld lodsb std stosb
 .data
     file        db      'output.txt', 0
-    prompt      db      'Enter your prompt:', '$'
+    prompt      db      'Enter your prompt: ', '$'
     limit       db      0Dh, 0Ah, 'LIMIT REACHED','$'  ; Carriage return and line feed for formatting
     greeting    db      0Dh, 0Ah, 'Output: ','$'
     shrtStr     db      0Dh, 0Ah, 'Too short','$'
     space       db      ?
     buffer      db      maxSize+1 DUP(?)    ; Reserve space for up to 20 characters
 .code
+; funcs to make: arrows, home, pgup, pgdn, end, 
 Start:
     mov     ax,    @data
     mov     ds,    ax
     mov     es,    ax ; for es:di
-    
+    ; disable
 
     mov     ah,    09h       ; print string
     mov     dx,    offset prompt    
@@ -82,18 +83,16 @@ Start:
     ;  mov     bp,    di
     ;  add     bp,    maxSize ; 20 char limit
 print_space:
-    mov     dl,    20h
-    mov     ah,    02h
-    int     21h
-
+    ; mov ax, 0E20h
+    ; int 10h
 read_char:
+
     xor     ah,   ah
     int     16h 
     or      al,   al
-    jz      read_char 
-    mov     dl,   al
-    mov     ah,   02h
-    int     21h
+    jz      read_char
+    cmp     al,   0dh           ; check if enter (carriage return) was pressed
+    je      end_input          ; if enter is pressed, end input
     cmp     al,   20h           ; check if enter (carriage return) was pressed
     jne     no_second_space
     inc     bx   ; a a a a with space at the end still prints
@@ -101,14 +100,8 @@ read_char:
     scasb
     jne     no_second_space
     dec     bx
-    mov     dl,   08h
-    mov     ah,   02h
-    int     21h
     jmp     read_char
 no_second_space:
-    cmp     al,   0dh           ; check if enter (carriage return) was pressed
-    je      end_input          ; if enter is pressed, end input
-
     cmp     al,   08h           ; check if backspace was pressed
     jne     no_backspace    ; if backspace, jump to handle it
     cmp     di,   si              ; if no characters were entered, ignore backspace
@@ -120,13 +113,23 @@ no_second_space:
     dec bx
 not_space:
     dec di
-    mov ah, 02h            ; dos function: display string
-    mov dl, al      ; display backspace, space, backspace
-    int 21h
-    mov dl, 08h
-    int 21h
+    mov ax, 0E08h
+    int 10h
+    mov al, 20h      ; display backspace, space, backspace
+    int 10h
+    mov al, 08h
+    int 10h
     jmp read_char
-no_backspace:
+no_backspace: 
+    cmp     al,   20h
+    jl      read_char
+    ;mov bl, 15
+    mov ah, 14
+    int 10h
+    ; mov     dl,   al
+    ; mov     ah,   02h
+    ; int     21h
+    
     ; store the entered character in the buffer array
     stosb
     ; echo the entered character to the screen
