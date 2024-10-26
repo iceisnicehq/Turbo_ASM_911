@@ -150,7 +150,7 @@ LOCALS @@
     int 3
     cmp bx, 4
     jnl no_error
-xor bx, bx
+; xor bx, bx
     mov ah, 09h
     mov dx, offset shrtStr 
     int 21h
@@ -163,8 +163,8 @@ no_error:
 
     mov di, si
     mov bx, si
-    mov bp, di
-    add bp, cx
+    ;mov bp, si
+    ;mov bp, cx
     ;mov si, di
     mov ax, 0420h
     ;xor bp, bp
@@ -213,28 +213,36 @@ not_reverse:
     xchg si, di
     rep movsb
 reset:
-    cmp   bp, di
-    jle   output
+    ; or   dl, dl
+    ; jz   output
+    mov  cl, dl
     xchg si, di
-    mov cl, dl
+
     mov ah, 4
 skip:
     loop fifth_wrd
 output:
-    xchg si, di
-    sub cx, bx
-add cx, di
-mov bp, cx
-    mov al, 0
-    stosb
-
-
-
+ int 3
+    mov  di, si
+    mkFile:
+    mov    dx,    offset file            
+    mov    ah,    03Ch                   
+    int    21h  
+    mov    si, ax
     mov ah, 09h
     mov dx, offset greeting
     int 21h
-    mov dx, offset buffer
-    mov si, dx
+    mov dx, bx
+    ; si = end of mod
+        not bx
+    add bx, di
+    mov cx, bx
+    mov al, 0
+    stosb
+; add cx, di
+; mov bp, cx
+    ; mov dx, offset buffer
+    ; mov si, dx
 ; sub cx, bx
 ; add cx, di
 ; mov bp, cx
@@ -245,15 +253,11 @@ mov bp, cx
 
     MOV AH, 40h      ; DOS function: write to file or device
     INT 21h          ; Call DOS (AX will hold the number of chars written)
-mkFile:
-    mov    dx,    offset file            
-    mov    ah,    03Ch                   
-    xor    cx,    cx                     
-    int    21h   
+ 
 wrFile:
-    mov    dx,    si
-    mov    cx,    bp
-    mov    bx,    ax
+    ; mov    dx,    si
+    ; mov    cx,    bp
+    mov    bx,    si
     mov    ah,    40h
     int    21h
 clFile:
