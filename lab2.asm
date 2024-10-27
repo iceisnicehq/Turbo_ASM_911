@@ -35,16 +35,9 @@ read_char:
     or      al,   al
     jz      read_char
     cmp     al,   0dh           
-    je      end_input       
-    cmp     al,   20h   
-    jne     no_space
-    inc     bx  
-    dec     di
-    scasb
-    jne     no_space
-    dec     bx
-    jmp     read_char
-no_space:
+    je      end_input
+    cmp     al,   7fh
+    je      read_char
     cmp     al,   08h      
     jne     no_backspace  
     cmp     di,   si       
@@ -63,9 +56,17 @@ not_space:
     mov     al,   08h
     int     10h
     jmp     read_char
-no_backspace: 
+no_backspace:        
     cmp     al,   20h
-    jl      read_char
+    jl      read_char   
+    jne     no_space
+    inc     bx  
+    dec     di
+    scasb
+    jne     no_space
+    dec     bx
+    jmp     read_char
+no_space:
     mov     ah,   14
     int     10h
     stosb
@@ -152,8 +153,8 @@ mkFile:
     not     bx
     add     bx,   di
     mov     cx,   bx
-    mov     al,   0
-    stosb
+    ; mov     al,   0
+    ; stosb
     MOV     BX,   1   
     MOV     AH,   40h      
     INT     21h     
@@ -166,6 +167,5 @@ clFile:
     int     21h
 exit:
     mov     ah,   4ch      
-    dec     al 
     int     21h
     End     Start
