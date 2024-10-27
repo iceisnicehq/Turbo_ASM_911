@@ -153,10 +153,8 @@ mkFile:
     not     bx
     add     bx,   di
     mov     cx,   bx
-    ; mov     al,   0
-    ; stosb
-    MOV     BX,   1   
-    MOV     AH,   40h      
+    mov     bx,   1   
+    mov     ah,   40h      
     INT     21h     
 wrFile:
     mov     bx,   si
