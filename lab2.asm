@@ -1,5 +1,5 @@
 .model SMALL
-.386
+.186
 .stack 100h
 
 maxSize         EQU     256
@@ -43,129 +43,129 @@ read_char:
     scasb
     jne     no_space
     dec     bx
-    jmp     SHORT read_char
+    jmp     read_char
 no_space:
     cmp     al,   08h      
     jne     no_backspace  
     cmp     di,   si       
     je      read_char
-    mov al, 20h
-    dec di   
+    mov     al,   20h
+    dec     di   
     scasb
-    jne not_space
-    dec bx
+    jne     not_space
+    dec     bx
 not_space:
-    dec di
-    mov ax, 0E08h
-    int 10h
-    mov al, 20h    
-    int 10h
-    mov al, 08h
-    int 10h
-    jmp SHORT read_char
+    dec     di
+    mov     ax,   0E08h
+    int     10h
+    mov     al,   20h    
+    int     10h
+    mov     al,   08h
+    int     10h
+    jmp     read_char
 no_backspace: 
     cmp     al,   20h
     jl      read_char
-    mov ah, 14
-    int 10h
+    mov     ah,   14
+    int     10h
     stosb
-    loop     read_char  
+    loop    read_char  
 end_input_limit:
-    mov ah, 09h
-    mov dx, offset limit
-    int 21h
+    mov     ah,   09h
+    mov     dx,   offset limit
+    int     21h
 end_input:
-    mov al, 20h
-    dec di
+    mov     al,   20h
+    dec     di
     scasb
-    jne no_last_space
-    dec bx
-    dec cx
+    jne     no_last_space
+    dec     bx
+    dec     cx
 no_last_space:
-    int 3
-    cmp bx, 4
-    jnl no_error
-    mov ah, 09h
-    mov dx, offset shrtStr 
-    int 21h
-    jmp exit
+    int     3
+    cmp     bx,   4
+    jnl     no_error
+    mov     ah,   09h
+    mov     dx,   offset shrtStr 
+    int     21h
+    jmp     SHORT exit
 no_error:
-    mov al, 20h 
+    mov     al,   20h 
     stosb
-    sub cx, 258
-    not cx
+    sub     cx,   258
+    not     cx
 
-    mov di, si
-    mov bx, si
-    mov ax, 0420h
-    mov dh, 2
+    mov     di,   si
+    mov     bx,   si
+    mov     ax,   0420h
+    mov     dh,   2
 fifth_wrd:
     scasb
-    jnz skip
-    dec ah
-    jnz skip
+    jnz     skip
+    dec     ah
+    jnz     skip
 moving:
-int 3
-    mov dl, cl
-    mov cx, 0ffffh
-    repnz scasb
-    not cx
-    sub dl, cl
-    dec dh
-    jnz not_reverse
-    mov ah, cl
-    dec di 
-    dec di
-    xchg si, di
+    int     3
+    mov     dl,   cl
+    mov     cx,   0ffffh
+    repnz   scasb
+    not     cx
+    sub     dl,   cl
+    dec     dh
+    jnz     not_reverse
+    mov     ah,   cl
+    dec     di 
+    dec     di
+    xchg    si,   di
 reverse:
     movsb
-    dec si
-    dec si
-    loop reverse
-    mov cl, ah
-    add si, cx
-    inc si
-    inc si
-    jmp reset
+    dec     si
+    dec     si
+    loop    reverse
+    mov     cl,   ah
+    add     si,   cx
+    inc     si
+    inc     si
+    jmp     SHORT reset
 not_reverse:
-    sub di, cx
-    xchg si, di
-    rep movsb
+    sub     di,   cx
+    xchg    si,   di
+    rep     movsb
 reset:
-    mov  cl, dl
-    xchg si, di
-    mov ah, 4
+    mov     cl, dl
+    xchg    si, di
+    mov     ah, 4
 skip:
-    loop fifth_wrd
+    loop    fifth_wrd
 output:
- int 3
-    mov  di, si
+    int     3
+    mov     di, si
 mkFile:
-    mov    dx,    offset file            
-    mov    ah,    03Ch                   
-    int    21h  
-    mov    si, ax
-    mov ah, 09h
-    mov dx, offset greeting
-    int 21h
-    mov dx, bx
-    not bx
-    add bx, di
-    mov cx, bx
-    mov al, 0
+    mov     dx,   offset file            
+    mov     ah,   03Ch                   
+    int     21h  
+    mov     si,   ax
+    mov     ah,   09h
+    mov     dx,   offset greeting
+    int     21h
+    mov     dx,   bx
+    not     bx
+    add     bx,   di
+    mov     cx,   bx
+    mov     al,   0
     stosb
-    MOV BX, 1   
-    MOV AH, 40h      
-    INT 21h     
+    MOV     BX,   1   
+    MOV     AH,   40h      
+    INT     21h     
 wrFile:
-    mov    bx,    si
-    mov    ah,    40h
-    int    21h
+    mov     bx,   si
+    mov     ah,   40h
+    int     21h
 clFile:
-    mov    ah,    3Eh
-    int    21h
+    mov     ah,   3Eh
+    int     21h
 exit:
-    mov ah, 4ch      
-    dec al 
-    int 21h
-    End Start
+    mov     ah,   4ch      
+    dec     al 
+    int     21h
+    End     Start
