@@ -10,7 +10,6 @@ maxSize         EQU     256
     limit       db      0Dh, 0Ah, 'LIMIT REACHED','$'  
     greeting    db      0Dh, 0Ah, 'Output: ','$'
     shrtStr     db      0Dh, 0Ah, 'Too short','$'
-    space       db      ?
     buffer      db      maxSize DUP(?)    
 .code
 
@@ -21,9 +20,7 @@ Start:
     mov     ah,    09h      
     mov     dx,    offset prompt    
     int     21h 
-    mov     di,    offset space         
-    mov     al,    20h
-    stosb
+    mov     di,    offset buffer
     mov     si,    di
     mov     cx,    maxSize
 read_char:
