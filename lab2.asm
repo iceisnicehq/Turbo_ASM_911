@@ -46,22 +46,40 @@
 ; @ @@@@@@@@@@@@@@@@@@@ @ @ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ; LIMIT REACHED
 ; String too short
+; C:\>a
+; Enter your prompt: hey hi hello whatsapp maybe whe should know you undetsand
+; Output: maybe dnastednu
+; C:\>a
+; Enter your prompt: hi hey hello whatsapp maybe you know hi hi asd asdfnh bvhfk B
+; HGD shytbfk
+; Output: maybe dsa
+
+
+
+
+;                                           »■ ≡ÅΘ ≡Gpk ╠╧ ≡Frv [ ôr√R♥♦÷   ▲   !
+;       ∟       ☺   ∟   ☺   @☺ o☻G ♣ ╕☻∟  l l · [  r       8
+;    nment         p                 ♥   ↓   u     ♂   ↓
 ; C:\>
-C:\>a
-Enter your prompt: hey hi hello whatsapp maybe whe should know you undetsand
-Output: maybe dnastednu
-C:\>a
-Enter your prompt: hi hey hello whatsapp maybe you know hi hi asd asdfnh bvhfk B
-HGD shytbfk
-Output: maybe dsa
+; C:\>a
+; Enter your prompt: hi hey hello whatsapp maybe you know hi hi asd asdfnh bvhfk B
+; HGD shytbfk
+; Output: maybe asd
+; C:\>a
+; Enter your prompt: hi hey hello whatsapp maybe you know hi hi asd asdfnh bvhfk B
+; HGD shytbfk ss
+; Output: maybe asd ss page A20 extended
+; C:\>
 
 
 
 
-                                          »■ ≡ÅΘ ≡Gpk ╠╧ ≡Frv [ ôr√R♥♦÷   ▲   !
-      ∟       ☺   ∟   ☺   @☺ o☻G ♣ ╕☻∟  l l · [  r       8
-   nment         p                 ♥   ↓   u     ♂   ↓
-C:\>
+
+
+
+
+
+
 
 .model SMALL
 .386
