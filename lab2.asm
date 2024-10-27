@@ -11,19 +11,16 @@ maxSize         EQU     256
     greeting    db      0Dh, 0Ah, 'Output: ','$'
     shrtStr     db      0Dh, 0Ah, 'Too short','$'
     space       db      ?
-    buffer      db      maxSize+1 DUP(?)    
+    buffer      db      maxSize DUP(?)    
 .code
 
 Start:
     mov     ax,    @data
     mov     ds,    ax
     mov     es,    ax 
-
     mov     ah,    09h      
     mov     dx,    offset prompt    
     int     21h 
-
-
     mov     di,    offset space         
     mov     al,    20h
     stosb
@@ -81,7 +78,7 @@ end_input:
     scasb
     jne     no_last_space
     dec     bx
-    dec     cx
+    inc     cx
 no_last_space:
     int     3
     cmp     bx,   4
@@ -91,11 +88,8 @@ no_last_space:
     int     21h
     jmp     SHORT exit
 no_error:
-    mov     al,   20h 
-    stosb
-    sub     cx,   258
+    sub     cx,   256
     not     cx
-
     mov     di,   si
     mov     bx,   si
     mov     ax,   0420h
