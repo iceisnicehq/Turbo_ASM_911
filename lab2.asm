@@ -1,146 +1,56 @@
-; limit 256 bytes
-; word is everything up to to a \s character
-; if the word that needs to be reversed doesnt exist a program should throw an error
-; the input is in cmd
-; enter should mark the end
-
-; can i use stack - NO
-; proccessor model - 386
-
-; need to RESET VALS
-
-; С использованием строковых команд собрать в выделенном буфере текст, 
-; включающий в себя каждое пятое слово исходного текста. 
-; При этом второе слово собранного вами текста должно быть инвертированным по порядку букв. 
-; Исходный текст вводится с клавиатуры. 
-; Вывод собранного текста – на экран и в файл.
-
-
-; C:\>auto
-; Enter your prompt: @ ff f f f @@@ @ @ @ @ @ @ FFFF FFF FFFFE
-
-; Output: f @ FFFFE  @@@
-; C:\>auto
-; Enter your prompt: gg ddr cgcg gct ftctc g @ @gh @ @GDHqq@ @@ @ @ @ HJDHC
-
-; Output: ftctc @qqHDG@
-; C:\>
-
-; 4th7fdnui ngn nefgn reb gr erbg reh 435893458934759834 @@@ 3w49 #@*@ *2r98hwesro fj(*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@ @@@@@@@
-; LIMIT REACHED
-; Output: 73 iundf7ht4387t743jt
-; C:\>@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-; @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-; Bad command or filename - "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-; @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-
-; C:\>auto
-; Enter your prompt: @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-; @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-; @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-; @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-; LIMIT REACHED
-; String too short
-; C:\>auto
-; Enter your prompt: 
-; @ @@@@@@@@@@@@@@@@@@@ @ @ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-; LIMIT REACHED
-; String too short
-; C:\>a
-; Enter your prompt: hey hi hello whatsapp maybe whe should know you undetsand
-; Output: maybe dnastednu
-; C:\>a
-; Enter your prompt: hi hey hello whatsapp maybe you know hi hi asd asdfnh bvhfk B
-; HGD shytbfk
-; Output: maybe dsa
-
-
-
-
-;                                           »■ ≡ÅΘ ≡Gpk ╠╧ ≡Frv [ ôr√R♥♦÷   ▲   !
-;       ∟       ☺   ∟   ☺   @☺ o☻G ♣ ╕☻∟  l l · [  r       8
-;    nment         p                 ♥   ↓   u     ♂   ↓
-; C:\>
-; C:\>a
-; Enter your prompt: hi hey hello whatsapp maybe you know hi hi asd asdfnh bvhfk B
-; HGD shytbfk
-; Output: maybe asd
-; C:\>a
-; Enter your prompt: hi hey hello whatsapp maybe you know hi hi asd asdfnh bvhfk B
-; HGD shytbfk ss
-; Output: maybe asd ss page A20 extended
-; C:\>
-
-
-
-
-
-
-
-
-
-
-
 .model SMALL
 .386
 .stack 100h
+
 maxSize         EQU     256
 
-; cld lodsb std stosb
 .data
     file        db      'output.txt', 0
     prompt      db      'Enter your prompt: ', '$'
-    limit       db      0Dh, 0Ah, 'LIMIT REACHED','$'  ; Carriage return and line feed for formatting
+    limit       db      0Dh, 0Ah, 'LIMIT REACHED','$'  
     greeting    db      0Dh, 0Ah, 'Output: ','$'
     shrtStr     db      0Dh, 0Ah, 'Too short','$'
     space       db      ?
-    buffer      db      maxSize+1 DUP(?)    ; Reserve space for up to 20 characters
+    buffer      db      maxSize+1 DUP(?)    
 .code
-; funcs to make: arrows, home, pgup, pgdn, end, 
+
 Start:
     mov     ax,    @data
     mov     ds,    ax
-    mov     es,    ax ; for es:di
-    ; disable
+    mov     es,    ax 
 
-    mov     ah,    09h       ; print string
+    mov     ah,    09h      
     mov     dx,    offset prompt    
     int     21h 
 
-    ; read user input character by character
-    mov     di,    offset space             ; si will track the number of characters entered
+
+    mov     di,    offset space         
     mov     al,    20h
     stosb
     mov     si,    di
     mov     cx,    maxSize
-    ;  mov     bp,    di
-    ;  add     bp,    maxSize ; 20 char limit
-print_space:
-    ; mov ax, 0E20h
-    ; int 10h
 read_char:
-
     xor     ah,   ah
     int     16h 
     or      al,   al
     jz      read_char
-    cmp     al,   0dh           ; check if enter (carriage return) was pressed
-    je      end_input          ; if enter is pressed, end input
-    cmp     al,   20h           ; check if enter (carriage return) was pressed
-    jne     no_second_space
-    inc     bx   ; a a a a with space at the end still prints
+    cmp     al,   0dh           
+    je      end_input       
+    cmp     al,   20h   
+    jne     no_space
+    inc     bx  
     dec     di
     scasb
-    jne     no_second_space
+    jne     no_space
     dec     bx
-    jmp     read_char
-no_second_space:
-    cmp     al,   08h           ; check if backspace was pressed
-    jne     no_backspace    ; if backspace, jump to handle it
-    cmp     di,   si              ; if no characters were entered, ignore backspace
-    je      print_space
+    jmp     SHORT read_char
+no_space:
+    cmp     al,   08h      
+    jne     no_backspace  
+    cmp     di,   si       
+    je      read_char
     mov al, 20h
-    dec di                 ; move back in the buffer buffer
+    dec di   
     scasb
     jne not_space
     dec bx
@@ -148,64 +58,46 @@ not_space:
     dec di
     mov ax, 0E08h
     int 10h
-    mov al, 20h      ; display backspace, space, backspace
+    mov al, 20h    
     int 10h
     mov al, 08h
     int 10h
-    jmp read_char
+    jmp SHORT read_char
 no_backspace: 
     cmp     al,   20h
     jl      read_char
-    ;mov bl, 15
     mov ah, 14
     int 10h
-    ; mov     dl,   al
-    ; mov     ah,   02h
-    ; int     21h
-    
-    ; store the entered character in the buffer array
     stosb
-    ; echo the entered character to the screen
-    loop     read_char          ; continue reading more characters
-
+    loop     read_char  
 end_input_limit:
     mov ah, 09h
     mov dx, offset limit
     int 21h
 end_input:
-LOCALS @@
     mov al, 20h
     dec di
     scasb
-    jne @@skip
+    jne no_last_space
     dec bx
-@@skip:
+    dec cx
+no_last_space:
     int 3
     cmp bx, 4
     jnl no_error
-; xor bx, bx
     mov ah, 09h
     mov dx, offset shrtStr 
     int 21h
     jmp exit
 no_error:
-    mov al, 20h   ; add the string terminator after the last character
+    mov al, 20h 
     stosb
     sub cx, 258
     not cx
 
     mov di, si
     mov bx, si
-    ;mov bp, si
-    ;mov bp, cx
-    ;mov si, di
     mov ax, 0420h
-    ;xor bp, bp
-    ; mov cx, 0ffffh
-    ; cld
-    ; repnz scasb
-    ; not cx
-    ; dec cx ; cx = strlen
     mov dh, 2
 fifth_wrd:
     scasb
@@ -213,11 +105,12 @@ fifth_wrd:
     dec ah
     jnz skip
 moving:
-    ; mov al, 20h
+int 3
     mov dl, cl
     mov cx, 0ffffh
     repnz scasb
     not cx
+    sub dl, cl
     dec dh
     jnz not_reverse
     mov ah, cl
@@ -225,39 +118,29 @@ moving:
     dec di
     xchg si, di
 reverse:
-; mov al, 20h
     movsb
     dec si
     dec si
     loop reverse
-   ; mov cl, ah
     mov cl, ah
     add si, cx
     inc si
     inc si
-    ; mov dh, 2
     jmp reset
-; 12h, 23h, 34h, 45h, 56h, 67h, 78h, 89h, 9Ah, 0ABh, 0BCh, 0CDh, 0DEh, 0EFh, 0F0h, 20h, 01h, 02h, 03h, 04h, 05h, 06h, 07h, 08h, 09h, 0Ah, 0Bh, 0Ch, 0Dh, 0Eh, 0Fh, 00h, 11h, 12h, 13h, 14h, 15h, 16h, 17h, 18h, 19h, 1Ah, 1Bh, 1Ch, 1Dh, 1Eh, 1Fh, 10h
-; aa bb cc dd 5ASD tt yy rr ii 6ASD 00 33 44 55 7ASD 88 22 11 55 8ASD 99 00 00 99   9ASD
 not_reverse:
     sub di, cx
-    ;add bp, cx
-    ;sub bx, cx
     xchg si, di
     rep movsb
 reset:
-    ; or   dl, dl
-    ; jz   output
     mov  cl, dl
     xchg si, di
-
     mov ah, 4
 skip:
     loop fifth_wrd
 output:
  int 3
     mov  di, si
-    mkFile:
+mkFile:
     mov    dx,    offset file            
     mov    ah,    03Ch                   
     int    21h  
@@ -266,30 +149,15 @@ output:
     mov dx, offset greeting
     int 21h
     mov dx, bx
-    ; si = end of mod
-        not bx
+    not bx
     add bx, di
     mov cx, bx
     mov al, 0
     stosb
-; add cx, di
-; mov bp, cx
-    ; mov dx, offset buffer
-    ; mov si, dx
-; sub cx, bx
-; add cx, di
-; mov bp, cx
-; not bx
-; mov cx, bx
-    MOV BX, 1       ; BX = pointer to string
-    ;MOV CX, bp       ; CX = length of string (from StrLength)
-
-    MOV AH, 40h      ; DOS function: write to file or device
-    INT 21h          ; Call DOS (AX will hold the number of chars written)
- 
+    MOV BX, 1   
+    MOV AH, 40h      
+    INT 21h     
 wrFile:
-    ; mov    dx,    si
-    ; mov    cx,    bp
     mov    bx,    si
     mov    ah,    40h
     int    21h
@@ -297,8 +165,7 @@ clFile:
     mov    ah,    3Eh
     int    21h
 exit:
-    ; exit the program
-    mov ah, 4ch            ; dos function: terminate program
+    mov ah, 4ch      
     dec al 
     int 21h
     End Start
