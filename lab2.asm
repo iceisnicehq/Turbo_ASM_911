@@ -77,6 +77,7 @@ end_input:
     dec     bx
     inc     cx
 no_last_space:
+    stosb
     int     3
     cmp     bx,   4
     jnl     no_error
@@ -85,7 +86,7 @@ no_last_space:
     int     21h
     jmp     SHORT exit
 no_error:
-    sub     cx,   maxSize
+    sub     cx,   maxSize+2
     not     cx
     mov     di,   si
     mov     bx,   si
