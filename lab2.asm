@@ -85,7 +85,7 @@ no_last_space:
     int     21h
     jmp     SHORT exit
 no_error:
-    sub     cx,   256
+    sub     cx,   maxSize
     not     cx
     mov     di,   si
     mov     bx,   si
