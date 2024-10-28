@@ -19,7 +19,7 @@ Start:
     mov    ds, ax  
     mov    es, ax
     mov    cx, word ptr [c] ; cl = c, ch = b
-    mov    bh, a
+    mov    bh, a            ; bh = a
     or     cl, cl     ; is c zero?
     jz     cycles     ; jump to cycles
     or     ch, ch     ; is b zero?
@@ -27,12 +27,11 @@ Start:
     or     bh, bh     ; is a zero?
     jnz    equation   ; jump to equation      
 cycles:
-
-    mov    dx, offset file  
-    mov    di, offset string          
-    mov    ah, 03Ch        ; create file            
+    mov    dx, offset file      ; dx point to file offset
+    mov    di, offset string    ; di point to string offset
+    mov    ah, 03Ch        ; create file   function          
     xor    cx, cx          ; normal file               
-    int    21h    
+    int    21h             ; call dos 
     mov    bx, ax          ; save descr
     mov    cx, 08080h      ; cl = -128, ch = -128
     mov    bh, MIN         ; bh = -128
@@ -57,10 +56,12 @@ equation:
     js     negative_a    ; if yes then jump to negative case
     add    si, ax        ; si = 12c^2 + a
     js     overflow      ; if sf = 1 (si > 07fff) then jump to overflow
+    jc     overflow      ; if cf = 1 (e.g. si = FFFF + 1 = 0000 [cf = 1]) => jump to overflow
     jmp    SHORT isFile  ; jmp to checking file 
 negative_a:
     neg    ax            ; ax = |ax|
     sub    si, ax        ; si = 12c^2 - a
+    jc     isFile        ; if cf = 1 (e.g. 0001 - 0002 = FFFF [cf = 1, sf = 1])   
     js     overflow      ; if sf = 1 (si > 07fff) then jump to overflow
     jmp    SHORT isFile  ; jmp to checking file  
 isFile:
@@ -69,48 +70,46 @@ isFile:
     jmp    numerator     ; else jump to numerator
 overflow:
     mov     al, bh       ; al = a
-    ; mov     bp, cx
-    xchg    bx, cx       ; bx = cx, cx = bx
-    mov     bp, cx       ; bp = bx   
+    mov     bp, bx       ; bp = bx  (bh = a, bl = descr)
+    mov     bx, cx       ; bx = b+c   
     mov     cx, 3        ; cx = 3
     mov     si, di       ; si = di
 buffering:
-    mov     dh, '+'
-    or      al, al
-    jns     positive_number      
-    mov     dh, '-'  
-    neg     al
+    mov     dh, '+'      ; dh = 2Bh
+    or      al, al       ; check al sign
+    jns     positive_number      ; jump if al >= 0
+    mov     dh, '-'       ; dh = 2Dh
+    neg     al            ; al = |al|
 positive_number:
-    aam
-    or      al, 30h
-    mov     dl, al
-    xchg    al, ah
-    aam
-    or      ax, 3030h    
-    xchg    dh, al
-    stosw
-    mov     ax, dx
-    xchg    ah, al
-    stosw
-    inc     di
-    xchg    bl, bh    
-    mov     al, bl
-    loop    buffering
-    xchg    bl, bh
+    aam                   ; adjust al to BCD (e.g. 127d==7fh => ax = 0C07h)
+    or      al, 30h       ; convert al to ascii    (e.g. ax = 0C37h)
+    mov     dl, al        ; dx = 2D|al             (e.g. dx = 2B37h) 
+    xchg    al, ah        ; al = ah, ah = al       (e.g. ax = 370Ch)
+    aam                   ; adjust al to BCD       (e.g. ax = 0102h) 
+    or      ax, 3030h     ; convert al to ascii    (e.g. ax = 3132h)      
+    xchg    dh, al        ;                        (e.g. ax = 2B31h, dx = 3237h)  
+    stosw                 ; string =               (+100|0000|0000) di = di + 2
+    mov     ax, dx        ;                        (e.g. ax = 3237h)
+    xchg    ah, al        ;                        (e.g. ax = 3732h)
+    stosw                 ; string =               (+127|0000|0000) di = di + 4
+    inc     di            ;                                         di = di + 5
+    xchg    bl, bh        ; bl = b, bh = a FOR 1 loop, bl = a, bh = b FOR 2 loop, bl = b, bh = a FOR 3 loop
+    mov     al, bl        
+    loop    buffering     ; loop
 writeFile: 
-    ; xchg    bx, cx       ; bx = cx, cx = bx
-    ; mov     bp, cx       ; bp = bx  
-    mov     di, si
-    mov     si, bx
-    mov     bx, bp
-    xor     bh, bh
-    mov     cx, 16
-    mov     ah, 40h  
-    int     21h
-    mov     cx, si
-    mov     bx, bp
+    xchg    bl, bh        ; bl = a, bh = b
+    mov     di, si        ; di point to the beginning of STRING
+    mov     dx, di        ; dx = di 
+    mov     si, bx        ; save bx
+    mov     bx, bp        ; get bl = descr
+    xor     bh, bh        ; bh = 0
+    mov     cx, 16        ; number of bytes to write (string length)
+    mov     ah, 40h       ; write to file function
+    int     21h           ; call dos
+    mov     cx, si        ; restore cx
+    mov     bx, bp        ; restore bx
 iteration:
-    cmp     cl, MAX
+    cmp     cl, MAX       
     jl      c_cycle
     cmp     ch, MAX
     jl      b_cycle
