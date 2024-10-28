@@ -15,11 +15,15 @@ MAX            EQU    127
     d          dw    ?
 .code
 Start:
-    mov    ax,    @data                  
-    mov    ds,    ax  
-    mov    es,    ax
+    mov    ax, @data                  
+    mov    ds, ax  
+    mov    es, ax
     ; check for all three if one is zero then we go loop
-    mov    
+    ; bl = descr ; bh = a
+    ; cl = c     ; ch = b
+    mov    cx, word ptr [c]
+    mov    bh, a
+    ;checking
     or     ax,    ax   
     jnz    get_val      
 mkFile:
@@ -125,17 +129,17 @@ cycles:
     jnl     fileExit
 a_cycle:
     inc     bh
-    mov     bl, MIN-1
+    mov     ch, MIN-1
 b_cycle:
-    mov     bh, MIN-1
-    inc     bl    
+    mov     cl, MIN-1
+    inc     ch    
 c_cycle:
-    inc     bh
+    inc     cl
 not_max:
-    jmp     short equa  
+    jmp     short equation  
 clFile:
-    mov    ah,    3Eh
-    xor    bh,    bh
+    mov    ah, 3Eh
+    xor    bh, bh
     int    21h
     jmp    SHORT Exit
 numerator:
@@ -169,10 +173,9 @@ negative_a2c:
     sbb    dx,    0     ; sub borrow from dx
 divide:
     mov    ax,    bp    ; dx:ax = dx:bp
-    idiv   si
-    mov    [d],   ax     
+    idiv   si           ; 517b^2 + a^2 - c / si
+    mov    [d],   ax    ; store result 
 Exit:
     mov    ah,    04Ch
     int    21h
     End    Start  
-
