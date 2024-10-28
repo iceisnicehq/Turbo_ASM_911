@@ -81,7 +81,6 @@ end_input:
     inc     cx
 no_last_space:
     stosb
-    int     3
     cmp     bx,   4
     jnl     no_error
     mov     ah,   09h
@@ -101,7 +100,6 @@ fifth_wrd:
     dec     ah
     jnz     skip
 moving:
-    int     3
     mov     dl,   cl
     mov     cx,   0ffffh
     repnz   scasb
@@ -134,7 +132,6 @@ reset:
 skip:
     loop    fifth_wrd
 output:
-    int     3
     mov     di, si
 mkFile:
     mov     dx,   offset file            
@@ -150,7 +147,7 @@ mkFile:
     mov     cx,   bx
     mov     bx,   1   
     mov     ah,   40h      
-    INT     21h     
+    int     21h     
 wrFile:
     mov     bx,   si
     mov     ah,   40h
