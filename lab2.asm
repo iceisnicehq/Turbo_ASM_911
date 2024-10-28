@@ -1,3 +1,4 @@
+; permit tab
 .model SMALL
 .186
 .stack 100h
