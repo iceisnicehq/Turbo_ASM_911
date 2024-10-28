@@ -6,8 +6,8 @@ MIN            EQU    -128
 MAX            EQU    127
 
 .data
-    fil        db    'A_B_C.TXT', 0
-    string     db    "0000_0000_0000", 0dh, 0ah
+    file       db    'overflow.txt', 0
+    string     db    "0000|0000|0000", 0dh, 0ah
 .data?
     a          db    ?
     c          db    ?
@@ -18,35 +18,23 @@ Start:
     mov    ax, @data                  
     mov    ds, ax  
     mov    es, ax
-    ; check for all three if one is zero then we go loop
-    ; bl = descr ; bh = a
-    ; cl = c     ; ch = b
-    mov    cx, word ptr [c]
+    mov    cx, word ptr [c] ; cl = c, ch = b
     mov    bh, a
-    ;checking
-    or     ax,    ax   
-    jnz    get_val      
-mkFile:
-    mov    dx,    offset path            
-    mov    ah,    03Ch                   
-    xor    cx,    cx                     
-    int    21h                            
-init:
-    lea    di,    [buffer + 12]
-    std 
-    mov    ah,    MIN
-    mov    si,    ax
-    mov    al,    ah 
-    mov    bx,    ax
-    jmp    SHORT calc  
-get_val:
-    mov    cl,    al
-    lodsb
-    mov    di,    si
-    mov    ch,    al
-    xor    al,    al
-    mov    si,    ax
-    mov    bx,    cx  
+    or     cl, cl     ; is c zero?
+    jz     cycles     ; jump to cycles
+    or     ch, ch     ; is b zero?
+    jz     cycles     ; jump to cycles
+    or     bh, bh     ; is a zero?
+    jnz    equation   ; jump to equation      
+    mov    dx, offset file  
+    mov    di, offset string          
+    mov    ah, 03Ch        ; create file            
+    xor    cx, cx          ; normal file               
+    int    21h    
+    mov    bx, ax          ; save descr
+cycles:
+    mov    cx, 08080h      ; cl = -128, ch = -128
+    mov    bh, MIN         ; bh = -128
     ; EQUATION    d = 517*b^2+a^2-c / 12*c^2 + a
     ; 517 is 11 and 47
     ; bl = descr ; bh = a
@@ -76,19 +64,20 @@ negative_a:
     jmp    SHORT isFile  ; jmp to checking file  
 isFile:
     or     bl, bl        ; is descriptor zero?
-    jnz    cylces        ; if no then go to cycles
+    jnz    iteration     ; if no then go to cycles
     jmp    numerator     ; else jump to numerator
-file_write:
-    mov     bp, di
-    mov     dh, ch
-prom:
-    mov     al, dh 
-    mov     dh, 2Bh
+overflow:
+    mov     al, bh       ; al = a
+    mov     bp, cx       ; bp = cx
+    mov     cx, 3        ; cx = 3
+    mov     si, di       ; si = di
+buffering:
+    mov     dh, '+'
     or      al, al
-    jns     pos_wr      
-    mov     dh, 2Dh  
+    jns     positive_number      
+    mov     dh, '-'  
     neg     al
-pos_wr:
+positive_number:
     aam
     or      al, 30h
     mov     dl, al
@@ -103,30 +92,25 @@ pos_wr:
     inc     di
     mov     dh, bl
     xchg    bl, bh    
-    cmp     di, 0016h
-    jne     prom
-write:   
+    mov     al, bh
     xchg    bl, bh
-    mov     di, bp
-    mov     dx, di
-    mov     bp, bx    
-    mov     bl, cl
-    xor     bh, bh    
-    mov     si, cx
+    loop    buffering
+    xchg    bl, bh
+write: 
+    mov     di, si
+    mov     bp, bx
+    xor     bh, bh
     mov     cx, 16
     mov     ah, 40h  
     int     21h
-    mov     cx, si
-    mov     bx, bp
-    ; bl = descr ; bh = a
-    ; cl = c     ; ch = b
-cycles:
+    mov     cx, bp
+iteration:
     cmp     cl, MAX
     jl      c_cycle
     cmp     ch, MAX
     jl      b_cycle
     cmp     bh, MAX
-    jnl     fileExit
+    jnl     closeFile
 a_cycle:
     inc     bh
     mov     ch, MIN-1
@@ -136,18 +120,13 @@ b_cycle:
 c_cycle:
     inc     cl
 not_max:
-    jmp     short equation  
-clFile:
-    mov    ah, 3Eh
-    xor    bh, bh
-    int    21h
-    jmp    SHORT Exit
+    jmp     equation  
+closeFile:
+    mov     ah, 3Eh
+    xor     bh, bh
+    int     21h
+    jmp     SHORT Exit
 numerator:
-    ; EQUATION    d = 517*b^2+a^2-c / 12*c^2 + a
-    ; 517 is 11 and 47
-    ; bl = descr ; bh = a
-    ; cl = c     ; ch = b
-    ;      si     =    denom
     mov    al, ch       ; al = b
     cbw                 ; ax = b
     mov    bp, ax       ; bp = b         
@@ -162,7 +141,10 @@ numerator:
     mov    bp, ax       ; dx:bp = 517b^2  
     mov    al, bh       ; al = a
     imul   al           ; ax = a^2
-    sub    ax, cl       ; ax = a^2 - c 
+    xchg   ax, cx       ; al = c, cx = a^2
+    cbw                 ; ax = c 
+    xchg   ax, cx       ; ax = a^2, cx = c   
+    sub    ax, cx       ; ax = a^2 - c 
     js     negative_a2c ; if ax is negative jump to negative_a2c
     add    bp, ax       ; dx:bp = 517b^2 + a^2 -c
     adc    dx, 0        ; add carry to dx    
