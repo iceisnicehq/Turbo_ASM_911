@@ -26,13 +26,14 @@ Start:
     jz     cycles     ; jump to cycles
     or     bh, bh     ; is a zero?
     jnz    equation   ; jump to equation      
+cycles:
+
     mov    dx, offset file  
     mov    di, offset string          
     mov    ah, 03Ch        ; create file            
     xor    cx, cx          ; normal file               
     int    21h    
     mov    bx, ax          ; save descr
-cycles:
     mov    cx, 08080h      ; cl = -128, ch = -128
     mov    bh, MIN         ; bh = -128
     ; EQUATION    d = 517*b^2+a^2-c / 12*c^2 + a
@@ -68,7 +69,9 @@ isFile:
     jmp    numerator     ; else jump to numerator
 overflow:
     mov     al, bh       ; al = a
-    mov     bp, cx       ; bp = cx
+    ; mov     bp, cx
+    xchg    bx, cx       ; bx = cx, cx = bx
+    mov     bp, cx       ; bp = bx   
     mov     cx, 3        ; cx = 3
     mov     si, di       ; si = di
 buffering:
@@ -90,20 +93,22 @@ positive_number:
     xchg    ah, al
     stosw
     inc     di
-    mov     dh, bl
     xchg    bl, bh    
-    mov     al, bh
-    xchg    bl, bh
+    mov     al, bl
     loop    buffering
     xchg    bl, bh
-write: 
+writeFile: 
+    ; xchg    bx, cx       ; bx = cx, cx = bx
+    ; mov     bp, cx       ; bp = bx  
     mov     di, si
-    mov     bp, bx
+    mov     si, bx
+    mov     bx, bp
     xor     bh, bh
     mov     cx, 16
     mov     ah, 40h  
     int     21h
-    mov     cx, bp
+    mov     cx, si
+    mov     bx, bp
 iteration:
     cmp     cl, MAX
     jl      c_cycle
