@@ -8,7 +8,6 @@ MAX            EQU    127
 .data
     file       db    'overflow.txt', 0
     string     db    "0000|0000|0000", 0dh, 0ah
-.data?
     a          db    ?
     c          db    ?
     b          db    ?
