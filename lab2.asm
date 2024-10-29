@@ -36,6 +36,8 @@ read_char:
     je      end_input
     cmp     al,   7fh
     je      read_char
+    cmp     al,   09h
+    je      no_space
     cmp     al,   08h      
     jne     no_backspace  
     cmp     di,   si       
@@ -54,7 +56,8 @@ not_space:
     mov     al,   08h
     int     10h
     jmp     read_char
-no_backspace:        
+no_backspace:
+
     cmp     al,   20h
     jl      read_char   
     jne     no_space
