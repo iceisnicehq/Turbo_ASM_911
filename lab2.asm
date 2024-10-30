@@ -84,7 +84,7 @@ read_char:
     cmp     al,   0dh           
     je      end_input
     cmp     al,   7fh
-    je      read_char
+    jg      read_char
     cmp     al,   0ah
     je      read_char
     cmp     al,   09h
