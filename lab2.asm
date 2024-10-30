@@ -8,6 +8,39 @@ Stub error not be processor$unrecognized parameters$unable A20 parameter$bad cre
 ate space$cannot copy error$unable copy chain stack$unable
 C:\USER\KS0ACE~1>
 
+ctrl
+Microsoft Windows [Версия 6.0.6003]
+(C) Корпорация Майкрософт, 2006. Все права защищены.
+
+c:\User\KS2203_16>notepad 2.asm
+
+c:\User\KS2203_16>tasm /zi 2
+Turbo Assembler  Version 4.1  Copyright (c) 1988, 1996 Borland International
+
+Assembling file:   2.ASM
+Error messages:    None
+Warning messages:  None
+Passes:            1
+Remaining memory:  397k
+
+
+c:\User\KS0ACE~1>tlink /v 2
+Turbo Link  Version 7.1.30.1. Copyright (c) 1987, 1996 Borland International
+
+C:\USER\KS0ACE~1>2
+Enter your prompt: ◄↨♣↕¶↓§      ☼       ☼►←↔☺‼
+
+♂♂♀∟→↑♥▬☻♫ 3▲▼ 76y89 787 87 8679 8798 8768 9780-
+     <   ↓   ♀     ↓   ↓   ♂         ↓
+                 l            ♣а                         8            ♣P   ☺   ☺
+   ☺   }       ←   ☺       ←       !   ↔   ъ♦♥R√rF◄Ї ↔↕♦2
+ ☻▬☻ @ §
+
+
+                                                             $@☺ z☻G ♣ ┬☻▲  ♦↕♦↕
+ф Ї◄♥r√R♥♦ъ   ↔   !       ←       ☺   ←       }   ☺   ☺   ☺   P♣            8
+                      а♣            l
+C:\USER\KS0ACE~1>
 
 
 .model SMALL
@@ -70,7 +103,8 @@ not_space:
 no_backspace:
 
     cmp     al,   20h
-    jl      read_char   
+    ;;;;;;;;;;;;;;;;jl      read_char
+    ; ctrl j ???
     jne     no_space
     inc     bx  
     dec     di
