@@ -85,6 +85,8 @@ read_char:
     je      end_input
     cmp     al,   7fh
     je      read_char
+    cmp     al,   0ah
+    je      read_char
     cmp     al,   09h
     je      no_space
     cmp     al,   08h      
@@ -106,7 +108,7 @@ not_space:
     int     10h
     jmp     read_char
 no_backspace:
-
+  
     cmp     al,   20h
     ;;;;;;;;;;;;;;;;jl      read_char
     ; ctrl j ???
