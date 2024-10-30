@@ -82,8 +82,7 @@ c:\User\KS0ACE~1>tlink 2
 Turbo Link  Version 7.1.30.1. Copyright (c) 1987, 1996 Borland International
 
 C:\USER\KS0ACE~1>2
-Enter your prompt: asd   aaa    2312 9 9 8 9 89 7 9 68 6 8 54 678
-                3       3       3       3        3       3      3 4
+Enter your prompt: asd   aaa    2312 9 9 8 9 89 7 9 68 6 8 54 678                3       3       3       3        3       3      3 4
 Output: 8 86    3 ·+F╘←V╓♣☼ Г╥ SЛ┌┴ш♦┴ъ♦┴у♀♂├[@Л╪┤H═!s♣╕☺ ы\ЙF╪ЙF┌☺FЄМ╚О╪║Ъ☺М╨О└
 Н^╪╕♥K═!s♣╕☺ ы9ЛF№ЛV■♣☼ Г╥ SЛ┌┴ш♦┴ъ♦┴у♀♂├[@Л╪ОF╪┤J═!Л╞♠ ^ЁГ─☻=  t♠P┤I═!X_▼Y[╔├Ц◄
 А у◄\ у◄l у◄C:\TASM\BIN\rtm.exe
