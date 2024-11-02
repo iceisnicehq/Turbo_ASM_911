@@ -5,9 +5,9 @@
 .data
     file       db    'overflow.txt', 0
     string     db    "0000|0000|0000", 0dh, 0ah
-    a          db    ?
     c          db    ?
     b          db    ?
+    a          db    ?
     d          dw    ?
 .code
 Start:
@@ -46,7 +46,7 @@ equation:
     or    dx, dx        ; is dx zero?
     jnz    overflow      ; if yes, jump to writing    
     mov    si, ax        ; si = ax = 12c^2
-    mov    ah, bh        ; ah = a
+    mov    al, bh        ; ah = a
     cbw
     or ax, ax
     js    negative_a    ; if ax < 0 then jump to negative case
@@ -63,7 +63,7 @@ negative_a:
 isFile:
     or    bl, bl        ; is descriptor zero?
     jnz    iteration     ; if no then go to cycles
-    jmp    numerator     ; else jump to numerator
+    jmp    short numerator     ; else jump to numerator
 overflow:
     mov    al, bh       ; al = a
     mov    bp, bx       ; bp = bx  (bh = a, bl = descr)
