@@ -47,7 +47,8 @@ equation:
     jnz    overflow      ; if yes, jump to writing    
     mov    si, ax        ; si = ax = 12c^2
     mov    ah, bh        ; ah = a
-    sar    ax, 4         ; ax = a
+    cbw
+    or ax, ax
     js    negative_a    ; if ax < 0 then jump to negative case
     add    si, ax        ; ELSE: si = 12c^2 + a
     js    overflow      ; if sf = 1 (si > 07fff) then jump to overflow
