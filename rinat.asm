@@ -2,9 +2,6 @@
 .186
 .stack    100h
 
-MIN            EQU    -128
-MAX            EQU    127
-
 .data
     file       db    'overflow.txt', 0
     string     db    "0000|0000|0000", 0dh, 0ah
@@ -32,8 +29,8 @@ cycles:
     xor    cx, cx          ; normal file               
     int    21h             ; call dos 
     mov    bx, ax          ; save descr
-    mov    cx, 08080h      ; cl = -128, ch = -128
-    mov    bh, MIN         ; bh = -128
+    mov    cx, 8080h       ; cl = -128, ch = -128
+    mov    bh, 80h         ; bh = -128
     ; EQUATION    d = 517*b^2+a^2-c / 12*c^2 + a
     ; 517 is 11 and 47
     ; bl = descr ; bh = a
@@ -55,13 +52,13 @@ equation:
     add    si, ax        ; ELSE: si = 12c^2 + a
     js    overflow      ; if sf = 1 (si > 07fff) then jump to overflow
     jc    overflow      ; if cf = 1 (e.g. si = FFFF + 1 = 0000 [cf = 1]) => jump to overflow
-    jmp    SHORT isFile  ; jmp to checking file 
+    jmp    short isFile  ; jmp to checking file 
 negative_a:
     neg    ax            ; ax = |ax|
     sub    si, ax        ; si = 12c^2 - a
     jc    isFile        ; if cf = 1 (e.g. 0001 - 0002 = FFFF [cf = 1, sf = 1])   
     js    overflow      ; if sf = 1 (si > 07fff) then jump to overflow
-    jmp    SHORT isFile  ; jmp to checking file  
+    jmp    short isFile  ; jmp to checking file  
 isFile:
     or    bl, bl        ; is descriptor zero?
     jnz    iteration     ; if no then go to cycles
@@ -72,7 +69,7 @@ overflow:
     mov    bx, cx       ; bx = b+c   
     mov    cx, 3        ; cx = 3
     mov    si, di       ; si = di
-buffering:
+strWrite:
     mov    dh, '+'      ; dh = 2Bh
     or    al, al       ; check al sign
     jns    positive_number      ; jump if al >= 0
@@ -93,8 +90,8 @@ positive_number:
     inc    di            ;                                         di = di + 5
     xchg    bl, bh        ; bl = b, bh = a FOR 1 loop, bl = a, bh = b FOR 2 loop, bl = b, bh = a FOR 3 loop
     mov    al, bl        
-    loop    buffering     ; loop
-write: 
+    loop    strWrite     ; loop
+writeFile: 
     xchg    bl, bh        ; bl = a, bh = b
     mov    di, si        ; di point to the beginning of STRING
     mov    dx, di        ; dx = di 
@@ -107,16 +104,16 @@ write:
     mov    cx, si        ; restore cx
     mov    bx, bp        ; restore bx
 iteration:
-    cmp    cl, MAX       
-    jl    c_loop
-    cmp    ch, MAX
-    jl    b_loop
-    cmp    bh, MAX
-    jnl    closeFile
+    cmp    cl, 7fh       
+    jne    c_loop
+    cmp    ch, 7fh
+    jne    b_loop
+    cmp    bh, 7fh
+    je    closeFile
     inc    bh
-    mov    ch, MIN-1
+    mov    ch, 7fh
 b_loop:
-    mov    cl, MIN-1
+    mov    cl, 7fh
     inc    ch    
 c_loop:
     inc    cl
