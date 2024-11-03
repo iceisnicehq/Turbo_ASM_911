@@ -144,7 +144,7 @@ numerator:
     js    negative_a2c ; if ax is negative jump to negative_a2c
     add    bp, ax       ; dx:bp = 517b^2 + a^2 -c
     adc    dx, 0        ; add carry to dx    
-    jmp    SHORT divide ; go to div
+    jmp    short divide ; go to div
 negative_a2c:
     neg    ax           ; ax = |a^2-c|
     sub    bp, ax    ; dx:bp = 517b^2 - (a^2 - c)
