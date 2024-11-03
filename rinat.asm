@@ -46,9 +46,9 @@ equation:
     or    dx, dx        ; is dx zero?
     jnz    overflow      ; if yes, jump to writing    
     mov    si, ax        ; si = ax = 12c^2
-    mov    al, bh        ; ah = a
-    cbw
-    or ax, ax
+    mov    al, bh        ; al = a
+    cbw                  ; ax = a
+    or    ax, ax         ; sf 
     js    negative_a    ; if ax < 0 then jump to negative case
     add    si, ax        ; ELSE: si = 12c^2 + a
     js    overflow      ; if sf = 1 (si > 07fff) then jump to overflow
@@ -71,22 +71,21 @@ overflow:
     mov    cx, 3        ; cx = 3
     mov    si, di       ; si = di
 strWrite:
-    mov    dh, '+'      ; dh = 2Bh
+    mov    dl, '+'      ; dh = 2Bh
     or    al, al       ; check al sign
     jns    positive_number      ; jump if al >= 0
-    mov    dh, '-'       ; dh = 2Dh
+    mov    dl, '-'       ; dh = 2Dh
     neg    al            ; al = |al|
 positive_number:
     aam                  ; adjust al to BCD (e.g. 127d==7fh => ax = 0C07h)
     or    al, 30h       ; convert al to ascii    (e.g. ax = 0C37h)
-    mov    dl, al        ; dx = 2D|al             (e.g. dx = 2B37h) 
-    xchg    al, ah        ; al = ah, ah = al       (e.g. ax = 370Ch)
+    mov    dh, al        ; dx = al|2D             (e.g. dx = 372Dh) 
+    mov    al, ah        ; al = ah                (e.g. ax = 0C0Ch)
     aam                  ; adjust al to BCD       (e.g. ax = 0102h) 
     or    ax, 3030h     ; convert al to ascii    (e.g. ax = 3132h)      
-    xchg    dh, al        ;                        (e.g. ax = 2B31h, dx = 3237h)  
+    xchg    dl, al        ;                        (e.g. ax = 312Dh, dx = 3732h)  
     stosw                ; string =               (+100|0000|0000) di = di + 2
-    mov    ax, dx        ;                        (e.g. ax = 3237h)
-    xchg    ah, al        ;                        (e.g. ax = 3732h)
+    mov    ax, dx        ;                        (e.g. ax = 3732h)
     stosw                 ; string =               (+127|0000|0000) di = di + 4
     inc    di            ;                                         di = di + 5
     xchg    bl, bh        ; bl = b, bh = a FOR 1 loop, bl = a, bh = b FOR 2 loop, bl = b, bh = a FOR 3 loop
