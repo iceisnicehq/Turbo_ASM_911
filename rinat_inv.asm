@@ -60,7 +60,6 @@ negative_a:
     sub    si, ax        ; si = 12c^2 - a
     jc    overflow        ; if cf = 1 (e.g. 0001 - 0002 = FFFF [cf = 1, sf = 1])   
     jns    overflow      ; if sf = 1 (si > 07fff) then jump to overflow
-    jmp    short isFile  ; jmp to checking file  
 isFile:
     or    bl, bl        ; is descriptor zero?
     jnz    iteration     ; if no then go to cycles
