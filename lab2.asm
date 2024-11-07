@@ -1,51 +1,51 @@
-C:\USER\KS0ACE~1>2
-Enter your prompt: asd   aaa    2312 9 9 8 9 89 7 9 68 6 8 54 678                3       3       3       3        3       3      3 4
-Output: 8 86    3 ·+F╘←V╓♣☼ Г╥ SЛ┌┴ш♦┴ъ♦┴у♀♂├[@Л╪┤H═!s♣╕☺ ы\ЙF╪ЙF┌☺FЄМ╚О╪║Ъ☺М╨О└
-Н^╪╕♥K═!s♣╕☺ ы9ЛF№ЛV■♣☼ Г╥ SЛ┌┴ш♦┴ъ♦┴у♀♂├[@Л╪ОF╪┤J═!Л╞♠ ^ЁГ─☻=  t♠P┤I═!X_▼Y[╔├Ц◄
-А у◄\ у◄l у◄C:\TASM\BIN\rtm.exe
-                                                                        ¶ ☻
-Stub error not be processor$unrecognized parameters$unable A20 parameter$bad cre
-ate space$cannot copy error$unable copy chain stack$unable
-C:\USER\KS0ACE~1>
+; C:\USER\KS0ACE~1>2
+; Enter your prompt: asd   aaa    2312 9 9 8 9 89 7 9 68 6 8 54 678                3       3       3       3        3       3      3 4
+; Output: 8 86    3 ·+F╘←V╓♣☼ Г╥ SЛ┌┴ш♦┴ъ♦┴у♀♂├[@Л╪┤H═!s♣╕☺ ы\ЙF╪ЙF┌☺FЄМ╚О╪║Ъ☺М╨О└
+; Н^╪╕♥K═!s♣╕☺ ы9ЛF№ЛV■♣☼ Г╥ SЛ┌┴ш♦┴ъ♦┴у♀♂├[@Л╪ОF╪┤J═!Л╞♠ ^ЁГ─☻=  t♠P┤I═!X_▼Y[╔├Ц◄
+; А у◄\ у◄l у◄C:\TASM\BIN\rtm.exe
+;                                                                         ¶ ☻
+; Stub error not be processor$unrecognized parameters$unable A20 parameter$bad cre
+; ate space$cannot copy error$unable copy chain stack$unable
+; C:\USER\KS0ACE~1>
 
-ctrl
-Microsoft Windows [Версия 6.0.6003]
-(C) Корпорация Майкрософт, 2006. Все права защищены.
+; ctrl
+; Microsoft Windows [Версия 6.0.6003]
+; (C) Корпорация Майкрософт, 2006. Все права защищены.
 
-c:\User\KS2203_16>notepad 2.asm
+; c:\User\KS2203_16>notepad 2.asm
 
-c:\User\KS2203_16>tasm /zi 2
-Turbo Assembler  Version 4.1  Copyright (c) 1988, 1996 Borland International
+; c:\User\KS2203_16>tasm /zi 2
+; Turbo Assembler  Version 4.1  Copyright (c) 1988, 1996 Borland International
 
-Assembling file:   2.ASM
-Error messages:    None
-Warning messages:  None
-Passes:            1
-Remaining memory:  397k
-
-
-c:\User\KS0ACE~1>tlink /v 2
-Turbo Link  Version 7.1.30.1. Copyright (c) 1987, 1996 Borland International
-
-C:\USER\KS0ACE~1>2
-Enter your prompt: ◄↨♣↕¶↓§      ☼       ☼►←↔☺‼
-
-♂♂♀∟→↑♥▬☻♫ 3▲▼ 76y89 787 87 8679 8798 8768 9780-
-     <   ↓   ♀     ↓   ↓   ♂         ↓
-                 l            ♣а                         8            ♣P   ☺   ☺
-   ☺   }       ←   ☺       ←       !   ↔   ъ♦♥R√rF◄Ї ↔↕♦2
- ☻▬☻ @ §
+; Assembling file:   2.ASM
+; Error messages:    None
+; Warning messages:  None
+; Passes:            1
+; Remaining memory:  397k
 
 
-                                                             $@☺ z☻G ♣ ┬☻▲  ♦↕♦↕
-ф Ї◄♥r√R♥♦ъ   ↔   !       ←       ☺   ←       }   ☺   ☺   ☺   P♣            8
-                      а♣            l
-C:\USER\KS0ACE~1>
-OUTPUT.txt:   87 f    
-     <                             
-                 l                                      8            P            }                        !      кRыrFф 2
-Њ F
-  @                                                                                                                                                                                                                                                                                                      z@ zG  В	к фrыRк      !                        }            P            8                                      l  
+; c:\User\KS0ACE~1>tlink /v 2
+; Turbo Link  Version 7.1.30.1. Copyright (c) 1987, 1996 Borland International
+
+; C:\USER\KS0ACE~1>2
+; Enter your prompt: ◄↨♣↕¶↓§      ☼       ☼►←↔☺‼
+
+; ♂♂♀∟→↑♥▬☻♫ 3▲▼ 76y89 787 87 8679 8798 8768 9780-
+;      <   ↓   ♀     ↓   ↓   ♂         ↓
+;                  l            ♣а                         8            ♣P   ☺   ☺
+;    ☺   }       ←   ☺       ←       !   ↔   ъ♦♥R√rF◄Ї ↔↕♦2
+;  ☻▬☻ @ §
+
+
+;                                                              $@☺ z☻G ♣ ┬☻▲  ♦↕♦↕
+; ф Ї◄♥r√R♥♦ъ   ↔   !       ←       ☺   ←       }   ☺   ☺   ☺   P♣            8
+;                       а♣            l
+; C:\USER\KS0ACE~1>
+; OUTPUT.txt:   87 f    
+;      <                             
+;                  l                                      8            P            }                        !      кRыrFф 2
+; Њ F
+;   @                                                                                                                                                                                                                                                                                                      z@ zG  В	к фrыRк      !                        }            P            8                                      l  
 
 
 .model SMALL
@@ -58,7 +58,7 @@ maxSize         EQU     256
     file        db      'output.txt', 0
     prompt      db      'Enter your prompt: ', '$'
     limit       db      0Dh, 0Ah, 'LIMIT REACHED','$'  
-    greeting    db      0Dh, 0Ah, 'Output: ','$'
+    outStr      db      0Dh, 0Ah, 'Output: ','$'
     shrtStr     db      0Dh, 0Ah, 'Too short','$'
     space       db      ?
     buffer      db      maxSize+1 DUP(?)    
@@ -87,8 +87,6 @@ read_char:
     jge     read_char
     cmp     al,   0ah
     je      read_char
-    cmp     al,   09h
-    je      no_space
     cmp     al,   08h      
     jne     no_backspace  
     cmp     di,   si       
@@ -108,10 +106,7 @@ not_space:
     int     10h
     jmp     read_char
 no_backspace:
-  
     cmp     al,   20h
-    ;;;;;;;;;;;;;;;;jl      read_char
-    ; ctrl j ???
     jne     no_space
     inc     bx  
     dec     di
@@ -154,7 +149,7 @@ fifth_wrd:
     scasb
     jnz     skip
     dec     ah
-    jnz     skip
+    loopnz  fifth_wrd
 moving:
     mov     dl,   cl
     mov     cx,   0ffffh
@@ -189,13 +184,13 @@ skip:
     loop    fifth_wrd
 output:
     mov     di, si
-mkFile:
+;mkFile:
     mov     dx,   offset file            
     mov     ah,   03Ch                   
     int     21h  
     mov     si,   ax
     mov     ah,   09h
-    mov     dx,   offset greeting
+    mov     dx,   offset outStr
     int     21h
     mov     dx,   bx
     not     bx
