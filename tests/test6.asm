@@ -27,6 +27,7 @@ fisub word ptr ds:[02h]
 fst qword ptr ds:[24h]
 fld qword ptr ds:[44h]
 faddp st(2), st(0)
+fmul st(0), st(2)
 fild word ptr ds:[00h]
 fld dword ptr ds:[20h]
 fmul qword ptr ds:[04h]
