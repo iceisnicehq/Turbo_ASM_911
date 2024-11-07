@@ -19,7 +19,7 @@ fld tbyte ptr ds:[0ch]
 fld dword ptr ds:[40h]
 fld dword ptr ds:[04h]
 fadd st(2), st(0)
-field word ptr ds:[02h]
+fild word ptr ds:[02h]
 fxch st(2)
 fsubr dword ptr ds:[60h]
 fmul qword ptr ds:[44h]
