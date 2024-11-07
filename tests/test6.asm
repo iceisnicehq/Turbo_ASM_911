@@ -24,7 +24,7 @@ fxch st(2)
 fsubr dword ptr ds:[60h]
 fmul qword ptr ds:[44h]
 fisub word ptr ds:[02h]
-fast qword ptr ds:[24h]
+fst qword ptr ds:[24h]
 fld qword ptr ds:[44h]
 faddp st(2), st(0)
 fild word ptr ds:[00h]
