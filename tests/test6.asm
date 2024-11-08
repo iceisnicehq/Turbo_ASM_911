@@ -1,21 +1,30 @@
 .model small
-.186
+.486
 .stack 256
 
 .data
-    db 01h, 00h, 04h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 18h, 40h, 00h, 00h, 00h, 00h
-    db 00h, 00h, 00h, 80h, 00h, 40h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 80h, 02h, 40h
-    db 00h, 00h, 20h, 41h, 00h, 00h, 00h, 00h, 00h, 00h, 22h, 40h, 00h, 00h, 00h, 00h
-    db 00h, 00h, 00h, 0c0h, 02h, 40h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 88h, 03h, 40h
-    db 00h, 00h, 60h, 41h, 00h, 00h, 00h, 00h, 00h, 00h, 14h, 40h, 00h, 00h, 00h, 00h
-    db 00h, 00h, 00h, 0e0h, 01h, 40h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 98h, 03h, 40h
-    db 00h, 00h, 80h, 41h, 00h, 00h, 00h, 00h, 00h, 00h, 28h, 40h, 00h, 00h, 00h, 00h
-    db 00h, 00h, 00h, 90h, 02h, 40h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 80h, 0FFh, 3Fh
+    dseg    db 01h, 00h, 04h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 18h, 40h, 00h, 00h, 00h, 00h
+            db 00h, 00h, 00h, 80h, 00h, 40h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 80h, 02h, 40h
+            db 00h, 00h, 20h, 41h, 00h, 00h, 00h, 00h, 00h, 00h, 22h, 40h, 00h, 00h, 00h, 00h
+            db 00h, 00h, 00h, 0c0h, 02h, 40h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 88h, 03h, 40h
+            db 00h, 00h, 60h, 41h, 00h, 00h, 00h, 00h, 00h, 00h, 14h, 40h, 00h, 00h, 00h, 00h
+            db 00h, 00h, 00h, 0e0h, 01h, 40h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 98h, 03h, 40h
+            db 00h, 00h, 80h, 41h, 00h, 00h, 00h, 00h, 00h, 00h, 28h, 40h, 00h, 00h, 00h, 00h
+            db 00h, 00h, 00h, 90h, 02h, 40h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 80h, 0FFh, 3Fh
+;pi  dd 3.14
+    ;   ttt      dt 0.0
+    ; control_word dw 0300h  
+
 .code 
 Start:
     mov ax, @data
     mov ds, ax
-    
+    mov es, ax
+    ;fld dword ptr ds:[pi]
+    ; fldcw word ptr ds:[control_word]
+    ; fld tbyte ptr ds:[ttt]
+    finit
+    fldpi
     fld tbyte ptr ds:[0ch]
     fld dword ptr ds:[40h]
     fld dword ptr ds:[04h]
