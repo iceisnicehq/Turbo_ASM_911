@@ -160,7 +160,6 @@ Start:
     btc dword ptr ss:[0FFFFh], 1
     btc dword ptr fs:[0FFFFh], 1
     btc dword ptr gs:[0FFFFh], 1
-    
     btc word ptr ds:[0FFFFh], ax
     btc word ptr ds:[0FFFFh], bx
     btc word ptr ds:[0FFFFh], cx
@@ -169,7 +168,6 @@ Start:
     btc word ptr ds:[0FFFFh], bp
     btc word ptr ds:[0FFFFh], si
     btc word ptr ds:[0FFFFh], di
-    
     btc word ptr es:[0FFFFh], ax
     btc word ptr es:[0FFFFh], bx
     btc word ptr es:[0FFFFh], cx
@@ -178,7 +176,6 @@ Start:
     btc word ptr es:[0FFFFh], bp
     btc word ptr es:[0FFFFh], si
     btc word ptr es:[0FFFFh], di
-    
     btc word ptr cs:[0FFFFh], ax
     btc word ptr cs:[0FFFFh], bx
     btc word ptr cs:[0FFFFh], cx
@@ -187,7 +184,6 @@ Start:
     btc word ptr cs:[0FFFFh], bp
     btc word ptr cs:[0FFFFh], si
     btc word ptr cs:[0FFFFh], di
-    
     btc word ptr ss:[0FFFFh], ax
     btc word ptr ss:[0FFFFh], bx
     btc word ptr ss:[0FFFFh], cx
@@ -196,7 +192,6 @@ Start:
     btc word ptr ss:[0FFFFh], bp
     btc word ptr ss:[0FFFFh], si
     btc word ptr ss:[0FFFFh], di
-    
     btc word ptr fs:[0FFFFh], ax
     btc word ptr fs:[0FFFFh], bx
     btc word ptr fs:[0FFFFh], cx
@@ -205,7 +200,6 @@ Start:
     btc word ptr fs:[0FFFFh], bp
     btc word ptr fs:[0FFFFh], si
     btc word ptr fs:[0FFFFh], di
-    
     btc word ptr gs:[0FFFFh], ax
     btc word ptr gs:[0FFFFh], bx
     btc word ptr gs:[0FFFFh], cx
@@ -214,7 +208,6 @@ Start:
     btc word ptr gs:[0FFFFh], bp
     btc word ptr gs:[0FFFFh], si
     btc word ptr gs:[0FFFFh], di
-    
     btc dword ptr ds:[0FFFFh], eax
     btc dword ptr ds:[0FFFFh], ebx
     btc dword ptr ds:[0FFFFh], ecx
@@ -223,7 +216,6 @@ Start:
     btc dword ptr ds:[0FFFFh], ebp
     btc dword ptr ds:[0FFFFh], esi
     btc dword ptr ds:[0FFFFh], edi
-    
     btc dword ptr es:[0FFFFh], eax
     btc dword ptr es:[0FFFFh], ebx
     btc dword ptr es:[0FFFFh], ecx
@@ -232,7 +224,6 @@ Start:
     btc dword ptr es:[0FFFFh], ebp
     btc dword ptr es:[0FFFFh], esi
     btc dword ptr es:[0FFFFh], edi
-    
     btc dword ptr cs:[0FFFFh], eax
     btc dword ptr cs:[0FFFFh], ebx
     btc dword ptr cs:[0FFFFh], ecx
@@ -241,7 +232,6 @@ Start:
     btc dword ptr cs:[0FFFFh], ebp
     btc dword ptr cs:[0FFFFh], esi
     btc dword ptr cs:[0FFFFh], edi
-    
     btc dword ptr ss:[0FFFFh], eax
     btc dword ptr ss:[0FFFFh], ebx
     btc dword ptr ss:[0FFFFh], ecx
@@ -250,7 +240,6 @@ Start:
     btc dword ptr ss:[0FFFFh], ebp
     btc dword ptr ss:[0FFFFh], esi
     btc dword ptr ss:[0FFFFh], edi
-    
     btc dword ptr fs:[0FFFFh], eax
     btc dword ptr fs:[0FFFFh], ebx
     btc dword ptr fs:[0FFFFh], ecx
@@ -259,7 +248,6 @@ Start:
     btc dword ptr fs:[0FFFFh], ebp
     btc dword ptr fs:[0FFFFh], esi
     btc dword ptr fs:[0FFFFh], edi
-    
     btc dword ptr gs:[0FFFFh], eax
     btc dword ptr gs:[0FFFFh], ebx
     btc dword ptr gs:[0FFFFh], ecx
@@ -269,8 +257,6 @@ Start:
     btc dword ptr gs:[0FFFFh], esi
     btc dword ptr gs:[0FFFFh], edi
     jcc_rel8:
-    jcc_rel16:
-    jcc_rel32:
     JO jcc_rel8
     JC jcc_rel8
     JNC jcc_rel8
@@ -288,57 +274,19 @@ Start:
     JG jcc_rel8
     JCXZ jcc_rel8
     JECXZ jcc_rel8
-    
-    JO jcc_rel16
-    JC jcc_rel16
-    JNC jcc_rel16
-    JZ jcc_rel16
-    JNZ jcc_rel16
-    JNA jcc_rel16
-    JA jcc_rel16
-    JS jcc_rel16
-    JNS jcc_rel16
-    JP jcc_rel16
-    JNP jcc_rel16
-    JL jcc_rel16
-    JNL jcc_rel16
-    JNG jcc_rel16
-    JG jcc_rel16
-    JCXZ jcc_rel16
-    JECXZ jcc_rel16
-    db 32768 dup (0)
-    ; JO jcc_rel32
-    ; JC jcc_rel32
-    ; JNC jcc_rel32
-    ; JZ jcc_rel32
-    ; JNZ jcc_rel32
-    ; JNA jcc_rel32
-    ; JA jcc_rel32
-    ; JS jcc_rel32
-    ; JNS jcc_rel32
-    ; JP jcc_rel32
-    ; JNP jcc_rel32
-    ; JL jcc_rel32
-    ; JNL jcc_rel32
-    ; JNG jcc_rel32
-    ; JG jcc_rel32
-    ; JCXZ jcc_rel32
-    ; JECXZ jcc_rel32
-    ; JO
-    ; JC
-    ; JNC
-    ; JZ
-    ; JNZ
-    ; JNA
-    ; JA
-    ; JS
-    ; JNS
-    ; JP
-    ; JNP
-    ; JL
-    ; JNL
-    ; JNG
-    ; JG
-    ; JCXZ
-    ; JECXZ
+    JO Start
+    JC Start
+    JNC Start
+    JZ Start
+    JNZ Start
+    JNA Start
+    JA Start
+    JS Start
+    JNS Start
+    JP Start
+    JNP Start
+    JL Start
+    JNL Start
+    JNG Start
+    JG Start
 end Start
