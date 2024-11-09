@@ -5,21 +5,22 @@
 Start:
     aad
     btc     ax, 1
-    btc     cx, 1
+    btc     cx, 0ffh
     btc     dx, 1
-    btc     bx, 1
+    btc     bx, 0ffh
     btc     sp, 1
-    btc     bp, 1
+    btc     bp, 0ffh
     btc     si, 1
-    btc     di, 1
+    btc     di, 0ffh
     btc     eax, 1
-    btc     ecx, 1
+    btc     ecx, 0ffh
     btc     edx, 1
-    btc     ebx, 1
+    btc     ebx, 0ffh
     btc     esp, 1
-    btc     ebp, 1
+    btc     ebp, 0ffh
     btc     esi, 1 
-    btc     edi, 1
+    btc     edi, 0ffh
+    lock    btc     ax, 1
     btc     ax, ax
     btc     ax, cx
     btc     ax, dx
@@ -84,6 +85,7 @@ Start:
     btc     di, bp
     btc     di, si
     btc     di, di
+    lock    btc     ax, ax
     btc     eax, eax
     btc     eax, ebx
     btc     eax, ecx
@@ -148,6 +150,7 @@ Start:
     btc     edi, ebp
     btc     edi, esi
     btc     edi, edi
+    lock    btc     eax, eax
     btc     word ptr ds:[0FFFFh], 1
     btc     word ptr es:[0FFFFh], 1
     btc     word ptr cs:[0FFFFh], 1
@@ -256,6 +259,11 @@ Start:
     btc     dword ptr gs:[0FFFFh], ebp
     btc     dword ptr gs:[0FFFFh], esi
     btc     dword ptr gs:[0FFFFh], edi
+    lock    btc     word ptr ds:[0FFFFh], ax
+    lock    btc     word ptr ds:[0FFFFh], 1
+    lock    btc     dword ptr ds:[0FFFFh], eax
+    lock    btc     dword ptr ds:[0FFFFh], 1
+
 jcc_rel8:
     JO      jcc_rel8
     JC      jcc_rel8
