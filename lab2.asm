@@ -1,7 +1,7 @@
 .model SMALL
 .186
 .stack 100h
-
+; edit
 maxSize         EQU     256
 
 .data
