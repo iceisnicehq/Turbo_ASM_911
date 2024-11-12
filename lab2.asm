@@ -1,3 +1,7 @@
+; clean screen with ERROR msg if string is short
+; show user output before exitting
+; maybe add smth like press any key to exit
+
 .model SMALL
 .186
 .stack 100h
