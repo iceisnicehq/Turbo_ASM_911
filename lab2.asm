@@ -84,29 +84,9 @@ read_char:
     cmp     al,   0dh           
     je      end_input
     cmp     al,   7fh
-    jge     read_char
-    cmp     al,   0ah
-    je      read_char
-    cmp     al,   08h      
-    jne     no_backspace  
-    cmp     di,   si       
-    je      read_char
-    mov     al,   20h
-    dec     di   
-    scasb
-    jne     not_space
-    dec     bx
-not_space:
-    dec     di
-    mov     ax,   0E08h
-    int     10h
-    mov     al,   20h    
-    int     10h
-    mov     al,   08h
-    int     10h
-    jmp     read_char
-no_backspace:
+    jae     read_char
     cmp     al,   20h
+    jb      read_char
     jne     no_space
     inc     bx  
     dec     di
@@ -149,8 +129,11 @@ fifth_wrd:
     scasb
     jnz     skip
     dec     ah
-    loopnz  fifth_wrd
+    jnz     skip
 moving:
+scasb
+jb  output
+dec di
     mov     dl,   cl
     mov     cx,   0ffffh
     repnz   scasb
