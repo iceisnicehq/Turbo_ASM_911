@@ -45,3 +45,11 @@ PREFIX:
 ![image](https://github.com/user-attachments/assets/56d9a3de-91e2-423d-85bb-67f80d2a8e70)
 
 
+IDEA:
+To use the instruction list while skipping instructions which are not part of my ins set.
+eg
+ins <aad>
+ins<unk>
+...
+ins<jc>
+THUS single byte instructions are one list but if an `0F` is encountered it is another list of instructions(ext)
