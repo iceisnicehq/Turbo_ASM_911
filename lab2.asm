@@ -11,6 +11,7 @@ maxSize         EQU     256
 .data
     file        db      'output.txt', 0
     limit       db      0Dh, 0Ah, 'LIMIT REACHED','$'  
+ending db 0Dh, 0Ah, 'Press any key to exit...', '$'
     outStr      db      0Dh, 0Ah, 'Output: ','$'
     shrtStr     db      0Dh, 0Ah, 'Error','$'
     prompt      db      'Input: ', '$'
