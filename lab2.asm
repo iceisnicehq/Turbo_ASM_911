@@ -11,9 +11,9 @@ maxSize         EQU     256
 .data
     file        db      'output.txt', 0
     limit       db      0Dh, 0Ah, 'LIMIT REACHED','$'  
-ending db 0Dh, 0Ah, 'Press any key to exit...', '$'
+    ending      db      0Dh, 0Ah, 'Press any key to exit...', '$'
     outStr      db      0Dh, 0Ah, 'Output: ','$'
-    shrtStr     db      0Dh, 0Ah, 'Error','$'
+    error       db      'lenError','$'
     prompt      db      'Input: ', '$'
     space       db      ?
     buffer      db      maxSize+2 DUP(?)  
@@ -23,6 +23,7 @@ Start:
     mov     ax,    @data
     mov     ds,    ax
     mov     es,    ax
+    xor ah, ah
     mov ax, 3
     int 10h 
     mov     ah,    09h      
@@ -50,7 +51,7 @@ read_char:
     dec     bx
     jmp     read_char   
 no_space:
-    mov     ah,   14
+    mov     ah,   0eh
     int     10h
     stosb
     loop    read_char  
@@ -66,41 +67,31 @@ end_input:
     dec     bx
     inc     cx
 no_last_space:
+    sub     cx,   maxSize+2
+    not     cx
     stosb
     cmp     bx,   4
     jnl     no_error
-    mov ah, 02h          ; Function to set cursor position
+    mov ah, 02h         
     xor bh, bh           ; Page number (0)
-    mov dh, 0            ; Row (0, where the prompt is)
-    mov dl, 8            ; Column (8, where input starts)
+    xor dx, dx            ; Row (0, where the prompt is)           ; Column (8, where input starts)
     int 10h              ; Set cursor position
 
+    mov si, cx
+    mov ax, 1301h                ; Display string function             ; Update cursor after printing
+    mov bx, 0007h                ; Display page 0              ; White on black text attribute
+    mov bp, offset error                 ; Offset of the string
+    mov cx, 8                  ; Length of the string (excluding '$')
+    int 10h                    ; Call BIOS interrupt
+    mov cx, si
+cll:
+    mov     ax,   0e20h
+    int     10h
+    loop    cll
     ; Write spaces to clear the input line
-    mov cx, 7           ; Number of spaces to overwrite
-    mov al, ' '          ; Load space character
 
-clear_input_line:
-    ; Write a space at the current cursor position
-    mov ah, 0Eh          ; BIOS teletype output function
-    int 10h              ; Print space
-    loop clear_input_line
-
-    ; Move the cursor back to the input line
-    mov ah, 02h          ; Function to set cursor position
-    xor bh, bh           ; Page number (0)
-    mov dh, 0            ; Row (0, where the prompt is)
-    mov dl, 8            ; Column (8, where input starts)
-    int 10h              ; Set cursor position
-      
-    mov dx, offset shrtStr
-    mov ah, 09h
-    int 21h
-    xor     ah, ah
-    int     16h
     jmp     SHORT exit
 no_error:
-    sub     cx,   maxSize+2
-    not     cx
     mov     di,   si
     mov     bx,   si
     mov     ax,   0420h
@@ -149,7 +140,7 @@ output:
     mov     dx,   offset outStr
     int     21h
     mov     dx,   offset file            
-    mov     ah,   03Ch                   
+    mov     ah,   03ch                   
     int     21h 
     mov     dx,   bx
     not     bx
@@ -161,9 +152,22 @@ output:
     mov     bx,   1   
     mov     ah,   40h      
     int     21h     
-    mov     ah,   3Eh
+    mov     ah,   3eh
     int     21h
 exit:
-    mov     ah,   4ch      
+    mov ah, 02h                ; Set cursor position function
+    xor bh, bh                ; Display page 0
+    mov dh, 7                  ; Row (10th line, 0-based)
+    int 10                    ; Call BIOS interrupt
+
+    mov ax, 1301h                ; Display string function             ; Update cursor after printing
+    mov bx, 0007h                ; Display page 0              ; White on black text attribute
+    mov bp, offset ending                 ; Offset of the string
+    mov cx, 26                  ; Length of the string (excluding '$')
+    int 10h                    ; Call BIOS interrupt
+
+    xor     ah,   ah
+    int     16h
+    mov     ax,   4c00h      
     int     21h
     End     Start
