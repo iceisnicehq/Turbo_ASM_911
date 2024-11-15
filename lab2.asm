@@ -18,7 +18,7 @@ maxSize         EQU     256
 Start:
     mov     ax,    @data
     mov     ds,    ax
-    mov     es,    ax
+    mov     es,    ax 
     mov     ax,    0003h
     int     10h 
     mov     ah,    09h      
@@ -141,15 +141,15 @@ output:
     mov     bx,   ax 
     mov     ah,   40h      
     int     21h
+    mov     ah,   3Eh
+    int     21h
     mov     bx,   1   
     mov     ah,   40h      
     int     21h     
-    mov     ah,   3Eh
-    int     10h
 exit:
     mov     ah,   02h
     xor     bh,   bh
-    mov     dh,   7
+    mov     dx,   0700h
     int     10h
     mov     ax,   1301h                
     mov     bx,   0087h   
