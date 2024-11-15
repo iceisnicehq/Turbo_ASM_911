@@ -1,7 +1,3 @@
-; clean screen with ERROR msg if string is short
-; show user output before exitting
-; maybe add smth like press any key to exit
-
 .model SMALL
 .186
 .stack 100h
@@ -23,9 +19,8 @@ Start:
     mov     ax,    @data
     mov     ds,    ax
     mov     es,    ax
-    xor ah, ah
-    mov ax, 3
-    int 10h 
+    mov     ax,    0003h
+    int     10h 
     mov     ah,    09h      
     mov     dx,    offset prompt    
     int     21h 
@@ -37,9 +32,9 @@ Start:
 read_char:
     xor     ah,   ah
     int     16h 
-    cmp     al,   0dh           
+    cmp     al,   0Dh           
     je      end_input
-    cmp     al,   7fh
+    cmp     al,   7Fh
     jae     read_char
     cmp     al,   20h
     jb      read_char
@@ -51,7 +46,7 @@ read_char:
     dec     bx
     jmp     read_char   
 no_space:
-    mov     ah,   0eh
+    mov     ah,   0Eh
     int     10h
     stosb
     loop    read_char  
@@ -72,24 +67,21 @@ no_last_space:
     stosb
     cmp     bx,   4
     jnl     no_error
-    mov ah, 02h         
-    xor bh, bh           ; Page number (0)
-    xor dx, dx            ; Row (0, where the prompt is)           ; Column (8, where input starts)
-    int 10h              ; Set cursor position
-
-    mov si, cx
-    mov ax, 1301h                ; Display string function             ; Update cursor after printing
-    mov bx, 0007h                ; Display page 0              ; White on black text attribute
-    mov bp, offset error                 ; Offset of the string
-    mov cx, 8                  ; Length of the string (excluding '$')
-    int 10h                    ; Call BIOS interrupt
-    mov cx, si
+    mov     ah,   02h         
+    xor     bh,   bh
+    xor     dx,   dx
+    int     10h              
+    mov     si,   cx
+    mov     ax,   1301h
+    mov     bx,   000Ch
+    mov     bp,   offset error
+    mov     cx,   8
+    int     10h 
+    mov     cx,   si
 cll:
-    mov     ax,   0e20h
+    mov     ax,   0E20h
     int     10h
     loop    cll
-    ; Write spaces to clear the input line
-
     jmp     SHORT exit
 no_error:
     mov     di,   si
@@ -105,7 +97,7 @@ fifth_wrd:
     jnb     output
     dec     di
     mov     dl,   cl
-    mov     cx,   0ffffh
+    mov     cx,   0FFFFh
     repnz   scasb
     not     cx
     sub     dl,   cl
@@ -140,7 +132,7 @@ output:
     mov     dx,   offset outStr
     int     21h
     mov     dx,   offset file            
-    mov     ah,   03ch                   
+    mov     ah,   03Ch                   
     int     21h 
     mov     dx,   bx
     not     bx
@@ -152,22 +144,22 @@ output:
     mov     bx,   1   
     mov     ah,   40h      
     int     21h     
-    mov     ah,   3eh
-    int     21h
+    mov     ah,   3Eh
+    int     10h
 exit:
-    mov ah, 02h                ; Set cursor position function
-    xor bh, bh                ; Display page 0
-    mov dh, 7                  ; Row (10th line, 0-based)
-    int 10                    ; Call BIOS interrupt
-
-    mov ax, 1301h                ; Display string function             ; Update cursor after printing
-    mov bx, 0007h                ; Display page 0              ; White on black text attribute
-    mov bp, offset ending                 ; Offset of the string
-    mov cx, 26                  ; Length of the string (excluding '$')
-    int 10h                    ; Call BIOS interrupt
-
+    mov     ah,   02h
+    xor     bh,   bh
+    mov     dh,   7
+    int     10h
+    mov     ax,   1301h                
+    mov     bx,   0087h   
+    mov     bp,   offset ending
+    mov     cx,   26
+    int     10h 
     xor     ah,   ah
     int     16h
-    mov     ax,   4c00h      
+    mov     ax,    0003h
+    int     10h 
+    mov     ax,   4C00h      
     int     21h
     End     Start
