@@ -7,11 +7,11 @@ maxSize         EQU     256
 .data
     file        db      'output.txt', 0
     limit       db      0Dh, 0Ah, 'LIMIT REACHED','$'  
-    ending      db      0Dh, 0Ah, 'Press any key to exit...', '$'
+    ending      db      0Dh, 0Ah, 'Press any key to exit...', 0
     lenEnd      EQU     $ - ending - 1
     outStr      db      0Dh, 0Ah, 'Output: ','$'
     error       db      'lenError','$'
-    lenError    EQU     $ - error - 1 
+    lenError    EQU     $ - error - 1
     prompt      db      'Input: ', '$'
     space       db      ?
     buffer      db      maxSize+2 DUP(?)  
