@@ -11,7 +11,7 @@ maxSize         EQU     256
     lenEnd      EQU     $ - ending - 1
     outStr      db      0Dh, 0Ah, 'Output: ','$'
     error       db      'lenError','$'
-    lenError    EQU     $ - error - 1       ; Calculate the size of the string at assembly time
+    lenError    EQU     $ - error - 1 
     prompt      db      'Input: ', '$'
     space       db      ?
     buffer      db      maxSize+2 DUP(?)  
