@@ -8,8 +8,10 @@ maxSize         EQU     256
     file        db      'output.txt', 0
     limit       db      0Dh, 0Ah, 'LIMIT REACHED','$'  
     ending      db      0Dh, 0Ah, 'Press any key to exit...', '$'
+    lenEnd      EQU     $ - ending - 1
     outStr      db      0Dh, 0Ah, 'Output: ','$'
     error       db      'lenError','$'
+    lenError    EQU     $ - error - 1       ; Calculate the size of the string at assembly time
     prompt      db      'Input: ', '$'
     space       db      ?
     buffer      db      maxSize+2 DUP(?)  
@@ -22,9 +24,9 @@ Start:
     mov     ax,    0003h
     int     10h 
     mov     ah,    09h      
-    mov     dx,    offset prompt    
+    mov     dx,    OFFSET prompt    
     int     21h 
-    mov     di,    offset space
+    mov     di,    OFFSET space
     mov     al,    20h
     stosb 
     mov     si,    di
@@ -52,7 +54,7 @@ no_space:
     loop    read_char  
 end_input_limit:
     mov     ah,   09h
-    mov     dx,   offset limit
+    mov     dx,   OFFSET limit
     int     21h
 end_input:
     mov     al,   20h
@@ -74,8 +76,8 @@ no_last_space:
     mov     si,   cx
     mov     ax,   1301h
     mov     bx,   000Ch
-    mov     bp,   offset error
-    mov     cx,   8
+    mov     bp,   OFFSET error
+    mov     cx,   lenError
     int     10h 
     mov     cx,   si
 cll:
@@ -129,9 +131,9 @@ skip:
     loop    fifth_wrd
 output:
     mov     ah,   09h
-    mov     dx,   offset outStr
+    mov     dx,   OFFSET outStr
     int     21h
-    mov     dx,   offset file            
+    mov     dx,   OFFSET file            
     mov     ah,   03Ch                   
     int     21h 
     mov     dx,   bx
@@ -153,8 +155,8 @@ exit:
     int     10h
     mov     ax,   1301h                
     mov     bx,   0087h   
-    mov     bp,   offset ending
-    mov     cx,   26
+    mov     bp,   OFFSET ending
+    mov     cx,   lenEnd
     int     10h 
     xor     ah,   ah
     int     16h
