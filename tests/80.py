@@ -1,4 +1,27 @@
 import struct
+import struct
+
+def float_to_single_precision(num):
+    """
+    Convert a floating-point number to its single-precision (32-bit) IEEE 754 representation.
+    """
+    # Pack the float into 4 bytes using IEEE 754 single-precision format
+    packed = struct.pack('>f', num)  # '>f' means big-endian float (4 bytes)
+    # Convert to hex representation
+    hex_output = ' '.join(f'{b:02X}' for b in packed)
+    return hex_output
+
+def float_to_double_precision(num):
+    """
+    Convert a floating-point number to its double-precision (64-bit) IEEE 754 representation.
+    """
+    # Pack the float into 8 bytes using IEEE 754 double-precision format
+    packed = struct.pack('>d', num)  # '>d' means big-endian double (8 bytes)
+    # Convert to hex representation
+    hex_output = ' '.join(f'{b:02X}' for b in packed)
+    return hex_output
+
+# Example usage
 
 def float_to_80bit_extended_precision(num):
     # Step 1: Sign bit
@@ -35,46 +58,9 @@ def float_to_80bit_extended_precision(num):
     # Step 6: Combine and format output
     hex_output = ' '.join(f'{b:02X}' for b in high_bytes + low_bytes)
     return hex_output
-
-# Example usage
+    
 number = float(input("Enter a number: "))
-print("80-bit Extended Precision:", float_to_80bit_extended_precision(number)[6:])  # Remove the '0x' prefix
-def extended_precision_to_float(hex_string):
-    # Step 1: Convert the hex string to bytes
-    hex_bytes = bytes.fromhex(hex_string.replace(" ", ""))
-    if len(hex_bytes) != 10:
-        raise ValueError("The input must be exactly 10 bytes (80 bits) in hex format.")
 
-    # Step 2: Parse the sign, exponent, and mantissa
-    sign_bit = (hex_bytes[0] & 0x80) >> 7
-    exponent = ((hex_bytes[0] & 0x7F) << 8) | hex_bytes[1]
-    integer_bit = (hex_bytes[2] & 0x80) >> 7
-
-    # Combine the remaining mantissa bits into a 63-bit integer
-    mantissa = (
-        ((hex_bytes[2] & 0x7F) << 56)
-        | (hex_bytes[3] << 48)
-        | (hex_bytes[4] << 40)
-        | (hex_bytes[5] << 32)
-        | (hex_bytes[6] << 24)
-        | (hex_bytes[7] << 16)
-        | (hex_bytes[8] << 8)
-        | hex_bytes[9]
-    )
-
-    # Step 3: Adjust the exponent (subtract the bias of 16383)
-    exponent -= 16383
-
-    # Step 4: Reconstruct the floating-point number
-    if exponent == -16383 and mantissa == 0:
-        # Handle special case: Zero
-        return 0.0 if sign_bit == 0 else -0.0
-    else:
-        # Calculate the mantissa as a floating-point number
-        mantissa_value = 1.0 + mantissa / (1 << 63)
-        result = mantissa_value * (2 ** exponent)
-        return -result if sign_bit == 1 else result
-
-# Example usage
-hex_input = input("Enter a 80-bit hex representation (e.g., '40 01 80 00 00 00 00 00 00 00'): ")
-print("Converted to float:", extended_precision_to_float(hex_input))
+print("Single Precision (32-bit):", float_to_single_precision(number))
+print("Double Precision (64-bit):", float_to_double_precision(number))
+print("80-bit Extended Precision:", float_to_80bit_extended_precision(number))
