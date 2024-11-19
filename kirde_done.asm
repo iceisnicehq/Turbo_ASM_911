@@ -31,7 +31,7 @@ Start:
     mov     al,    20h
     mov     si,    di
     mov     cx,    maxSize+1
-    mov     bl,    2
+    mov     bl,    3
 reset_space:
     dec     bl
     jnz     not_third
