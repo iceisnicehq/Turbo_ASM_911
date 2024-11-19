@@ -99,6 +99,11 @@ no_error:
 ; 4. the end of the buffer is in di after read_char, thus the length of the whole buffer can be calculated
 ; 5. output the buffer to the screen and 
 
+; OR make a counter for the third word, store it in the end of the buffer in reverse
+; and also save its offset beggining (or dont) (but save its length)
+; then after  pressing enter, movsb it from the end of the buffer back to its place
+
+
 ; fifth_wrd:
 ;     scasb
 ;     jne     skip
