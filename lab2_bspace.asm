@@ -33,6 +33,25 @@ read_char:
     je      end_input
     cmp     al,   7fh
     jae     read_char
+    cmp     al,   08h      
+    jne     no_backspace  
+    cmp     di,   si       
+    je      read_char
+    mov     al,   20h
+    dec     di   
+    scasb
+    jne     not_space
+    dec     bx
+not_space:
+    dec     di
+    mov     ax,   0E08h
+    int     10h
+    mov     al,   20h    
+    int     10h
+    mov     al,   08h
+    int     10h
+    jmp     read_char
+no_backspace:
     cmp     al,   20h
     jb      read_char
     jne     no_space
