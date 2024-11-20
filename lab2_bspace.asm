@@ -78,7 +78,7 @@ end_input_limit:
     mov     dx,   OFFSET limit
     int     21h
 end_input:
-    mov     al,   20h
+    mov     ax,   0020h
     dec     di
     scasb
     jne     no_last_space
@@ -87,7 +87,7 @@ end_input:
 no_last_space:
     sub     cx,   maxSize+2
     not     cx
-    stosb
+    stosw
     cmp     bx,   4
     jnl     no_error
     mov     ah,   02h         
