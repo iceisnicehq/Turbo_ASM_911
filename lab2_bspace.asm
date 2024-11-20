@@ -51,6 +51,7 @@ read_char:
     dec     bx
 not_space:
     dec     di
+    inc     cx
     mov     ax,   0E08h
     int     10h
     mov     al,   20h    
