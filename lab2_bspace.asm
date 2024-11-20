@@ -6,10 +6,13 @@ maxSize         EQU     256
 
 .data
     file        db      'output.txt', 0
-    prompt      db      'Input: ', '$'
     limit       db      0Dh, 0Ah, 'LIMIT REACHED','$'  
+    ending      db      0Dh, 0Ah, 'Press any key to exit...', 0
+    lenEnd      EQU     $ - ending - 1
     outStr      db      0Dh, 0Ah, 'Output: ','$'
-    shrtStr     db      0Dh, 0Ah, 'Too short','$'
+    error       db      'lenError','$'
+    lenError    EQU     $ - error - 1
+    prompt      db      'Input: ', '$'
     space       db      ?
     buffer      db      maxSize+2 DUP(?)  
 .code
@@ -18,10 +21,12 @@ Start:
     mov     ax,    @data
     mov     ds,    ax
     mov     es,    ax 
+    mov     ax,    0003h
+    int     10h 
     mov     ah,    09h      
-    mov     dx,    offset prompt    
+    mov     dx,    OFFSET prompt    
     int     21h 
-    mov     di,    offset space
+    mov     di,    OFFSET space
     mov     al,    20h
     stosb 
     mov     si,    di
@@ -29,9 +34,11 @@ Start:
 read_char:
     xor     ah,   ah
     int     16h 
-    cmp     al,   0dh           
+    cmp     al,   0Dh           
     je      end_input
-    cmp     al,   7fh
+    cmp     al,   09h
+    je      no_space
+    cmp     al,   7Fh
     jae     read_char
     cmp     al,   08h      
     jne     no_backspace  
@@ -62,13 +69,13 @@ no_backspace:
     dec     bx
     jmp     read_char   
 no_space:
-    mov     ah,   14
+    mov     ah,   0Eh
     int     10h
     stosb
     loop    read_char  
 end_input_limit:
     mov     ah,   09h
-    mov     dx,   offset limit
+    mov     dx,   OFFSET limit
     int     21h
 end_input:
     mov     al,   20h
@@ -78,16 +85,28 @@ end_input:
     dec     bx
     inc     cx
 no_last_space:
+    sub     cx,   maxSize+2
+    not     cx
     stosb
     cmp     bx,   4
     jnl     no_error
-    mov     ah,   09h
-    mov     dx,   offset shrtStr 
-    int     21h
+    mov     ah,   02h         
+    xor     bh,   bh
+    xor     dx,   dx
+    int     10h              
+    mov     si,   cx
+    mov     ax,   1301h
+    mov     bx,   000Ch
+    mov     bp,   OFFSET error
+    mov     cx,   lenError
+    int     10h 
+    mov     cx,   si
+cll:
+    mov     ax,   0E20h
+    int     10h
+    loop    cll
     jmp     SHORT exit
 no_error:
-    sub     cx,   maxSize+2
-    not     cx
     mov     di,   si
     mov     bx,   si
     mov     ax,   0420h
@@ -101,7 +120,7 @@ fifth_wrd:
     jnb     output
     dec     di
     mov     dl,   cl
-    mov     cx,   0ffffh
+    mov     cx,   0FFFFh
     repnz   scasb
     not     cx
     sub     dl,   cl
@@ -133,9 +152,9 @@ skip:
     loop    fifth_wrd
 output:
     mov     ah,   09h
-    mov     dx,   offset outStr
+    mov     dx,   OFFSET outStr
     int     21h
-    mov     dx,   offset file            
+    mov     dx,   OFFSET file            
     mov     ah,   03Ch                   
     int     21h 
     mov     dx,   bx
@@ -145,12 +164,25 @@ output:
     mov     bx,   ax 
     mov     ah,   40h      
     int     21h
+    mov     ah,   3Eh
+    int     21h
     mov     bx,   1   
     mov     ah,   40h      
     int     21h     
-    mov     ah,   3Eh
-    int     21h
 exit:
-    mov     ah,   4ch      
+    mov     ah,   02h
+    xor     bh,   bh
+    mov     dx,   0700h
+    int     10h
+    mov     ax,   1301h                
+    mov     bx,   0087h   
+    mov     bp,   OFFSET ending
+    mov     cx,   lenEnd
+    int     10h 
+    xor     ah,   ah
+    int     16h
+    mov     ax,    0003h
+    int     10h 
+    mov     ax,   4C00h      
     int     21h
     End     Start
