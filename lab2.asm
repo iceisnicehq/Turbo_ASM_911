@@ -36,6 +36,8 @@ read_char:
     int     16h 
     cmp     al,   0Dh           
     je      end_input
+    cmp     al,   09h
+    je      no_space
     cmp     al,   7Fh
     jae     read_char
     cmp     al,   20h
