@@ -103,9 +103,9 @@ no_last_space:
     int     10h 
     mov     cx,   si
     mov     ax,   0E20h
-clsLine:
+clrLine:
     int     10h
-    loop    clsLine
+    loop    clrLine
     jmp     SHORT exit
 no_error:
     mov     di,   si
