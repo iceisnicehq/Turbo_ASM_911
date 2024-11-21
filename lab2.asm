@@ -82,10 +82,11 @@ no_last_space:
     mov     cx,   lenError
     int     10h 
     mov     cx,   si
-cll:
     mov     ax,   0E20h
+    int     3
+clrLine:
     int     10h
-    loop    cll
+    loop    clrLine
     jmp     SHORT exit
 no_error:
     mov     di,   si
