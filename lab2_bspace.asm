@@ -45,7 +45,7 @@ read_char:
     cmp     di,   si       
     je      read_char
     mov     al,   20h
-    dec     di   
+    dec     di  
     scasb
     jne     not_space
     dec     bx
