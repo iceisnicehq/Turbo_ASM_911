@@ -1,0 +1,4 @@
+The program firstly clears instruction buffer in which the instruction in ascii is stored. 
+  this buffer takes N bytes.
+then it opens files (data file and result file)
+in doing it it stores 
