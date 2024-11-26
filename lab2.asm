@@ -83,7 +83,6 @@ no_last_space:
     int     10h 
     mov     cx,   si
     mov     ax,   0E20h
-    int     3
 clrLine:
     int     10h
     loop    clrLine
