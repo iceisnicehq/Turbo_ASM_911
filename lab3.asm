@@ -5,17 +5,17 @@
 .stack 100h 
 .data 
     db 32 dup(?)
-    a          db    ?
-    c          db    ?
-    b          db    ?
-    d          dw    ?
+    b          db    10h
+    c          db    20h
+    a          db    30h
+    d          dd    ?
 .code 
 start:
     ; ASSUME  es:STACK 
     mov     ax,    @data 
     mov     ds,    ax 
     ;mov es,ax 
-    push    offset A
+    push    offset b
     mov     si,    sp
     ; lea si,A 
     ; push si 
@@ -33,7 +33,16 @@ exit:
     
 calc proc near 
     ; EQUATION    d = a + 12*b*c +6 / 65*c + 7*a^2
-    lods    word ptr ss:[si]
+    lods    word ptr ss:[si]    ; ax = offset of B
+    mov     si,    ax           ; si = offset of B
+    lodsd                       ; eax = 00 A C B 
+    movsx   cx,   ah            ; cx = extended C
+    mov     dx,   cx
+    movsx   bx,   al            ; bx = extended B
+    sal     dx,   2             ; bx = 4*B
+    sal     cx,   3 
+    imul    
+    shld    ebx,  eax, 8        
     mov     al,    bl
     cbw
     mov    bp,    ax
