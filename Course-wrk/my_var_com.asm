@@ -4,6 +4,12 @@
     org 100h        
 Start:
     aad
+    ; defining jumps with prefixes
+    db 66h, 0E3h, 0E0h ; only 3b
+    db 67h, 0E3h, 0E0h ; only 3b
+    db 66h, 67h, 0E3h, 0E0h ; only 4b
+    db 2Eh, 0fh, 80h, 0eeh, 0f9h
+    db 3Eh, 0fh, 80h, 0eeh, 0f9h 
     btc     ax, 1
     btc     cx, 0ffh
     btc     dx, 1
