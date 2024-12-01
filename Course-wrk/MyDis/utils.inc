@@ -1,3 +1,9 @@
+GET_FILE MACRO NAME
+    LEA         BX, NAME
+    CALL        GET_CMD_ARG
+    CMP         BYTE PTR [BX], 0
+    JE          PRINT_HELP
+ENDM
 ;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
 ; Prints a message to the screen.
 ; IN
