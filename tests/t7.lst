@@ -9,42 +9,42 @@ a.ASM
       4	    0000			 .code
       5					 org 100h
       6	    0100			 start:
-      7	    0100  65: F7 72 9D		     DIV     WORD PTR GS:[BP+SI-99]
-      8	    0104  2E: F7 5A 7C		     NEG     WORD PTR CS:[BP+SI+124]
-      9	    0108  3E: FF B6 2F0C	     PUSH    WORD PTR DS:[BP+12044]
-     10	    010D  FF 4F	D7		     DEC     WORD PTR DS:[BX-41]
-     11	    0110  65: 81 8F 898A A80D	     OR	     WORD PTR GS:[BX-30326], -22515
-     12	    0117  26: D3 48 79		     ROR     WORD PTR ES:[BX+SI+121], CL
-     13	    011B  FF 46	00		     INC     WORD PTR SS:[BP]
-     14	    011E  2E: D3 42 7C		     ROL     WORD PTR CS:[BP+SI+124], CL
-     15	    0122  26: F7 62 69		     MUL     WORD PTR ES:[BP+SI+105]
-     16	    0126  26: D3 54 73		     RCL     WORD PTR ES:[SI+115], CL
-     17	    012A  81 B0	1CD0 536C	     XOR     WORD PTR DS:[BX+SI+7376], 21356
-     18	    0130  69 FF	FD63		     IMUL    DI, DI, -669
-     19	    0134  66| 65: 67| 81 54 F4+	     ADC     DWORD PTR GS:[ESP+ESI*8-50], -439950
+      7	    0100  65: F7 72 9D		          DIV     WORD PTR GS:[BP+SI-99]
+      8	    0104  2E: F7 5A 7C		          NEG     WORD PTR CS:[BP+SI+124]
+      9	    0108  3E: FF B6 2F0C	          PUSH    WORD PTR DS:[BP+12044]
+     10	    010D  FF 4F	D7		              DEC     WORD PTR DS:[BX-41]
+     11	    0110  65: 81 8F 898A A80D	      OR	     WORD PTR GS:[BX-30326], -22515
+     12	    0117  26: D3 48 79		          ROR     WORD PTR ES:[BX+SI+121], CL
+     13	    011B  FF 46	00		              INC     WORD PTR SS:[BP]
+     14	    011E  2E: D3 42 7C		          ROL     WORD PTR CS:[BP+SI+124], CL
+     15	    0122  26: F7 62 69		          MUL     WORD PTR ES:[BP+SI+105]
+     16	    0126  26: D3 54 73		          RCL     WORD PTR ES:[SI+115], CL
+     17	    012A  81 B0	1CD0 536C	          XOR     WORD PTR DS:[BX+SI+7376], 21356
+     18	    0130  69 FF	FD63		            IMUL    DI, DI, -669
+     19	    0134  66| 65: 67| 81 54 F4+	    ADC     DWORD PTR GS:[ESP+ESI*8-50], -439950
      20		  CE FFF94972
-     21	    013F  66| 67| 0F C1	AC 5F +	     XADD    DS:[EDI+EBX*2-500191], EBP
+     21	    013F  66| 67| 0F C1	AC 5F +	    XADD    DS:[EDI+EBX*2-500191], EBP
      22		  FFF85E21
      23					     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-     24	    0149  66| 0F A5 D8		     SHLD    EAX, EBX, CL
-     25	    014D  00 8E	0100		     ADD     BYTE PTR SS:[BP+256], CL
-     26	    0151  66| 2E: 81 1E	04D2  +	     SBB     DWORD PTR CS:[1234], 4321
+     24	    0149  66| 0F A5 D8		          SHLD    EAX, EBX, CL
+     25	    014D  00 8E	0100		            ADD     BYTE PTR SS:[BP+256], CL
+     26	    0151  66| 2E: 81 1E	04D2  +	    SBB     DWORD PTR CS:[1234], 4321
      27		  000010E1
-     28	    015B  66| 19 00		     SBB     DS:[BX+SI], EAX
-     29	    015E  66| 65: 67| C7 84 00+	     MOV     DWORD PTR GS:[EAX+EAX+123456789], -666
+     28	    015B  66| 19 00		              SBB     DS:[BX+SI], EAX
+     29	    015E  66| 65: 67| C7 84 00+	    MOV     DWORD PTR GS:[EAX+EAX+123456789], -666
      30		  075BCD15 FFFFFD66
-     31	    016C  3E: 67| C4 44	AD 00	     LES     AX, DWORD PTR DS:[EBP+EBP*4]
-     32	    0172  66| 67| C4 04	00	     LES     EAX, DS:[EAX+EAX]
-     33	    0177  66| 8B 46 00		     MOV     EAX, SS:[BP]
-     34	    017B  66| 64: 67| 69 94 03+	     IMUL    EDX, DWORD	PTR FS:[EBX+EAX-777777], 777777
+     31	    016C  3E: 67| C4 44	AD 00	      LES     AX, DWORD PTR DS:[EBP+EBP*4]
+     32	    0172  66| 67| C4 04	00	        LES     EAX, DS:[EAX+EAX]
+     33	    0177  66| 8B 46 00		          MOV     EAX, SS:[BP]
+     34	    017B  66| 64: 67| 69 94 03+	    IMUL    EDX, DWORD	PTR FS:[EBX+EAX-777777], 777777
      35		  FFF421CF 000BDE31
-     36	    0189  FF 32			     PUSH    WORD PTR [BP+SI]
-     37	    018B  66| BD 00018A92	     MOV     EBP, 101010
-     38	    0191  6A 9C			     PUSH    -100
-     39	    0193  64: 67| FF 04	0B	     INC     WORD PTR FS:[EBX+ECX]
-     40	    0198  66| 64: 67| 8B 84 40+	     MOV     EAX, FS:[EAX+EAX*2+10001000]
+     36	    0189  FF 32			                PUSH    WORD PTR [BP+SI]
+     37	    018B  66| BD 00018A92	          MOV     EBP, 101010
+     38	    0191  6A 9C			                PUSH     -100
+     39	    0193  64: 67| FF 04	0B	        INC     WORD PTR FS:[EBX+ECX]
+     40	    0198  66| 64: 67| 8B 84 40+	    MOV     EAX, FS:[EAX+EAX*2+10001000]
      41		  00989A68
-     42	    01A2  66| 2E: 67| 81 04 4B+	     ADD     CS:[EBX+ECX*2], 90909090
+     42	    01A2  66| 2E: 67| 81 04 4B+	    ADD     CS:[EBX+ECX*2], 90909090
      43		  056B29A2
      44					     ;;;;;;;
      45					     ; MY IMAGINATION IS WEWEWEWEWEWEWEWEWEWE
