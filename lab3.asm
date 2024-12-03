@@ -30,14 +30,31 @@ start:
 exit:
     mov     ax,    4C00h 
     int     21h 
-    
+; ax cx dx bx si di bp     
 calc proc near 
     ; EQUATION    d = a + 12*b*c +6 / 65*c + 7*a^2
     lods    word ptr ss:[si]    ; ax = offset of B
     mov     si,    ax           ; si = offset of B
-    lodsd                       ; eax = 00 A C B 
-    movsx   cx,   ah            ; cx = extended C
-    mov     dx,   cx
+    lodsw                       ; eax = 00 00 C B
+    mov     cx,    ax           ; ch = C cl = B
+    lodsb                       ; al = A ah = C
+    mov     di,    si           ; di = offset D   
+    cbw                         ; ax = a
+    mov     dx,   ax            ; dx = a
+    mov     si,   ax            ; si = a
+    add     si,   6             ; si = a + 6
+    movsx   esi,  si            ; esi = a + 6 
+    sal     ax,   3             ; ax = 8a
+    sub     ax,   dx            ; ax = 7a
+    imul    dx                  ; dx:ax = 7*a^2
+    shl     eax,  16            
+    shld    edx,  eax,   16     ; edx = 7*a^2
+    movsx   ax,   ch            ; cx = extended C
+    sal     ax,   2             ; ax = c*4
+    mov     bx,   ax            ; bx = c*4
+    sal     ax,   1             ; ax = c*8
+    add     ax,   bx            ; ax = c*12
+    mov     dx,   cx            
     movsx   bx,   al            ; bx = extended B
     sal     dx,   2             ; bx = 4*B
     sal     cx,   3 
