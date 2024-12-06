@@ -156,7 +156,7 @@ INS_TYPES ENUM {
     INS_TYPE_EXT,
     INS_TYPE_SEG_OVR,
     INS_TYPE_PREFIX,
-    INS_TYPE_CUSTOM,
+    INS_TYPE_AAD,
     INS_TYPE_JCC,
     INS_TYPE_SIZE_OVR,
     INS_TYPE_ADDR_OVR
@@ -234,7 +234,7 @@ LABEL INSTRUCTION_LIST
     INSTRUCTION             <   INS_MOV,        INS_TYPE_NORMAL,    OP_REGMEM8,     OP_IMM8         > ; C6h
     INSTRUCTION             <   INS_MOV,        INS_TYPE_NORMAL,    OP_REGMEM16,    OP_IMM16        > ; C7h
     INSTRUCTION_UNKNOWN     0Dh
-    INSTRUCTION             <   INS_AAD,        INS_TYPE_CUSTOM,    OP_VOID,        OP_VOID         > ; D5h := 1101 0101 / Has a constant second byte.
+    INSTRUCTION             <   INS_AAD,        INS_TYPE_AAD,       OP_VOID,        OP_VOID         > ; D5h := 1101 0101 / Has a constant second byte.
     INSTRUCTION_UNKNOWN     0Dh
     INSTRUCTION             <   INS_JCXZ,       INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; E3h    ;nned to add a check for jecxz
     INSTRUCTION_UNKNOWN     0Ch
