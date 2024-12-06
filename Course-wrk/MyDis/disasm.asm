@@ -39,6 +39,7 @@ SEG_OVR                 DB ?
 TYPE_OVR                DB ?
 ADDR_OVR                DB ?
 SIZE_OVR                DB ?
+INS_EXT                 DB ?
 HAS_PREFIX              DB ?
 IS_MODRM_DECODED        DB ?
 LABEL CURRENT_INSTRUCTION
@@ -117,7 +118,8 @@ PRINT_FILE_NAME:
     MOV         BX, DX                              ; BX = beggining of file name
     PRINT_MSG   [BX]                                ; print file name 
     JMP         EXIT                                ; jump to exit
-
+DECODE_NEW_EXT_INSTRUCTION:
+    MOV         INS_EXT, 1
 DECODE_NEW_INSTRUCTION:    
     CALL        READ_UPCOMING_BYTE                  ; reads upcoming byte and saves it in ascii to mc_buffer
     OR          DH, DH                              ; normal byte
@@ -149,7 +151,8 @@ LOAD_INSTRUCTION:
     OR          AL, HAS_PREFIX
     OR          AL, SEG_OVR 
     OR          AL, ADDR_OVR 
-    OR          AL, SIZE_OVR 
+    OR          AL, SIZE_OVR
+    OR          AL, INS_EXT
     JNZ         SKIP_OFFSET
 
 PRINT_OFFSET:
@@ -159,7 +162,7 @@ PRINT_OFFSET:
     SPUT_CHAR   DI, ":"                             ; put : into the mc_buffer
     
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_EXT        ; check if current instr is seg_ovr
-    JE          DECODE_NEW_INSTRUCTION
+    JE          DECODE_NEW_EXT_INSTRUCTION
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_SIZE_OVR        ; check if current instr is seg_ovr
     JNE         NO_SIZE_OVR
     MOV         SIZE_OVR, 1
@@ -191,7 +194,7 @@ PRINT_MNEMONIC:
     JMP         DECODE_NEW_INSTRUCTION                              ; start decoding
         
 ANALYZE_OPERANDS:
-    CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_CUSTOM         ; check if the second byte of the instruction is constant (e.g. AAD)
+    CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_AAD         ; check if the second byte of the instruction is constant (e.g. AAD)
     JNE         READ_OPERANDS                                       ; if not then read ops
     CALL        READ_UPCOMING_BYTE                                  ; if yes read the second const byte
     JMP         SHORT END_LINE
