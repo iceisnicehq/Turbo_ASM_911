@@ -153,7 +153,7 @@ INS_BTC         DB "BTC $"
 INS_TYPES ENUM {
     INS_TYPE_UNKNOWN,
     INS_TYPE_NORMAL,
-    INS_TYPE_EXTENDED,
+    INS_TYPE_EXT,
     INS_TYPE_SEG_OVR,
     INS_TYPE_PREFIX,
     INS_TYPE_CUSTOM,
@@ -167,9 +167,9 @@ INSTRUCTION_UNKNOWN MACRO count
 ENDM
 
 LABEL INSTRUCTION_LIST
-    INSTRUCTION_UNKNOWN     0Eh
-    INSTRUCTION             <   OP_VOID,        INS_TYPE_EXTENDED,  OP_VOID,        OP_VOID         > ; 0Fh
-    INSTRUCTION_UNKNOWN     17h
+    INSTRUCTION_UNKNOWN     0Fh
+    INSTRUCTION             <   OP_VOID,        INS_TYPE_EXT,       OP_VOID,        OP_VOID         > ; 0Fh
+    INSTRUCTION_UNKNOWN     16h
     INSTRUCTION             <   OP_ES,          INS_TYPE_SEG_OVR,   OP_VOID,        OP_VOID         > ; 26h
     INSTRUCTION_UNKNOWN     07h
     INSTRUCTION             <   OP_CS,          INS_TYPE_SEG_OVR,   OP_VOID,        OP_VOID         > ; 2Eh   ; if next byte is jcc then print comment
@@ -223,7 +223,8 @@ LABEL INSTRUCTION_LIST
     INSTRUCTION             <   INS_MOV,        INS_TYPE_NORMAL,    OP_BH,          OP_IMM8         > ; B7h
     INSTRUCTION             <   INS_MOV,        INS_TYPE_NORMAL,    OP_AX,          OP_IMM16        > ; B8h
     INSTRUCTION             <   INS_MOV,        INS_TYPE_NORMAL,    OP_CX,          OP_IMM16        > ; B9h
-    INSTRUCTION             <   INS_MOV,        INS_TYPE_NORMAL,    OP_DX,          OP_IMM16        > ; BAh
+    INSTRUCTION             <   INS_BTC,        INS_TYPE_NORMAL,    OP_REGMEM16,       OP_IMM8      > ; 8Fh 
+    ; INSTRUCTION             <   INS_MOV,        INS_TYPE_NORMAL,    OP_DX,          OP_IMM16        > ; BAh
     INSTRUCTION             <   INS_MOV,        INS_TYPE_NORMAL,    OP_BX,          OP_IMM16        > ; BBh
     INSTRUCTION             <   INS_MOV,        INS_TYPE_NORMAL,    OP_SP,          OP_IMM16        > ; BCh
     INSTRUCTION             <   INS_MOV,        INS_TYPE_NORMAL,    OP_BP,          OP_IMM16        > ; BDh
@@ -254,8 +255,8 @@ LABEL INSTRUCTION_LIST
     ; INSTRUCTION <   INS_STD,        INS_TYPE_NORMAL,    OP_VOID,        OP_VOID         > ; FDh
     ; INSTRUCTION <   INS_EXT_FE_FF,  INS_TYPE_EXTENDED,  OP_REGMEM8,     OP_VOID         > ; FEh
     ; INSTRUCTION <   INS_EXT_FE_FF,  INS_TYPE_EXTENDED,  OP_REGMEM16,    OP_VOID         > ; FFh
-LABEL EXTENDED_INSTRUCTION_LIST
-    INSTRUCTION_UNKNOWN     7Fh
+; LABEL EXTENDED_INSTRUCTION_LIST
+;     INSTRUCTION_UNKNOWN     7Fh
     INSTRUCTION             <   INS_JO,         INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 80h 
     INSTRUCTION             <   INS_JNO,        INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 81h 
     INSTRUCTION             <   INS_JB,         INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 82h 
