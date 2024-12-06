@@ -37,6 +37,8 @@ IMM                     DW ?
 DISP                    DW ?
 SEG_OVR                 DB ?
 TYPE_OVR                DB ?
+ADDR_OVR                DB ?
+SIZE_OVR                DB ?
 HAS_PREFIX              DB ?
 IS_MODRM_DECODED        DB ?
 LABEL CURRENT_INSTRUCTION
@@ -66,10 +68,6 @@ include    "utils.inc"
 START:
     MOV         AX, @DATA                           ;define datasegment
     MOV         DS, AX
-    MOV         SI, 80h                             ; mov si to point to the cmd args
-    LODS        BYTE PTR ES:[SI]                    ; load cmd arg len to al
-    OR          AL, AL                              ; is len = 0?
-    JE          SHORT PRINT_HELP                    ; if yes print help msg
     CALL        RESET_INSTRUCTION                   ; reset inst_buffer to " " and "$"
     JMP         SHORT GET_FILE_NAMES                ; jump to reading file names
 PRINT_HELP:
@@ -77,7 +75,7 @@ PRINT_HELP:
     JMP          EXIT                               ; jmp to exit
 
 GET_FILE_NAMES:                                     ; Get file names from command line argument list
-    INC         SI                                  ; inc si to 82h where cmd start
+    MOV         SI, 82h                             ; inc si to 82h where cmd start
     GET_FILE    DATA_FILE_NAME                      ; Save cmd .COM TEST file to address in memory
     GET_FILE    RES_FILE_NAME                       ; Save cmd .ASM RES  file to address in memory
 
@@ -95,7 +93,8 @@ OPEN_RESULT_FILE:
     INT         21h                                 ; Call DOS
     JC          SHORT EXIT_WITH_ERR                 ; cf = 1 means error
     MOV         RES_FILE_HANDLE, AX                 ; Save result file handle
-    JMP         DECODE_NEW_INSTRUCTION              ; JUMP to decoding
+    int 3h
+    JMP         SHORT DECODE_NEW_INSTRUCTION        ; JUMP to decoding
 
 EXIT_WITH_ERR:                                      ; Print the error, which occurred while opening file.
     
@@ -146,17 +145,29 @@ LOAD_INSTRUCTION:
     MOV         AL, [BX].OP2                        ; save op2 
     MOV         CURRENT_INSTRUCTION.OP2, AL         ;   of curr instr
     
-    CMP         HAS_PREFIX, 1                       ; check if prefix was saved 
-    JE          SKIP_OFFSET                         ; Offset is already printed if instruction has a prefix.
-    CMP         SEG_OVR, 0                          ; check seg_ovr
-    JNE         SKIP_OFFSET                         ; Offset is already printed if instruction has segment override.
-    
+    XOR         AL, AL
+    OR          AL, HAS_PREFIX
+    OR          AL, SEG_OVR 
+    OR          AL, ADDR_OVR 
+    OR          AL, SIZE_OVR 
+    JNZ         SKIP_OFFSET
+
 PRINT_OFFSET:
     LEA         DI, IP_BUFFER                       ; load offset of the ip_buffer (which is the beginning of the lines)
     SPUT_WORD   DI, IP_VALUE                        ; put ip_value into the mc_buffer
     SPUT_CHAR   DI, "h"                             ; put h into the mc_buffer
     SPUT_CHAR   DI, ":"                             ; put : into the mc_buffer
     
+    CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_EXTENDED        ; check if current instr is seg_ovr
+    JE          DECODE_NEW_INSTRUCTION
+    CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_SIZE_OVR        ; check if current instr is seg_ovr
+    JNE         NO_SIZE_OVR
+    MOV         SIZE_OVR, 1
+NO_SIZE_OVR:
+    CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_ADDR_OVR        ; check if current instr is seg_ovr
+    JNE         NO_ADDR_OVR
+    MOV         ADDR_OVR, 1
+NO_ADDR_OVR:        
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_SEG_OVR        ; check if current instr is seg_ovr
     JNE         SKIP_OFFSET                                         ; if not then skip
     MOV         AX, CURRENT_INSTRUCTION.MNEMONIC                    ; if seg ovr, save its mnemonic to ax
@@ -171,9 +182,9 @@ SKIP_OFFSET:
     JMP         END_LINE                                            ; put crlf
 
 KNOWN_INSTRUCTION:                                                  ; if instruction is known
-    CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_EXTENDED       ; check if instruction is extended type (starts with 0f)
-    JNE         PRINT_MNEMONIC                                      ; if its not the print mnemonic
-    CALL        DECODE_EXT_INS                                      ; if yes start decoding
+    ;CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_EXTENDED       ; check if instruction is extended type (starts with 0f)
+    ;JE          DECODE_NEW_INSTRUCTION                              ; if its not the print mnemonic
+    ; CALL        DECODE_EXT_INS                                    ; if yes start decoding
 
 PRINT_MNEMONIC:
     MOV         SI, CURRENT_INSTRUCTION.MNEMONIC                    ; print curr
@@ -188,7 +199,8 @@ ANALYZE_OPERANDS:
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_CUSTOM         ; check if the second byte of the instruction is constant (e.g. AAD)
     JNE         READ_OPERANDS                                       ; if not then read ops
     CALL        READ_UPCOMING_BYTE                                  ; if yes read the second const byte
-    
+    JMP         SHORT END_LINE
+
 READ_OPERANDS:
     MOV         DL, CURRENT_INSTRUCTION.OP1                         ; decode 
     CALL        DECODE_OPERAND                                      ;   op1 of curr instr
