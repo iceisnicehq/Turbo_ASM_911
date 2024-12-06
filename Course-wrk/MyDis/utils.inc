@@ -279,7 +279,7 @@ GET_CMD_ARG ENDP
 ; (reset ip placeholder to be empty spaces)
 ;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+    
 RESET_INSTRUCTION PROC 
-    PUSH        BX CX
+    PUSH         BX CX
 
     LEA         BX, IP_BUFFER
     MOV         CX, IP_BUFFER_CAPACITY
@@ -305,13 +305,13 @@ RESET_INSTRUCTION PROC
         INC         BX
         LOOP        @@RESET_INSTRUCTION_BUFFER
     
-    MOV         TYPE_OVR, TYPE_OVR_NOT_SET
+    MOV         TYPE_OVR, 0
     MOV         SEG_OVR, 0
     MOV         HAS_PREFIX, 0
-    MOV         IS_MODRM_DECODED, 0
     MOV         ADDR_OVR, 0
     MOV         SIZE_OVR, 0
-    
+    MOV         INS_EXT, 0
+    MOV         IS_MODRM_DECODED, 0
     POP         CX BX
     RET
 RESET_INSTRUCTION ENDP
@@ -606,12 +606,12 @@ DECODE_OPERAND PROC
     @@READ_IMM:
     CALL        READ_UPCOMING_BYTE
     MOV         BL, DL
-    SET_OVR     TYPE_OVR_BYTE
+    SET_OVR     TYPE_OVR_DWORD
     CMP         AL,    OP_IMM16
     JB          @@STORE_IMM
     CALL        READ_UPCOMING_BYTE
     MOV         BH, DL
-    SET_OVR     TYPE_OVR_WORD
+    SET_OVR     TYPE_OVR_DWORD
     
     @@STORE_IMM:
     CMP         AL, OP_MEM
@@ -667,10 +667,10 @@ DECODE_OPERAND PROC
     MOV         DISP, BX
     
     @@SETUP_OVERRIDE:
-    SET_OVR     TYPE_OVR_BYTE
+    SET_OVR     TYPE_OVR_WORD
     CMP         AL, OP_REGMEM16
     JNE         @@RETURN
-    SET_OVR     TYPE_OVR_WORD
+    SET_OVR     TYPE_OVR_DWORD
     
     @@RETURN:
     POP         DX CX BX AX
