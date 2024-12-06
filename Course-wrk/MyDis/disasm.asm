@@ -158,7 +158,7 @@ PRINT_OFFSET:
     SPUT_CHAR   DI, "h"                             ; put h into the mc_buffer
     SPUT_CHAR   DI, ":"                             ; put : into the mc_buffer
     
-    CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_EXTENDED        ; check if current instr is seg_ovr
+    CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_EXT        ; check if current instr is seg_ovr
     JE          DECODE_NEW_INSTRUCTION
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_SIZE_OVR        ; check if current instr is seg_ovr
     JNE         NO_SIZE_OVR
@@ -176,15 +176,10 @@ NO_ADDR_OVR:
 
 SKIP_OFFSET:
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_UNKNOWN        ; check if instruction is unknown
-    JNE         KNOWN_INSTRUCTION                                   ; jump if instruction is not unknown
+    JNE         PRINT_MNEMONIC                                      ; jump if instruction is not unknown
     MOV         SI,    CURRENT_INSTRUCTION.MNEMONIC                 ; SI = instr mneonic offset
     CALL        INS_STR                                             ; put string at DS:SI (instr mnemonic) into the ip_buffer
     JMP         END_LINE                                            ; put crlf
-
-KNOWN_INSTRUCTION:                                                  ; if instruction is known
-    ;CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_EXTENDED       ; check if instruction is extended type (starts with 0f)
-    ;JE          DECODE_NEW_INSTRUCTION                              ; if its not the print mnemonic
-    ; CALL        DECODE_EXT_INS                                    ; if yes start decoding
 
 PRINT_MNEMONIC:
     MOV         SI, CURRENT_INSTRUCTION.MNEMONIC                    ; print curr
