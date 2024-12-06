@@ -101,7 +101,7 @@ INS_OPERANDS ENUM {
     ; 1 byte operands.
     OP_IMM8,    ; 17h
     OP_EIMM8,   ; 18h
-    OP_SHORT,   ; 19h
+    OP_REL8,   ; 19h
 
     ; 2 byte operands.
     OP_IMM16,   ; 1Ah
@@ -157,7 +157,9 @@ INS_TYPES ENUM {
     INS_TYPE_SEG_OVR,
     INS_TYPE_PREFIX,
     INS_TYPE_CUSTOM,
-    INS_TYPE_JCC
+    INS_TYPE_JCC,
+    INS_TYPE_SIZE_OVR,
+    INS_TYPE_ADDR_OVR
 }
 
 INSTRUCTION_UNKNOWN MACRO count
@@ -178,25 +180,25 @@ LABEL INSTRUCTION_LIST
     INSTRUCTION_UNKNOWN     25h+4h
     ; INSTRUCTION             <   OP_FS,          INS_TYPE_SEG_OVR,   OP_VOID,        OP_VOID         > ; 64h
     ; INSTRUCTION             <   OP_GS,          INS_TYPE_SEG_OVR,   OP_VOID,        OP_VOID         > ; 65h
-    ; INSTRUCTION             <   OP_32,          INS_TYPE_SIZE_OVR,  OP_VOID,        OP_VOID         > ; 66h
-    ; INSTRUCTION             <   OP_32,          INS_TYPE_ADDR_OVR,  OP_VOID,        OP_VOID         > ; 67h
+    ; INSTRUCTION             <   OP_VOID,        INS_TYPE_SIZE_OVR,  OP_VOID,       OP_VOID         > ; 66h
+    ; INSTRUCTION             <   OP_VOID,        INS_TYPE_ADDR_OVR,  OP_VOID,       OP_VOID         > ; 67h
     INSTRUCTION_UNKNOWN     08h
-    INSTRUCTION             <   INS_JO,         INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 70h
-    INSTRUCTION             <   INS_JNO,        INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 71h
-    INSTRUCTION             <   INS_JB,         INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 72h
-    INSTRUCTION             <   INS_JAE,        INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 73h
-    INSTRUCTION             <   INS_JE,         INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 74h
-    INSTRUCTION             <   INS_JNE,        INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 75h
-    INSTRUCTION             <   INS_JBE,        INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 76h
-    INSTRUCTION             <   INS_JA,         INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 77h
-    INSTRUCTION             <   INS_JS,         INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 78h
-    INSTRUCTION             <   INS_JNS,        INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 79h
-    INSTRUCTION             <   INS_JP,         INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 7Ah
-    INSTRUCTION             <   INS_JNP,        INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 7Bh
-    INSTRUCTION             <   INS_JL,         INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 7Ch
-    INSTRUCTION             <   INS_JGE,        INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 7Dh
-    INSTRUCTION             <   INS_JLE,        INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 7Eh
-    INSTRUCTION             <   INS_JG,         INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 7Fh
+    INSTRUCTION             <   INS_JO,         INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 70h
+    INSTRUCTION             <   INS_JNO,        INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 71h
+    INSTRUCTION             <   INS_JB,         INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 72h
+    INSTRUCTION             <   INS_JAE,        INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 73h
+    INSTRUCTION             <   INS_JE,         INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 74h
+    INSTRUCTION             <   INS_JNE,        INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 75h
+    INSTRUCTION             <   INS_JBE,        INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 76h
+    INSTRUCTION             <   INS_JA,         INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 77h
+    INSTRUCTION             <   INS_JS,         INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 78h
+    INSTRUCTION             <   INS_JNS,        INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 79h
+    INSTRUCTION             <   INS_JP,         INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 7Ah
+    INSTRUCTION             <   INS_JNP,        INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 7Bh
+    INSTRUCTION             <   INS_JL,         INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 7Ch
+    INSTRUCTION             <   INS_JGE,        INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 7Dh
+    INSTRUCTION             <   INS_JLE,        INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 7Eh
+    INSTRUCTION             <   INS_JG,         INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 7Fh
     INSTRUCTION_UNKNOWN     08h
     INSTRUCTION             <   INS_MOV,        INS_TYPE_NORMAL,    OP_REGMEM8,     OP_REG8         > ; 88h
     INSTRUCTION             <   INS_MOV,        INS_TYPE_NORMAL,    OP_REGMEM16,    OP_REG16        > ; 89h
@@ -230,8 +232,10 @@ LABEL INSTRUCTION_LIST
     INSTRUCTION_UNKNOWN     06h
     INSTRUCTION             <   INS_MOV,        INS_TYPE_NORMAL,    OP_REGMEM8,     OP_IMM8         > ; C6h
     INSTRUCTION             <   INS_MOV,        INS_TYPE_NORMAL,    OP_REGMEM16,    OP_IMM16        > ; C7h
-    INSTRUCTION_UNKNOWN     1Bh
-    INSTRUCTION             <   INS_JCXZ,       INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; E3h    ;nned to add a check for jecxz
+    INSTRUCTION_UNKNOWN     0Dh
+    INSTRUCTION             <   INS_AAD,        INS_TYPE_CUSTOM,    OP_VOID,        OP_VOID         > ; D5h := 1101 0101 / Has a constant second byte.
+    INSTRUCTION_UNKNOWN     0Dh
+    INSTRUCTION             <   INS_JCXZ,       INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; E3h    ;nned to add a check for jecxz
     INSTRUCTION_UNKNOWN     0Ch
     INSTRUCTION             <   INS_LOCK,       INS_TYPE_PREFIX,    OP_VOID,        OP_VOID         > ; F0h
     INSTRUCTION_UNKNOWN     0Fh
@@ -252,22 +256,22 @@ LABEL INSTRUCTION_LIST
     ; INSTRUCTION <   INS_EXT_FE_FF,  INS_TYPE_EXTENDED,  OP_REGMEM16,    OP_VOID         > ; FFh
 LABEL EXTENDED_INSTRUCTION_LIST
     INSTRUCTION_UNKNOWN     7Fh
-    INSTRUCTION             <   INS_JO,         INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 80h 
-    INSTRUCTION             <   INS_JNO,        INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 81h 
-    INSTRUCTION             <   INS_JB,         INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 82h 
-    INSTRUCTION             <   INS_JAE,        INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 83h 
-    INSTRUCTION             <   INS_JE,         INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 84h 
-    INSTRUCTION             <   INS_JNE,        INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 85h 
-    INSTRUCTION             <   INS_JBE,        INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 86h 
-    INSTRUCTION             <   INS_JA,         INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 87h 
-    INSTRUCTION             <   INS_JS,         INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 88h 
-    INSTRUCTION             <   INS_JNS,        INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 89h 
-    INSTRUCTION             <   INS_JP,         INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 8Ah 
-    INSTRUCTION             <   INS_JNP,        INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 8Bh 
-    INSTRUCTION             <   INS_JL,         INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 8Ch 
-    INSTRUCTION             <   INS_JGE,        INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 8Dh 
-    INSTRUCTION             <   INS_JLE,        INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 8Eh 
-    INSTRUCTION             <   INS_JG,         INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 8Fh 
+    INSTRUCTION             <   INS_JO,         INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 80h 
+    INSTRUCTION             <   INS_JNO,        INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 81h 
+    INSTRUCTION             <   INS_JB,         INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 82h 
+    INSTRUCTION             <   INS_JAE,        INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 83h 
+    INSTRUCTION             <   INS_JE,         INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 84h 
+    INSTRUCTION             <   INS_JNE,        INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 85h 
+    INSTRUCTION             <   INS_JBE,        INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 86h 
+    INSTRUCTION             <   INS_JA,         INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 87h 
+    INSTRUCTION             <   INS_JS,         INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 88h 
+    INSTRUCTION             <   INS_JNS,        INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 89h 
+    INSTRUCTION             <   INS_JP,         INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 8Ah 
+    INSTRUCTION             <   INS_JNP,        INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 8Bh 
+    INSTRUCTION             <   INS_JL,         INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 8Ch 
+    INSTRUCTION             <   INS_JGE,        INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 8Dh 
+    INSTRUCTION             <   INS_JLE,        INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 8Eh 
+    INSTRUCTION             <   INS_JG,         INS_TYPE_NORMAL,    OP_REL8,       OP_VOID         > ; 8Fh 
     INSTRUCTION_UNKNOWN     2Ah
-    ; INSTRUCTION             <   INS_BTC,        INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 8Fh 
-    ; INSTRUCTION             <   INS_BTC,        INS_TYPE_NORMAL,    OP_SHORT,       OP_VOID         > ; 8Fh 
+    ; INSTRUCTION             <   INS_BTC,        INS_TYPE_NORMAL,    OP_REGMEM16,       OP_IMM8         > ; 8Fh 
+    ; INSTRUCTION             <   INS_BTC,        INS_TYPE_NORMAL,    OP_REGMEM16,       OP_REG8         > ; 8Fh 
