@@ -35,13 +35,15 @@ REG                     DB ?
 RM                      DB ?
 IMM                     DW ?
 DISP                    DW ?
+
+HAS_PREFIX              DB ?
 SEG_OVR                 DB ?
-TYPE_OVR                DB ?
 ADDR_OVR                DB ?
 SIZE_OVR                DB ?
 INS_EXT                 DB ?
-HAS_PREFIX              DB ?
+TYPE_OVR                DB ?
 IS_MODRM_DECODED        DB ?
+
 LABEL CURRENT_INSTRUCTION
     INSTRUCTION { }
 
@@ -147,13 +149,20 @@ LOAD_INSTRUCTION:
     MOV         AL, [BX].OP2                        ; save op2 
     MOV         CURRENT_INSTRUCTION.OP2, AL         ;   of curr instr
     
+    CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_JCXZ
+    JNE         NOT_JCXZ
+    CMP         ADDR_OVR, 1
+    JNE         NOT_JCXZ
+    MOV         CURRENT_INSTRUCTION.MNEMONIC, OFFSET INS_JECXZ     ;   of curr instr
+
+NOT_JCXZ:
     XOR         AL, AL
     OR          AL, HAS_PREFIX
     OR          AL, SEG_OVR 
     OR          AL, ADDR_OVR 
     OR          AL, SIZE_OVR
     OR          AL, INS_EXT
-    JNZ         CHECK_PRE
+    JNZ         CHECK_PREFIX_TYPE
 
 PRINT_OFFSET:
     LEA         DI, IP_BUFFER                       ; load offset of the ip_buffer (which is the beginning of the lines)
@@ -161,16 +170,18 @@ PRINT_OFFSET:
     SPUT_CHAR   DI, "h"                             ; put h into the mc_buffer
     SPUT_CHAR   DI, ":"                             ; put : into the mc_buffer
 
-CHECK_PRE: 
+CHECK_PREFIX_TYPE: 
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_EXT        ; check if current instr is seg_ovr
     JE          DECODE_NEW_EXT_INSTRUCTION
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_SIZE_OVR        ; check if current instr is seg_ovr
     JNE         NO_SIZE_OVR
     MOV         SIZE_OVR, 1
+    JMP         DECODE_NEW_EXT_INSTRUCTION
 NO_SIZE_OVR:
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_ADDR_OVR        ; check if current instr is seg_ovr
     JNE         NO_ADDR_OVR
     MOV         ADDR_OVR, 1
+    JMP         DECODE_NEW_INSTRUCTION
 NO_ADDR_OVR:        
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_SEG_OVR        ; check if current instr is seg_ovr
     JNE         SKIP_OFFSET                                         ; if not then skip
