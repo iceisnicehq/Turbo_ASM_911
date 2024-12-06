@@ -153,14 +153,15 @@ LOAD_INSTRUCTION:
     OR          AL, ADDR_OVR 
     OR          AL, SIZE_OVR
     OR          AL, INS_EXT
-    JNZ         SKIP_OFFSET
+    JNZ         CHECK_PRE
 
 PRINT_OFFSET:
     LEA         DI, IP_BUFFER                       ; load offset of the ip_buffer (which is the beginning of the lines)
     SPUT_WORD   DI, IP_VALUE                        ; put ip_value into the mc_buffer
     SPUT_CHAR   DI, "h"                             ; put h into the mc_buffer
     SPUT_CHAR   DI, ":"                             ; put : into the mc_buffer
-    
+
+CHECK_PRE: 
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_EXT        ; check if current instr is seg_ovr
     JE          DECODE_NEW_EXT_INSTRUCTION
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_SIZE_OVR        ; check if current instr is seg_ovr
