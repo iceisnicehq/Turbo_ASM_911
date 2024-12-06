@@ -273,71 +273,6 @@ GET_CMD_ARG PROC
     RET
 GET_CMD_ARG ENDP
 
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-; Adds an extension if a string does not have it already.
-; IN
-;   BX - Pointer to string (terminated with 0).
-;   DX - Pointer to extension (uppercase and terminated with 0).            
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-ADD_EXTENSION PROC 
-    PUSH        AX BX CX DX SI DI
-
-    MOV         DI, BX
-    MOV         SI, DX
-    MOV         CX, 0
-    @@FIND_EXT_END:
-        CMP         BYTE PTR [SI], 0
-        JE          @@FIND_STR_END
-        INC         SI
-        INC         CL
-        JMP         @@FIND_EXT_END
-
-    @@FIND_STR_END:
-        CMP         BYTE PTR [DI], 0
-        JE          @@VALIDATE_LENGTH
-        INC         DI
-        INC         CH
-        JMP         @@FIND_STR_END
-    
-    @@VALIDATE_LENGTH:
-    PUSH        DI
-    CMP         CH, CL
-    JBE         @@NO_EXT
-    MOV         CH, 0
-    DEC         SI
-    DEC         DI
-
-    @@CHECK_EXT:
-        MOV         AL, [SI]
-        CMP         AL, [DI]
-        JE          @@CONTINUE
-        ADD         AL, 20h 
-        CMP         AL, [DI]
-        JNE         @@NO_EXT
-        @@CONTINUE:
-        DEC         SI
-        DEC         DI
-        LOOP        @@CHECK_EXT
-    POP         DI
-    JMP         @@RETURN
-
-    @@NO_EXT:
-    POP         DI
-    MOV         SI, DX
-    @@ADD_EXT:
-        MOV         AL, [SI]
-        MOV         [DI], AL
-        INC         SI
-        INC         DI
-        CMP         BYTE PTR [SI], 0
-        JE          @@RETURN
-        JMP         @@ADD_EXT
-
-    @@RETURN:
-    POP         DI SI DX CX BX AX
-    RET
-ADD_EXTENSION ENDP
-
 ;---------------------------------------------DISASSEMBLER-PROCS------------------------------------------------------------------------------
 ;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
 ; Resets all values associated with current instruction.
@@ -374,6 +309,8 @@ RESET_INSTRUCTION PROC
     MOV         SEG_OVR, 0
     MOV         HAS_PREFIX, 0
     MOV         IS_MODRM_DECODED, 0
+    MOV         ADDR_OVR, 0
+    MOV         SIZE_OVR, 0
     
     POP         CX BX
     RET
@@ -426,55 +363,6 @@ READ_UPCOMING_BYTE PROC
 READ_UPCOMING_BYTE ENDP
 
 ;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-; Decodes extended instruction mnemonic.
-; IN
-;   DL - Operands value.    
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-DECODE_EXT_INS PROC 
-    PUSH        AX BX DX
-
-    CALL        DECODE_MODRM
-    MOV         AH, 0
-    MOV         AL, REG
-        
-    CMP         DL, 0F6h
-    JNE         @@CHECK_F7
-    CMP         AL, 0
-    JNE         @@CHECK_DWORD
-    MOV         CURRENT_INSTRUCTION.OP2, OP_IMM8
-    JMP         @@CHECK_DWORD
-    
-    @@CHECK_F7:
-    CMP         DL, 0F7h
-    JNE         @@CHECK_DWORD
-    CMP         AL, 0
-    JNE         @@CHECK_DWORD
-    MOV         CURRENT_INSTRUCTION.OP2, OP_IMM16
-    
-    @@CHECK_DWORD:  ; Check if we are working with a far instruction.
-    CMP         DL, 0FFh
-    JNE         @@LOAD_MNEMONIC
-    CMP         REG, 11b
-    JE          @@SET_DWORD_PTR
-    CMP         REG, 101b
-    JNE         @@LOAD_MNEMONIC
-    
-    @@SET_DWORD_PTR:
-    MOV         TYPE_OVR, TYPE_OVR_DWORD
-    
-    @@LOAD_MNEMONIC:    ; Load instruction mnemonic from extended list.
-    SHL         AL, 1
-    MOV         BX, CURRENT_INSTRUCTION.MNEMONIC
-    ADD         BX, AX
-    MOV         DX, [BX]
-    LEA         BX, CURRENT_INSTRUCTION.MNEMONIC
-    MOV         [BX], DX
-    
-    POP         DX BX AX
-    RET
-DECODE_EXT_INS ENDP
-
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
 ; Puts operand to instruction buffer.
 ; IN
 ;   DL - Operand value.
@@ -516,14 +404,14 @@ PUT_OPERAND PROC
     ENDM
     
     CMPJE       OP_VOID,    @@RETURN
-    CMPJBE      OP_DS,      @@PRINT_CONST_REG
-    CMPJE       OP_CONST1,  @@PRINT_CONST1
-    CMPJE       OP_CONST3,  @@PRINT_CONST3
+    ; CMPJBE      OP_DS,      @@PRINT_CONST_REG
+    ; CMPJE       OP_CONST1,  @@PRINT_CONST1
+    ; CMPJE       OP_CONST3,  @@PRINT_CONST3
     CMPJE       OP_IMM8,    @@PRINT_IMM8
-    CMPJE       OP_EIMM8,   @@PRINT_IMM16
-    CMPJE       OP_SHORT,   @@PRINT_SHORT
-    CMPJE       OP_IMM16,   @@PRINT_IMM16
-    CMPJE       OP_NEAR,    @@PRINT_NEAR
+    ; CMPJE       OP_EIMM8,   @@PRINT_IMM16
+    CMPJE       OP_REL8,   @@PRINT_SHORT
+    ; CMPJE       OP_IMM16,   @@PRINT_IMM16
+    ; CMPJE       OP_NEAR,    @@PRINT_NEAR
     CMPJE       OP_MEM,     @@PRINT_MEM
     CMPJE       OP_FAR,     @@PRINT_FAR
     CMPJBE      OP_SEGREG,  @@PRINT_REG
