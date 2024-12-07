@@ -399,7 +399,6 @@ PUT_OPERAND PROC
     CMP         SIZE_OVR, 0
     JE          @@EA_START
     MOV         BL, SIZE_OVR
-    ; DEC         BL
 
     @@EA_START:
     SHL         BL, 1
@@ -429,7 +428,6 @@ PUT_OPERAND PROC
     CMP         RM, 101b
     JE          @@PRINT_DISP
 
-;;;;;
 @@EA_NORMAL:
 int 3
     CMP         IS_SIB_DECODED, 0
@@ -473,7 +471,6 @@ int 3
     MOV         SI, EFFECTIVE_ADDRESSES[BX]
     CALL        INS_STR
     
-;;;;
 @@CHECK_MODE:
     CMP         MODE, 00b
     JE          @@EA_END
@@ -528,7 +525,6 @@ int 3
     
     
 @@PRINT_REG:
-    ; MOV         BH, 0
     MOV         BL, REG
     CMP         SIZE_OVR, 0
     JE          @@PRINT_REG_NAME
@@ -566,7 +562,7 @@ DECODE_MODRM PROC
     MOV         AL, DL
     AND         AL, 00000111b
     MOV         RM, AL
-    MOV         IS_MODRM_DECODED, 1        ; IS_MODRM_DECODED = 2 if MODRM is 32bit
+    MOV         IS_MODRM_DECODED, 1    
     POP         DX CX AX
     RET
 DECODE_MODRM ENDP
@@ -603,17 +599,8 @@ DECODE_SIB ENDP
 ;   DL - Operands value.    
 ;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
 DECODE_OPERAND PROC 
-    int 3h
-    ; SET_OVR    MACRO SIZE_OVR_VAL
-    ;     LOCAL       SIZE_OVR_ALREADY_SET
-    ;     OR          CL, CL
-    ;     JNZ         SIZE_OVR_ALREADY_SET ; Set type override if it was not set before calling the procedure.
-    ;     MOV         SIZE_OVR, SIZE_OVR_VAL
-    ;     SIZE_OVR_ALREADY_SET:
-    ; ENDM
-    
     PUSH        AX BX DX
-    ; MOV         CL, SIZE_OVR    ; Remember, whether override type was set before the procedure.
+
     MOV         AL, DL
 
     XOR         BX, BX
@@ -621,43 +608,21 @@ DECODE_OPERAND PROC
     JAE         @@READ_MODRM
     CMP         AL, OP_IMM8
     JAE         @@READ_IMM
-    JMP         @@RETURN        ; Constant numeric value / constant register / no operand.
+    JMP         @@RETURN      
     
-    @@READ_IMM:
+@@READ_IMM:
     CALL        READ_UPCOMING_BYTE
     MOVSX       BX, DL
-    ; SET_OVR     SIZE_OVR
-    ; CMP         AL,    OP_IMM16
-    ; JB          @@STORE_IMM
-    ; CALL        READ_UPCOMING_BYTE
-    ; MOV         BH, DL
-    ; SET_OVR     SIZE_OVR
     
-    @@STORE_IMM:
-    ; CMP         AL, OP_MEM
-    ; JE          @@STORE_AS_DISP
-    ; CMP         AL, OP_EIMM8
-    ; JE          @@STORE_EIMM8
+@@STORE_IMM:
     CMP         AL, OP_REL16
     JNE         @@TO_RETURN
     CALL        READ_UPCOMING_BYTE
     MOV         BH, DL
+
 @@TO_RETURN:
     MOV         IMM, BX
     JMP         @@RETURN
-    ; CALL        READ_UPCOMING_BYTE
-    ; MOV         BH, DL
-    
-    ; @@STORE_AS_DISP:
-    ; MOV         DISP, BX
-    ; JMP         @@RETURN
-    
-    ; @@STORE_EIMM8:
-    ; MOV         AX, BX
-    ; CBW
-    ; MOV         IMM, AX
-    ; SET_OVR     0
-    ; JMP         @@RETURN
     
 @@READ_MODRM:
     CMP         IS_MODRM_DECODED, 0
@@ -706,16 +671,11 @@ DECODE_OPERAND PROC
     MOV         BH, DL
     MOV         WORD PTR [DISP - 2], BX
     POP         BX
+
 @@STORE_DISP:
     MOV         DISP, BX
 
-    ; @@SETUP_OVERRIDE:
-    ; ; SET_OVR     0
-    ; CMP         AL, OP_REGMEM16
-    ; JNE         @@RETURN
-    ; ; SET_OVR     SIZE_OVR
-    
-    @@RETURN:
+@@RETURN:
     POP         DX BX AX
     RET
 DECODE_OPERAND ENDP
@@ -728,7 +688,7 @@ FPRINT_INSTRUCTION PROC
     
     MOV         BX, INS_END_PTR
     MOV         WORD PTR [BX], 0A0Dh   ; Add CRLF at the end.
-    ; MOV         BYTE PTR [BX + 1], 10
+
     ADD         BX, 2
     MOV         CX, BX
     LEA         BX, IP_BUFFER
