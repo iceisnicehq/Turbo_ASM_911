@@ -453,6 +453,7 @@ int 3
     CMP         SCALE, 11b
     JNE         @@PRINT_SCALE
     INS_CHAR    "8"
+    JMP         @@CHECK_MODE
 @@PRINT_SCALE:
     SHL         SCALE, 1
     MOV         DL, "0"
