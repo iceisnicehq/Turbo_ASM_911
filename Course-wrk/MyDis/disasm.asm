@@ -16,11 +16,6 @@ INSTRUCTION STRUC
     OP2                 DB ?
 ENDS
 
-; TYPE_OVRS ENUM {
-;     TYPE_OVR_WORD,
-;     TYPE_OVR_DWORD
-; }
-
 MAX_FILE_NAME           EQU 128
 DATA_BUFFER_CAPACITY    EQU 255
 IP_BUFFER_CAPACITY      EQU 8
@@ -42,12 +37,9 @@ SEG_OVR                 DB ?
 ADDR_OVR                DB ?
 SIZE_OVR                DB ?
 INS_EXT                 DB ?
-; TYPE_OVR                DB ? ;;;;;;;;;;;
 IS_MODRM_DECODED        DB ?
-
 IS_SIB_DECODED          DB ?
     SCALE               DB ?
-LABEL SIB WORD
     INDEX               DB ?
     BASE                DB ?
 
@@ -103,7 +95,6 @@ OPEN_RESULT_FILE:
     INT         21h                                 ; Call DOS
     JC          SHORT EXIT_WITH_ERR                 ; cf = 1 means error
     MOV         RES_FILE_HANDLE, AX                 ; Save result file handle
-    int 3h
     JMP         SHORT DECODE_NEW_INSTRUCTION        ; JUMP to decoding
 
 EXIT_WITH_ERR:                                      ; Print the error, which occurred while opening file.
