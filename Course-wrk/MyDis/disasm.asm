@@ -16,24 +16,25 @@ INSTRUCTION STRUC
     OP2                 DB ?
 ENDS
 
-TYPE_OVRS ENUM {
-    TYPE_OVR_NOT_SET,
-    TYPE_OVR_BYTE,
-    TYPE_OVR_WORD,
-    TYPE_OVR_DWORD
-}
+; TYPE_OVRS ENUM {
+;     TYPE_OVR_WORD,
+;     TYPE_OVR_DWORD
+; }
 
 MAX_FILE_NAME           EQU 128
 DATA_BUFFER_CAPACITY    EQU 255
 IP_BUFFER_CAPACITY      EQU 8
-MC_BUFFER_CAPACITY      EQU 30
+MC_BUFFER_CAPACITY      EQU 40
 INS_BUFFER_CAPACITY     EQU 48
 
 IP_VALUE                DW 0FFh
 MODE                    DB ?
 REG                     DB ?
 RM                      DB ?
+
 IMM                     DW ?
+
+DISP32                  DW ?
 DISP                    DW ?
 
 HAS_PREFIX              DB ?
@@ -41,8 +42,14 @@ SEG_OVR                 DB ?
 ADDR_OVR                DB ?
 SIZE_OVR                DB ?
 INS_EXT                 DB ?
-TYPE_OVR                DB ?
+; TYPE_OVR                DB ? ;;;;;;;;;;;
 IS_MODRM_DECODED        DB ?
+
+IS_SIB_DECODED          DB ?
+    SCALE               DB ?
+LABEL SIB WORD
+    INDEX               DB ?
+    BASE                DB ?
 
 LABEL CURRENT_INSTRUCTION
     INSTRUCTION { }
