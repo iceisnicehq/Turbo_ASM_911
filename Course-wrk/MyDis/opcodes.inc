@@ -37,7 +37,7 @@ EA_BX                   DB "BX$"
 
 LABEL EFFECTIVE_ADDRESSES
     EFF_ADD             DW EA_BX_SI, EA_BX_DI, EA_BP_SI, EA_BP_DI, EA_SI, EA_DI, EA_BP, EA_BX
-    ; DWORD_REGS          DW REG_EAX, REG_ECX, REG_EDX, REG_EBX, SIB, REG_EBP, REG_ESI, REG_EDI
+
 LABEL REGISTERS
     WORD_REGS           DW REG_AX, REG_CX, REG_DX, REG_BX, REG_SP, REG_BP, REG_SI, REG_DI
     DWORD_REGS          DW REG_EAX, REG_ECX, REG_EDX, REG_EBX, REG_ESP, REG_EBP, REG_ESI, REG_EDI
@@ -48,25 +48,21 @@ LABEL SEG_REGS
 LABEL SIZE_OVR_PTRS
     PTRS                DW WORD_PTR, DWORD_PTR
     
-; OP_VOID EQU 0 
-
 
 INS_OPERANDS ENUM {
     OP_VOID,
-    
-    OP_ES,   ; 11h
-    OP_CS,   ; 12h
-    OP_SS,   ; 13h
-    OP_DS,   ; 14h
+
+    OP_ES, 
+    OP_CS,  
+    OP_SS,   
+    OP_DS, 
     OP_FS
     OP_GS
-    ; 1 byte operands.
-    OP_IMM8,    ; 17h
-    OP_REL8,   ; 19h
-    OP_REL16,   ; 1Ch
-    ; 4 byte operands.
+    
+    OP_IMM8,   
+    OP_REL8, 
+    OP_REL16, 
 
-    ; Operands accompanied by MODRM byte.
     OP_REG16,
     OP_REGMEM16
 }
@@ -74,12 +70,10 @@ INS_OPERANDS ENUM {
 
 INS_UNKNOWN     DB "Unknown instruction$"
 
-; Data transfer.
-; INS_MOV         DB "MOV $"
-
 INS_AAD         DB "AAD $"
 
-; Conditional control transfer.
+INS_BTC         DB "BTC $"
+
 INS_JO          DB "JO $"
 INS_JNO         DB "JNO $"
 INS_JB          DB "JB $"
@@ -101,39 +95,37 @@ INS_JCXZ        DB "JCXZ $"
 INS_JECXZ       DB "JECXZ $"
 
 INS_LOCK        DB "LOCK $"
-INS_BTC         DB "BTC $"
 
 INS_TYPES ENUM {
     INS_TYPE_UNKNOWN,
     INS_TYPE_NORMAL,
-    INS_TYPE_EXT,
-    INS_TYPE_SEG_OVR,
-    INS_TYPE_PREFIX,
-    INS_TYPE_AAD,
     INS_TYPE_JCXZ,
-    ; INS_TYPE_JCC,
+    INS_TYPE_AAD,
+    INS_TYPE_EXT,
+    INS_TYPE_PREFIX,
+    INS_TYPE_SEG_OVR,
     INS_TYPE_SIZE_OVR,
     INS_TYPE_ADDR_OVR
 }
 
 INSTRUCTION_UNKNOWN MACRO count
-    INSTRUCTION     count      dup     (<INS_UNKNOWN, INS_TYPE_UNKNOWN, OP_VOID, OP_VOID>)
+    INSTRUCTION count dup  (<   INS_UNKNOWN,    INS_TYPE_UNKNOWN,   OP_VOID,       OP_VOID         >)
 ENDM
 
 LABEL INSTRUCTION_LIST
     INSTRUCTION_UNKNOWN     0Fh
-    INSTRUCTION             <   OP_VOID,        INS_TYPE_EXT,       OP_VOID,       OP_VOID        > ; 0Fh
-    INSTRUCTION_UNKNOWN     16h
-    INSTRUCTION             <   OP_ES,          INS_TYPE_SEG_OVR,   OP_VOID,       OP_VOID        > ; 26h
-    INSTRUCTION_UNKNOWN     07h
-    INSTRUCTION             <   OP_CS,          INS_TYPE_SEG_OVR,   OP_VOID,       OP_VOID        > ; 2Eh   ; if next byte is jcc then print comment
-    INSTRUCTION_UNKNOWN     07h
-    INSTRUCTION             <   OP_SS,          INS_TYPE_SEG_OVR,   OP_VOID,       OP_VOID        > ; 36h
-    INSTRUCTION_UNKNOWN     07h
-    INSTRUCTION             <   OP_DS,          INS_TYPE_SEG_OVR,   OP_VOID,       OP_VOID        > ; 3Eh   ; if next byte is jcc then print comment
-    INSTRUCTION_UNKNOWN     25h
-    INSTRUCTION             <   OP_FS,          INS_TYPE_SEG_OVR,   OP_VOID,       OP_VOID        > ; 64h
-    INSTRUCTION             <   OP_GS,          INS_TYPE_SEG_OVR,   OP_VOID,       OP_VOID        > ; 65h
+    INSTRUCTION             <   OP_VOID,        INS_TYPE_EXT,       OP_VOID,       OP_VOID         > ; 0Fh
+    INSTRUCTION_UNKNOWN     16h 
+    INSTRUCTION             <   OP_ES,          INS_TYPE_SEG_OVR,   OP_VOID,       OP_VOID         > ; 26h
+    INSTRUCTION_UNKNOWN     07h 
+    INSTRUCTION             <   OP_CS,          INS_TYPE_SEG_OVR,   OP_VOID,       OP_VOID         > ; 2Eh
+    INSTRUCTION_UNKNOWN     07h 
+    INSTRUCTION             <   OP_SS,          INS_TYPE_SEG_OVR,   OP_VOID,       OP_VOID         > ; 36h
+    INSTRUCTION_UNKNOWN     07h 
+    INSTRUCTION             <   OP_DS,          INS_TYPE_SEG_OVR,   OP_VOID,       OP_VOID         > ; 3Eh
+    INSTRUCTION_UNKNOWN     25h 
+    INSTRUCTION             <   OP_FS,          INS_TYPE_SEG_OVR,   OP_VOID,       OP_VOID         > ; 64h
+    INSTRUCTION             <   OP_GS,          INS_TYPE_SEG_OVR,   OP_VOID,       OP_VOID         > ; 65h
     INSTRUCTION             <   OP_VOID,        INS_TYPE_SIZE_OVR,  OP_VOID,       OP_VOID         > ; 66h
     INSTRUCTION             <   OP_VOID,        INS_TYPE_ADDR_OVR,  OP_VOID,       OP_VOID         > ; 67h
     INSTRUCTION_UNKNOWN     08h
@@ -173,8 +165,9 @@ LABEL INSTRUCTION_LIST
     INSTRUCTION             <   INS_BTC,        INS_TYPE_NORMAL,    OP_REGMEM16,   OP_IMM8         > ; BAh
     INSTRUCTION             <   INS_BTC,        INS_TYPE_NORMAL,    OP_REGMEM16,   OP_REG16        > ; BBh 
     INSTRUCTION_UNKNOWN     19h
-    INSTRUCTION             <   INS_AAD,        INS_TYPE_AAD,       OP_VOID,       OP_VOID         > ; D5h := 1101 0101 / Has a constant second byte.
+    INSTRUCTION             <   INS_AAD,        INS_TYPE_AAD,       OP_VOID,       OP_VOID         > ; D5h
     INSTRUCTION_UNKNOWN     0Dh
-    INSTRUCTION             <   INS_JCXZ,       INS_TYPE_JCXZ,      OP_REL8,       OP_VOID         > ; E3h    ;nned to add a check for jecxz
+    INSTRUCTION             <   INS_JCXZ,       INS_TYPE_JCXZ,      OP_REL8,       OP_VOID         > ; E3h  (JECXZ)
     INSTRUCTION_UNKNOWN     0Ch
     INSTRUCTION             <   INS_LOCK,       INS_TYPE_PREFIX,    OP_VOID,       OP_VOID         > ; F0h
+    INSTRUCTION_UNKNOWN     0Fh
