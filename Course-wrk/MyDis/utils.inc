@@ -661,8 +661,6 @@ DECODE_OPERAND PROC
     CALL        READ_UPCOMING_BYTE      ;disp 16
     MOV         BH, DL
     CMP         ADDR_OVR, 0
-    JE          @@RETURN
-    CMP         MODE, 01b
     JE          @@STORE_DISP
     PUSH        BX
     CALL        READ_UPCOMING_BYTE
