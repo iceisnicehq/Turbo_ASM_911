@@ -3,6 +3,13 @@
 .code 
     org 100h        
 Start:
+    btc     word ptr ds:[0FFFFh], 1
+    btc     word ptr cs:[EBP + EAX + 0FFFF0000h], AX
+    btc     word ptr cs:[EBP + EAX + 01h], AX
+    btc     word ptr cs:[EBX + ECX + 65534d], AX
+    db 0Fh, 0BAh, 3Eh, 0FFh, 0FFh, 0ffh 
+    db 2Eh, 67h, 0Fh, 0BBh, 44h, 05h, 0ffh
+    btc     word ptr cs:[EBX + ECX], AX
     btc     word ptr ds:[EBP + EBP], 1
     btc     word ptr ds:[EAX + EAX + 1fh], 1
     btc     word ptr ds:[EAX + EBP + 12345678h], 1
