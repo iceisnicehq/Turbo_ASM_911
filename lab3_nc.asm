@@ -2,9 +2,9 @@
 .386 
 .stack 100h 
 .data 
-    b          db    30h
-    c          db    20h
-    a          db    01h
+    b          db    127
+    c          db    127
+    a          db    1
     d          dd    ?
 .code 
 start:
@@ -16,7 +16,7 @@ start:
     call    calc 
     stosd
 exit:
-    mov     ax,    4C00h 
+    mov     ax,    4C00h
     int     21h 
 calc    proc near 
 
@@ -42,6 +42,7 @@ calc    proc near
     add     ax,   bx            
     cwde                        
     add     eax, edx            
+    jz      exit
     mov     ebx, eax            
     mov     ax,  cx
     imul    ah                  
