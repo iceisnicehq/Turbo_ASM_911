@@ -303,17 +303,46 @@ PUT_OPERAND PROC
     MOV         SI, SIZE_OVR_PTRS[BX]
     CALL        INS_STR
 @@CHECK_SEG:
-    CMP         SEG_OVR, 0
-    JE          @@SKIP_SEG_OVR
-    XOR         BH, BH
     MOV         BL, SEG_OVR
+    OR          BL, BL
+    JNE         @@PRINT_SEG
+    int 3h
+    MOV         BL, OP_DS
+    MOV         BH, RM         
+    CMP         ADDR_OVR, 0
+    JE          @@MODRM16
+    CMP         MODE, 000b
+    JE          @@CHECK_SIB
+    CMP         BH, 101b
+    JE          @@PRINT_SS
+@@CHECK_SIB:
+    CMP         BH, 100b
+    JNE         @@PRINT_SEG
+    CMP         BASE, 100b
+    JE          @@PRINT_SS
+    CMP         BASE, 101b
+    JE          @@PRINT_SS
+    CMP         SCALE, 101b
+    JE          @@PRINT_SS    
+    JMP         @@PRINT_SEG
+@@MODRM16:
+    CMP         BH, 010b
+    JE          @@PRINT_SS
+    CMP         BH, 011b
+    JE          @@PRINT_SS
+    CMP         MODE, 000b
+    JE          @@PRINT_SEG
+    CMP         BH, 110b
+    JNE         @@PRINT_SEG
+@@PRINT_SS:
+    MOV         BL, OP_SS
+@@PRINT_SEG:
+    XOR         BH, BH
     DEC         BL
     SHL         BL, 1
     MOV         SI, SEG_REGS[BX]
     CALL        INS_STR
     INS_CHAR    ":"
-    
-@@SKIP_SEG_OVR:
     INS_CHAR    "["
     CMP         MODE, 000b
     JNE         @@EA_NORMAL
