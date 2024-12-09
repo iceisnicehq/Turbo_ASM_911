@@ -306,12 +306,12 @@ RESET_INSTRUCTION PROC
         LOOP        @@RESET_INSTRUCTION_BUFFER
     
     ; MOV         TYPE_OVR, 0
-    MOV         SEG_OVR, 0
-    MOV         HAS_PREFIX, 0
-    MOV         ADDR_OVR, 0
-    MOV         SIZE_OVR, 0
-    MOV         INS_EXT, 0
-    MOV         IS_MODRM_DECODED, 0
+    MOV         PREF_SEG, 0
+    ; MOV         HAS_PREFIX, 0
+    MOV         ADDR_SIZE, 0
+    ; MOV         SIZE_OVR, 0
+    MOV         EXT_MODRM, 0
+    ; MOV         IS_MODRM_DECODED, 0
     ; MOV         IS_SIB_DECODED, 0
     POP         CX BX
     RET
@@ -372,7 +372,7 @@ PUT_OPERAND PROC
     PUSH        AX BX DX SI
     XOR         BX, BX
     
-    CMP         DL, OP_VOID
+    CMP         DL, OP_NONE
     JE          @@RETURN
     CMP         DL, OP_IMM8
     JE          @@PRINT_IMM8
@@ -381,7 +381,7 @@ PUT_OPERAND PROC
     CMP         DL, OP_REG16
     JE          @@PRINT_REG
 
-    CMP         MODE, 11b
+    CMP         MODE, 110b
     JNE         @@EFFECTIVE_ADDRESSING
     
     MOV         BL, RM
@@ -417,7 +417,7 @@ PUT_OPERAND PROC
     
 @@SKIP_SEG_OVR:
     INS_CHAR    "["
-    CMP         MODE, 00b
+    CMP         MODE, 000b
     JNE         @@EA_NORMAL
     CMP         ADDR_OVR, 1
     JE          @@MODRM32
@@ -446,7 +446,7 @@ PUT_OPERAND PROC
     SHL         BL, 1
     MOV         SI, REGISTERS[BX]
     CALL        INS_STR
-    CMP         SCALE, 00b
+    CMP         SCALE, 000b
     JE          @@CHECK_MODE
     INS_CHAR    "*"
     MOV         DL, "0"
@@ -466,7 +466,7 @@ PUT_OPERAND PROC
     CALL        INS_STR
     
 @@CHECK_MODE:
-    CMP         MODE, 00b
+    CMP         MODE, 000b
     JE          @@EA_END
 
     INS_CHAR    " "
@@ -475,7 +475,7 @@ PUT_OPERAND PROC
     
 @@PRINT_DISP:
     MOV         DX, DISP
-    CMP         MODE, 01b
+    CMP         MODE, 010b
     JE          @@PRINT_BYTE_DISP
     CMP         ADDR_OVR, 0
     JE          @@DISP16
@@ -537,59 +537,64 @@ PUT_OPERAND ENDP
 ;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
 ; Decodes upcoming byte from the data stream by MOD, REG and R/M fields.
 ;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+    
-DECODE_MODRM PROC 
-    PUSH        AX CX DX ; why cx
+DECODE_MODRM_SIB PROC 
+    PUSH        AX DX ; why cx
     CALL        READ_UPCOMING_BYTE
-    
-    MOV         AL, DL
-    AND         AL, 11000000b
-    ; MOV         CL, 6
-    SHR         AL, 6
-    MOV         MODE, AL
-    
-    MOV         AL, DL
-    AND         AL, 00111000b
-    ; MOV         CL, 3
-    SHR         AL, 3
-    MOV         REG, AL
-    
-    MOV         AL, DL
-    AND         AL, 00000111b
-    MOV         RM, AL
+    PUSH        BX
+    MOV         BX, OFFSET MODRM_BYTE
     MOV         IS_MODRM_DECODED, 1    
-    POP         DX CX AX
-    RET
-DECODE_MODRM ENDP
-
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-; Decodes upcoming byte from the data stream by SCALE, INDEX and BASE fields.
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+    
-DECODE_SIB PROC 
-    PUSH        AX CX DX   ; why cx
-    CALL        READ_UPCOMING_BYTE
-    
+    CMP         ADDR_OVR, 2
+    JNE         @@NOT_SIB
+    MOV         BX, OFFSET SIB_BYTE
+@@NOT_SIB:
     MOV         AL, DL
     AND         AL, 11000000b
     ; MOV         CL, 6
     SHR         AL, 5
-    MOV         SCALE, AL
-    CMP         SCALE, 110b
-    JNE         @@NOT_11
-    MOV         SCALE, 1000b
-@@NOT_11:
+    MOV         BYTE PTR [BX], AL
+    
     MOV         AL, DL
     AND         AL, 00111000b
     ; MOV         CL, 3
     SHR         AL, 3
-    MOV         INDEX, AL
+    MOV         BYTE PTR [BX + 1], AL
     
     MOV         AL, DL
     AND         AL, 00000111b
-    MOV         BASE, AL
-    INC         ADDR_OVR
-    POP         DX CX AX
+    MOV         BYTE PTR [BX + 2], AL
+    POP         BX DX AX
     RET
-DECODE_SIB ENDP
+DECODE_MODRM_SIB ENDP
+
+;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
+; Decodes upcoming byte from the data stream by SCALE, INDEX and BASE fields.
+;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+    
+; DECODE_SIB PROC 
+;     PUSH        AX CX DX   ; why cx
+;     CALL        READ_UPCOMING_BYTE
+    
+;     MOV         AL, DL
+;     AND         AL, 11000000b
+;     ; MOV         CL, 6
+;     SHR         AL, 5
+;     MOV         SCALE, AL
+;     CMP         SCALE, 110b
+;     JNE         @@NOT_11
+;     MOV         SCALE, 1000b
+; @@NOT_11:
+;     MOV         AL, DL
+;     AND         AL, 00111000b
+;     ; MOV         CL, 3
+;     SHR         AL, 3
+;     MOV         INDEX, AL
+    
+;     MOV         AL, DL
+;     AND         AL, 00000111b
+;     MOV         BASE, AL
+;     INC         ADDR_OVR
+;     POP         DX CX AX
+;     RET
+; DECODE_SIB ENDP
 ;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
 ; Decodes instruction operand.
 ; IN
@@ -624,21 +629,25 @@ DECODE_OPERAND PROC
 @@READ_MODRM:
     CMP         IS_MODRM_DECODED, 0
     JNE         @@MODRM_DECODED
-    CALL        DECODE_MODRM
+    CALL        DECODE_MODRM_SIB
     
 @@MODRM_DECODED:
     CMP         AL, OP_REG16
     JE          @@RETURN    ; Don't read displacement if operand is a register.
     
-    CMP         MODE, 11b
+    CMP         MODE, 110b
     JE          @@RETURN
     CMP         ADDR_OVR, 0
     JE          @@MODRM16
     CMP         RM, 100b     
     JNE         @@MODRM16    ; NO SIB
-    CALL        DECODE_SIB   ; IS_SIB_DECODED = 1
+    INC         ADDR_OVR
+    CALL        DECODE_MODRM_SIB   ; IS_SIB_DECODED = 1
+    CMP         SCALE, 110b
+    JNE         @@MODRM16
+    MOV         SCALE, 1000b
 @@MODRM16:
-    CMP         MODE, 01b    ; [...] + disp8 or disp16
+    CMP         MODE, 010b    ; [...] + disp8 or disp16
     JAE         @@READ_DISP
     CMP         ADDR_OVR, 0
     JE          @@DISP16
@@ -653,7 +662,7 @@ DECODE_OPERAND PROC
 @@READ_DISP:
     CALL        READ_UPCOMING_BYTE
     MOV         BL, DL          ; disp 8
-    CMP         MODE, 01b
+    CMP         MODE, 010b
     JE          @@STORE_DISP
     CALL        READ_UPCOMING_BYTE      ;disp 16
     MOV         BH, DL
