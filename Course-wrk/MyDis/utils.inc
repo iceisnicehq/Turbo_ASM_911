@@ -61,10 +61,10 @@ ENDM
 ;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
 SPUT_BYTE MACRO STR_PTR, NUM, ZERO_PREFIX
     PUSH        AX BX DX
-    MOV         AL, NUM
-    MOV         AH, 0
+    MOVZX       AX, NUM
+    ; MOV         AH, 0
     MOV         BX, STR_PTR
-    MOV         DL, 0
+    XOR         DL, DL
     MOV         DH, ZERO_PREFIX
     CALL        SPUT_HEX
     MOV         STR_PTR, BX
@@ -83,8 +83,8 @@ SPUT_WORD MACRO STR_PTR, NUM
     PUSH        AX BX DX
     MOV         AX, NUM
     MOV         BX, STR_PTR
-    MOV         DL, 1
-    MOV         DH, 1
+    MOV         DX, 0101h
+    ; MOV         DH, 1
     CALL        SPUT_HEX
     MOV         STR_PTR, BX
     POP         DX BX AX
@@ -130,17 +130,18 @@ INS_STR PROC
     MOV         DI, INS_END_PTR
     LEA         AX, INS_BUFFER
     CMP         AX, DI ; Check if string is a mnemonic.
-    MOV         AH, 0
+    XOR         AH, AH
     JNE         @@FIND_END
-    MOV         AH, 1
+    INC         AH
     
     @@FIND_END:
         CMP         BYTE PTR [SI], "$"
         JE          @@ADD_SPACING
-        MOV         AL, [SI]
-        MOV         [DI], AL
-        INC         SI
-        INC         DI
+        MOVSB
+        ; MOV         AL, [SI]
+        ; MOV         [DI], AL
+        ; INC         SI
+        ; INC         DI
         JMP         @@FIND_END
     
     @@ADD_SPACING: ; Add spacing if string is a mnemonic.
@@ -148,12 +149,14 @@ INS_STR PROC
     JNE         @@RETURN
     LEA         BX, INS_BUFFER
     ADD         BX, 8
-    
+
+    MOV         AL, " "
     @@ADD_SPACE:
         CMP         DI, BX
         JAE         @@RETURN
-        MOV         BYTE PTR [DI], " "
-        INC         DI
+        STOSB
+        ; MOV         BYTE PTR [DI], " "
+        ; INC         DI
         JMP         @@ADD_SPACE
     
     @@RETURN:
@@ -188,30 +191,30 @@ SPUT_HEX PROC
     
     @@DIVIDE:
         DEC         SI
-        MOV         DX, 0
+        XOR         DX, DX
         DIV         CX
         CMP         DL, 9
         JBE         @@HEX_DIGIT
         
         @@HEX_LETTER:
-        SUB         DL, 10
-        ADD         DL, "A"
+        ; SUB         DL, 10
+        ADD         DL, 37h ; 37h = "A"(41h) - 0Ah 
         JMP         @@ADD_TO_BUFFER
         
         @@HEX_DIGIT:
-        ADD         DL, "0"
+        ADD         DL, 30h
         
         @@ADD_TO_BUFFER:
         MOV         [BX + SI], DL
-        CMP         AX, 0
+        OR          AX, AX
         JNE         @@DIVIDE
         
-    CMP         SI, 0
+    OR          SI, SI
     JE          @@CHECK_SHIFT
     @@ADD_LEADING_ZEROS:
         DEC         SI
         MOV         BYTE PTR [BX + SI], "0"
-        CMP         SI, 0
+        OR          SI, SI
         JNE         @@ADD_LEADING_ZEROS
     
     @@CHECK_SHIFT:
@@ -225,7 +228,7 @@ SPUT_HEX PROC
         DEC         SI
         MOV         AL, [BX + SI]
         MOV         [BX + SI + 1], AL
-        CMP         SI, 0
+        OR          SI, SI
         JNE         @@SHIFT_HEX
     MOV         BYTE PTR [BX], "0"
     INC         CX
@@ -247,10 +250,10 @@ SPUT_HEX ENDP
 GET_CMD_ARG PROC 
     PUSH        AX DI
   
-    MOV         DI, 0
+    XOR         DI, DI
     @@READ_SPACES: ; Read leading spaces.
         MOV         AL, ES:[SI]
-        CMP         AL, 13 ; Return if new line (no input found).
+        CMP         AL, CR ; Return if new line (no input found).
         JE          @@RETURN
         CMP         AL, " "
         JNE         @@READ_ARG
@@ -261,7 +264,7 @@ GET_CMD_ARG PROC
         MOV         AL, ES:[SI]
         CMP         AL, " "
         JE          @@RETURN
-        CMP         AL, 13 ; Return if new line.
+        CMP         AL, CR ; Return if new line.
         JE          @@RETURN 
         MOV         [BX + DI], AL
         INC         SI
@@ -349,7 +352,7 @@ READ_UPCOMING_BYTE PROC
     JMP         @@RETURN
     
     @@GET_BYTE: ; Get byte from buffer.
-    MOV         DH, 0
+    XOR         DH, DH
     LEA         BX, DATA_BUFFER
     ADD         BX, DATA_INDEX
     MOV         DL, [BX] ; dl is the byte
@@ -538,7 +541,7 @@ PUT_OPERAND ENDP
 ; Decodes upcoming byte from the data stream by MOD, REG and R/M fields.
 ;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+    
 DECODE_MODRM_SIB PROC 
-    PUSH        AX DX ; why cx
+    PUSH        AX DX 
     CALL        READ_UPCOMING_BYTE
     PUSH        BX
     MOV         BX, OFFSET MODRM_BYTE
@@ -691,7 +694,7 @@ FPRINT_INSTRUCTION PROC
     PUSH        AX BX CX DX
     
     MOV         BX, INS_END_PTR
-    MOV         WORD PTR [BX], 0A0Dh   ; Add CRLF at the end.
+    MOV         WORD PTR [BX], CRLF   ; Add CRLF at the end.
 
     ADD         BX, 2
     MOV         CX, BX
