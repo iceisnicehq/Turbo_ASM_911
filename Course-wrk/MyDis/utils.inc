@@ -312,7 +312,7 @@ RESET_INSTRUCTION PROC
     MOV         SIZE_OVR, 0
     MOV         INS_EXT, 0
     MOV         IS_MODRM_DECODED, 0
-    MOV         IS_SIB_DECODED, 0
+    ; MOV         IS_SIB_DECODED, 0
     POP         CX BX
     RET
 RESET_INSTRUCTION ENDP
@@ -429,9 +429,8 @@ PUT_OPERAND PROC
     JE          @@PRINT_DISP
 
 @@EA_NORMAL:
-int 3
-    CMP         IS_SIB_DECODED, 0
-    JE          @@NO_SIB
+    CMP         ADDR_OVR, 2
+    JNE         @@NO_SIB
     XOR         BH, BH
     MOV         BL, BASE
     ADD         BL, 8
@@ -450,12 +449,6 @@ int 3
     CMP         SCALE, 00b
     JE          @@CHECK_MODE
     INS_CHAR    "*"
-    CMP         SCALE, 11b
-    JNE         @@PRINT_SCALE
-    INS_CHAR    "8"
-    JMP         @@CHECK_MODE
-@@PRINT_SCALE:
-    SHL         SCALE, 1
     MOV         DL, "0"
     ADD         DL, SCALE
     INS_CHAR    DL
@@ -578,9 +571,12 @@ DECODE_SIB PROC
     MOV         AL, DL
     AND         AL, 11000000b
     ; MOV         CL, 6
-    SHR         AL, 6
+    SHR         AL, 5
     MOV         SCALE, AL
-    
+    CMP         SCALE, 110b
+    JNE         @@NOT_11
+    MOV         SCALE, 1000b
+@@NOT_11:
     MOV         AL, DL
     AND         AL, 00111000b
     ; MOV         CL, 3
@@ -590,7 +586,7 @@ DECODE_SIB PROC
     MOV         AL, DL
     AND         AL, 00000111b
     MOV         BASE, AL
-    MOV         IS_SIB_DECODED, 1
+    INC         ADDR_OVR
     POP         DX CX AX
     RET
 DECODE_SIB ENDP
@@ -692,10 +688,12 @@ FPRINT_INSTRUCTION PROC
     MOV         CX, BX
     LEA         BX, IP_BUFFER
     SUB         CX, BX
-    
+
+    LEA         DX, IP_BUFFER
+    MOV         AH, 09h
+    INT         21h
     MOV         AH, 40h
     MOV         BX, RES_FILE_HANDLE
-    LEA         DX, IP_BUFFER
     INT         21h    
     JNC         @@RETURN
     PRINT_MSG   ERR_MSG_GENERIC
