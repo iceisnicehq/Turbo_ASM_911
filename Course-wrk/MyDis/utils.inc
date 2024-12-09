@@ -1,18 +1,8 @@
-GET_FILE MACRO NAME
-    LEA         BX, NAME
-    CALL        GET_CMD_ARG
-    CMP         BYTE PTR [BX], 0
-    JE          PRINT_HELP
-ENDM
 ;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
 ; Prints a message to the screen.
 ; IN
 ;   MSG - Pointer to message.            
 ;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-PRINT_MSG MACRO MSG
-    LEA         SI, MSG
-    CALL        PRINT
-ENDM
 PRINT PROC 
     PUSH        AX DX
     MOV         AH, 09h
@@ -21,103 +11,6 @@ PRINT PROC
     POP         DX AX
     RET
 PRINT ENDP
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-; Closes a file.
-; IN
-;   FILE_HANDLE - File handle.       
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-CLOSE_FILE MACRO FILE_HANDLE
-    PUSH        AX BX
-    MOV         AH, 3Eh
-    MOV         BX, FILE_HANDLE
-    INT         21h
-    POP         BX AX
-ENDM
-
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-; Puts a char to string.
-; IN
-;   STR_PTR - Pointer to string.
-;   CHAR - Character to put.
-; OUT
-;   STR_PTR - Pointer to upcoming character.   
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-SPUT_CHAR MACRO STR_PTR, CHAR
-    PUSH        BX
-    MOV         BX, STR_PTR
-    MOV         BYTE PTR [BX], CHAR
-    INC         STR_PTR
-    POP         BX
-ENDM
-
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-; Puts one byte number to string.
-; IN
-;   STR_PTR - Pointer to string.
-;   NUM - Number to put.
-;   ZERO_PREFIX - Set to 1 to print leading 0, when number starts with letter.
-; OUT
-;   STR_PTR - Pointer to upcoming character.   
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-SPUT_BYTE MACRO STR_PTR, NUM, ZERO_PREFIX
-    PUSH        AX BX DX
-    MOVZX       AX, NUM
-    ; MOV         AH, 0
-    MOV         BX, STR_PTR
-    XOR         DL, DL
-    MOV         DH, ZERO_PREFIX
-    CALL        SPUT_HEX
-    MOV         STR_PTR, BX
-    POP         DX BX AX
-ENDM
-
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-; Puts two byte number to string.
-; IN
-;   STR_PTR - Pointer to string.
-;   NUM - Number to put.
-; OUT
-;   STR_PTR - Pointer to upcoming character.   
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-SPUT_WORD MACRO STR_PTR, NUM
-    PUSH        AX BX DX
-    MOV         AX, NUM
-    MOV         BX, STR_PTR
-    MOV         DX, 0101h
-    ; MOV         DH, 1
-    CALL        SPUT_HEX
-    MOV         STR_PTR, BX
-    POP         DX BX AX
-ENDM
-
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-; Puts one byte number to instruction buffer.
-; IN
-;   NUM - Number to put. 
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-INS_BYTE MACRO NUM
-    SPUT_BYTE   INS_END_PTR, NUM, 1
-    SPUT_CHAR   INS_END_PTR, "h"
-ENDM
-
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-; Puts two byte number to instruction buffer.
-; IN
-;   NUM - Number to put. 
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-INS_WORD MACRO NUM
-    SPUT_WORD   INS_END_PTR, NUM
-    ; SPUT_CHAR   INS_END_PTR, "h"
-ENDM
-
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-; Puts a character to instruction buffer.
-; IN
-;   CHAR - Character to put. 
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-INS_CHAR MACRO CHAR
-    SPUT_CHAR   INS_END_PTR, CHAR
-ENDM
 
 ;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
 ; Puts a string to instruction buffer.
@@ -327,7 +220,7 @@ RESET_INSTRUCTION ENDP
 ;   DH - Set to: 2 - on error; 1 - file end reached, 0 - otherwise.
 ;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
 READ_UPCOMING_BYTE PROC 
-    PUSH        BX ; save bx
+    PUSH        BX AX; save bx
     MOV         BX, DATA_SIZE ; bx = data_size (bytes which were read)
     CMP         BX, DATA_INDEX ; bx = index to which data was read to
     JA          @@CHECK_FILE_END ;end if end of file met
@@ -362,7 +255,7 @@ READ_UPCOMING_BYTE PROC
     SPUT_CHAR   MC_END_PTR, " "
         
     @@RETURN:
-    POP         BX
+    POP         AX BX
     RET
 READ_UPCOMING_BYTE ENDP
 
@@ -569,35 +462,6 @@ DECODE_MODRM_SIB PROC
     RET
 DECODE_MODRM_SIB ENDP
 
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-; Decodes upcoming byte from the data stream by SCALE, INDEX and BASE fields.
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+    
-; DECODE_SIB PROC 
-;     PUSH        AX CX DX   ; why cx
-;     CALL        READ_UPCOMING_BYTE
-    
-;     MOV         AL, DL
-;     AND         AL, 11000000b
-;     ; MOV         CL, 6
-;     SHR         AL, 5
-;     MOV         SCALE, AL
-;     CMP         SCALE, 110b
-;     JNE         @@NOT_11
-;     MOV         SCALE, 1000b
-; @@NOT_11:
-;     MOV         AL, DL
-;     AND         AL, 00111000b
-;     ; MOV         CL, 3
-;     SHR         AL, 3
-;     MOV         INDEX, AL
-    
-;     MOV         AL, DL
-;     AND         AL, 00000111b
-;     MOV         BASE, AL
-;     INC         ADDR_OVR
-;     POP         DX CX AX
-;     RET
-; DECODE_SIB ENDP
 ;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
 ; Decodes instruction operand.
 ; IN
