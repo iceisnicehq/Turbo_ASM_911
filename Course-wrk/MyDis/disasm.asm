@@ -7,7 +7,7 @@ SMART
 .DATA
     HELP_MSG                DB "To disassemble run: DISASM.EXE [data_file].COM [result_file].ASM$"
     ERR_MSG_GENERIC         DB "Error occurred $"
-    SUCCESS_MSG             DB "Result successfully written to file: $"
+    SUCCESS_MSG             DB 0Dh, 0Ah, "Result successfully written to file: $"
 
 INSTRUCTION STRUC
     MNEMONIC            DW ?
@@ -19,16 +19,18 @@ ENDS
 MAX_FILE_NAME           EQU 128
 DATA_BUFFER_CAPACITY    EQU 255
 IP_BUFFER_CAPACITY      EQU 8
-MC_BUFFER_CAPACITY      EQU 50
-INS_BUFFER_CAPACITY     EQU 60
+MC_BUFFER_CAPACITY      EQU 45
+INS_BUFFER_CAPACITY     EQU 55
 
 IP_VALUE                DW 0FFh
 MODE                    DB ?
 REG                     DB ?
 RM                      DB ?
+SCALE                   DB ?
+INDEX                   DB ?
+BASE                    DB ?
 
 IMM                     DW ?
-
 DISP32                  DW ?
 DISP                    DW ?
 
@@ -38,10 +40,8 @@ ADDR_OVR                DB ?
 SIZE_OVR                DB ?
 INS_EXT                 DB ?
 IS_MODRM_DECODED        DB ?
-IS_SIB_DECODED          DB ?
-    SCALE               DB ?
-    INDEX               DB ?
-    BASE                DB ?
+; IS_SIB_DECODED          DB ?
+
 
 LABEL CURRENT_INSTRUCTION
     INSTRUCTION { }
