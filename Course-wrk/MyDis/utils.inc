@@ -292,6 +292,8 @@ PUT_OPERAND PROC
     JMP         @@RETURN
     
     @@EFFECTIVE_ADDRESSING:
+    CMP         CURRENT_INSTRUCTION.OP2, OP_REG16
+    JE          @@CHECK_SEG
     CMP         SIZE_OVR, 0
     JE          @@EA_START
     MOV         BL, SIZE_OVR
@@ -300,7 +302,7 @@ PUT_OPERAND PROC
     SHL         BL, 1
     MOV         SI, SIZE_OVR_PTRS[BX]
     CALL        INS_STR
-
+@@CHECK_SEG:
     CMP         SEG_OVR, 0
     JE          @@SKIP_SEG_OVR
     XOR         BH, BH
