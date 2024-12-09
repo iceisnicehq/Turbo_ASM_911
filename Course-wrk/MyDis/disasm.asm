@@ -151,10 +151,7 @@ LOAD_INSTRUCTION:
     MOV         CURRENT_INSTRUCTION.OP1, AL         ;   of curr instr
     MOV         AL, [BX].OP2                        ; save op2 
     MOV         CURRENT_INSTRUCTION.OP2, AL         ;   of curr instr
-    CMP CURRENT_INSTRUCTION.MNEMONIC, offset INS_JNP
-    JNE @@NEXT
-    int 3h
-@@NEXT:
+    
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_JCXZ
     JNE         NOT_JECXZ
     CMP         ADDR_OVR, 1
