@@ -253,7 +253,7 @@ GET_CMD_ARG PROC
     XOR         DI, DI
     @@READ_SPACES: ; Read leading spaces.
         MOV         AL, ES:[SI]
-        CMP         AL, CR ; Return if new line (no input found).
+        CMP         AL, 0Dh ; Return if new line (no input found).
         JE          @@RETURN
         CMP         AL, " "
         JNE         @@READ_ARG
@@ -264,7 +264,7 @@ GET_CMD_ARG PROC
         MOV         AL, ES:[SI]
         CMP         AL, " "
         JE          @@RETURN
-        CMP         AL, CR ; Return if new line.
+        CMP         AL, 0Dh ; Return if new line.
         JE          @@RETURN 
         MOV         [BX + DI], AL
         INC         SI
@@ -694,7 +694,7 @@ FPRINT_INSTRUCTION PROC
     PUSH        AX BX CX DX
     
     MOV         BX, INS_END_PTR
-    MOV         WORD PTR [BX], CRLF   ; Add CRLF at the end.
+    MOV         WORD PTR [BX], 0A0Dh   ; Add CRLF at the end.
 
     ADD         BX, 2
     MOV         CX, BX
