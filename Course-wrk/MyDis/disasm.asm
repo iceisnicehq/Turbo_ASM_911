@@ -16,6 +16,9 @@ INSTRUCTION STRUC
     OP2                 DB ?
 ENDS
 
+CR                      EQU 0Dh
+LF                      EQU 0Ah
+CRLF                    EQU 0D0Ah
 MAX_FILE_NAME           EQU 128
 DATA_BUFFER_CAPACITY    EQU 255
 IP_BUFFER_CAPACITY      EQU 8
@@ -25,26 +28,26 @@ INS_BUFFER_CAPACITY     EQU 55
 IP_VALUE                DW 0FFh
 
 LABEL MODRM_BYTE
-    MODE                    DB ?
-    REG                     DB ?
-    RM                      DB ?
+    MODE                DB ?
+    REG                 DB ?
+    RM                  DB ?
 LABEL SIB_BYTE
-    SCALE                   DB ?
-    INDEX                   DB ?
-    BASE                    DB ?
+    SCALE               DB ?
+    INDEX               DB ?
+    BASE                DB ?
 
 IMM                     DW ?
 DISP32                  DW ?
 DISP                    DW ?
 LABEL PREF_SEG  WORD 
-    HAS_PREFIX              DB ?
-    SEG_OVR                 DB ?
+    HAS_PREFIX          DB ?
+    SEG_OVR             DB ?
 LABEL ADDR_SIZE WORD 
-    ADDR_OVR                DB ?
-    SIZE_OVR                DB ?
+    ADDR_OVR            DB ?
+    SIZE_OVR            DB ?
 LABEL EXT_MODRM WORD 
-    INS_EXT                 DB ?
-    IS_MODRM_DECODED        DB ?
+    INS_EXT             DB ?
+    IS_MODRM_DECODED    DB ?
 
 
 LABEL CURRENT_INSTRUCTION
@@ -84,7 +87,8 @@ GET_FILE_NAMES:                                     ; Get file names from comman
     MOV         SI, 82h                             ; inc si to 82h where cmd start
     GET_FILE    DATA_FILE_NAME                      ; Save cmd .COM TEST file to address in memory
     GET_FILE    RES_FILE_NAME                       ; Save cmd .ASM RES  file to address in memory
-
+    PUSH        DS
+    POP         ES
 OPEN_DATA_FILE:
     MOV         AX, 3D00h                           ; Open file (3Dh) with read access (00h)          
     LEA         DX, DATA_FILE_NAME                  ; Address of .COM file   
@@ -123,14 +127,14 @@ PRINT_FILE_NAME:
     PRINT_MSG   [BX]                                ; print file name 
     JMP         EXIT                                ; jump to exit
 DECODE_NEW_EXT_INSTRUCTION:
-    MOV         INS_EXT, 1
+    INC         INS_EXT
 DECODE_NEW_INSTRUCTION:    
     CALL        READ_UPCOMING_BYTE                  ; reads upcoming byte and saves it in ascii to mc_buffer
     OR          DH, DH                              ; normal byte
     JE          LOAD_INSTRUCTION                    ; load instruction
     CMP         DH, 1                               ; file end reached 
     JE          PROGRAM_SUCCESS                     ; print succes msg and end programm
-    
+    JMP         EXIT_WITH_ERR
 PROGRAM_SUCCESS:
     LEA         DX, RES_FILE_NAME                   ; load offset of res_file name
     PRINT_MSG   SUCCESS_MSG                         ; print success msg
@@ -158,11 +162,11 @@ LOAD_INSTRUCTION:
     MOV         CURRENT_INSTRUCTION.MNEMONIC, OFFSET INS_JECXZ     ;   of curr instr
 
 NOT_JCXZ:
-    XOR         AL, AL
-    OR          AL, HAS_PREFIX
-    OR          AL, SEG_OVR 
-    OR          AL, ADDR_OVR 
-    OR          AL, SIZE_OVR
+    XOR         AX, AX
+    OR          AX, PREF_SEG
+    ; OR          AL, SEG_OVR 
+    OR          AX, ADDR_SIZE
+    ; OR          AL, SIZE_OVR
     OR          AL, INS_EXT
     JNZ         CHECK_PREFIX_TYPE
 
@@ -177,12 +181,12 @@ CHECK_PREFIX_TYPE:
     JE          DECODE_NEW_EXT_INSTRUCTION
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_SIZE_OVR        ; check if current instr is seg_ovr
     JNE         NO_SIZE_OVR
-    MOV         SIZE_OVR, 1
+    INC         SIZE_OVR
     JMP         DECODE_NEW_EXT_INSTRUCTION
 NO_SIZE_OVR:
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_ADDR_OVR        ; check if current instr is seg_ovr
     JNE         NO_ADDR_OVR
-    MOV         ADDR_OVR, 1
+    INC         ADDR_OVR
     JMP         DECODE_NEW_INSTRUCTION
 NO_ADDR_OVR:        
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_SEG_OVR        ; check if current instr is seg_ovr
@@ -204,7 +208,7 @@ PRINT_MNEMONIC:
     
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_PREFIX         ; check if instr is prefix (e.g. lock, rep, repne)
     JNE         ANALYZE_OPERANDS                                    ; if not a prefix then analyze ops
-    MOV         HAS_PREFIX, 1                                       ; if prefix then save for later
+    INC         HAS_PREFIX                                 ; if prefix then save for later
     JMP         DECODE_NEW_INSTRUCTION                              ; start decoding
         
 ANALYZE_OPERANDS:
