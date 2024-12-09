@@ -16,9 +16,6 @@ INSTRUCTION STRUC
     OP2                 DB ?
 ENDS
 
-CR                      EQU 0Dh
-LF                      EQU 0Ah
-CRLF                    EQU 0D0Ah
 MAX_FILE_NAME           EQU 128
 DATA_BUFFER_CAPACITY    EQU 255
 IP_BUFFER_CAPACITY      EQU 8
