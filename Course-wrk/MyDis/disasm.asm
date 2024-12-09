@@ -68,7 +68,7 @@ INS_END_PTR             DW ?                            ; Pointer to the end of 
 include    "opcodes.inc"
 
 .CODE
-
+include    "macro.inc"
 include    "utils.inc"
 
 START:
@@ -151,14 +151,16 @@ LOAD_INSTRUCTION:
     MOV         CURRENT_INSTRUCTION.OP1, AL         ;   of curr instr
     MOV         AL, [BX].OP2                        ; save op2 
     MOV         CURRENT_INSTRUCTION.OP2, AL         ;   of curr instr
-    
+    CMP CURRENT_INSTRUCTION.MNEMONIC, offset INS_JNP
+    JNE @@NEXT
+    int 3h
+@@NEXT:
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_JCXZ
-    JNE         NOT_JCXZ
+    JNE         NOT_JECXZ
     CMP         ADDR_OVR, 1
-    JNE         NOT_JCXZ
+    JNE         NOT_JECXZ
     MOV         CURRENT_INSTRUCTION.MNEMONIC, OFFSET INS_JECXZ     ;   of curr instr
-
-NOT_JCXZ:
+NOT_JECXZ:
     XOR         AX, AX
     OR          AX, PREF_SEG
     ; OR          AL, SEG_OVR 
