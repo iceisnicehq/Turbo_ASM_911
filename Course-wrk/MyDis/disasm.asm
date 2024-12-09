@@ -23,24 +23,28 @@ MC_BUFFER_CAPACITY      EQU 45
 INS_BUFFER_CAPACITY     EQU 55
 
 IP_VALUE                DW 0FFh
-MODE                    DB ?
-REG                     DB ?
-RM                      DB ?
-SCALE                   DB ?
-INDEX                   DB ?
-BASE                    DB ?
+
+LABEL MODRM_BYTE
+    MODE                    DB ?
+    REG                     DB ?
+    RM                      DB ?
+LABEL SIB_BYTE
+    SCALE                   DB ?
+    INDEX                   DB ?
+    BASE                    DB ?
 
 IMM                     DW ?
 DISP32                  DW ?
 DISP                    DW ?
-
-HAS_PREFIX              DB ?
-SEG_OVR                 DB ?
-ADDR_OVR                DB ?
-SIZE_OVR                DB ?
-INS_EXT                 DB ?
-IS_MODRM_DECODED        DB ?
-; IS_SIB_DECODED          DB ?
+LABEL PREF_SEG  WORD 
+    HAS_PREFIX              DB ?
+    SEG_OVR                 DB ?
+LABEL ADDR_SIZE WORD 
+    ADDR_OVR                DB ?
+    SIZE_OVR                DB ?
+LABEL EXT_MODRM WORD 
+    INS_EXT                 DB ?
+    IS_MODRM_DECODED        DB ?
 
 
 LABEL CURRENT_INSTRUCTION
@@ -217,7 +221,7 @@ READ_OPERANDS:
     
     MOV         DL, CURRENT_INSTRUCTION.OP1                         ; put op1
     CALL        PUT_OPERAND                                         ;   into mnem_buffer string
-    CMP         CURRENT_INSTRUCTION.OP2, OP_VOID                    ; check if op2 is void
+    CMP         CURRENT_INSTRUCTION.OP2, OP_NONE                    ; check if op2 is void
     JE          END_LINE                                            ; if yes then go ro printing
     INS_CHAR    ","                                                 ; if no, then put ','
     INS_CHAR    " "                                                 ;   and ' ' for second op
