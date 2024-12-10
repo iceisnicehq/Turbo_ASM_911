@@ -338,12 +338,7 @@ INS_BUFFER              DB INS_BUFFER_CAPACITY DUP (?)  ; Instruction as a strin
 MC_END_PTR              DW ?                            ; Pointer to the end of machine code written.
 INS_END_PTR             DW ?                            ; Pointer to the end of instruction written.
 
-include    "opcodes.inc"
-
 .CODE
-include    "macro.inc"
-include    "utils.inc"
-
 START:
     MOV         AX, @DATA                           ;define datasegment
     MOV         DS, AX
