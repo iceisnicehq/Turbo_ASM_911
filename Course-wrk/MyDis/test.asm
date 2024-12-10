@@ -281,28 +281,16 @@ JCC_REL8:
     JLE     JCC_REL16
     JNLE    JCC_REL16
 JCC_REL8_PREF:
-    JNLE    JCC_REL16
-	db 2eh
     JO      JCC_REL8_PREF
-	db 3eh
     JB      JCC_REL8_PREF
-	db 2eh
     JZ      JCC_REL8_PREF
-	db 3eh
     JBE     JCC_REL8_PREF
-	db 2eh
     JCXZ    JCC_REL8_PREF
-	db 3eh
     JECXZ   JCC_REL8_PREF
-	db 3eh
     JNO     JCC_REL16_PREF
-	db 2eh
     JNB     JCC_REL16_PREF
-	db 2eh
     JNZ     JCC_REL16_PREF
-	db 3eh
     JNBE    JCC_REL16_PREF
-	db 3eh
     JNS     JCC_REL16_PREF
     AAD
 END     START
