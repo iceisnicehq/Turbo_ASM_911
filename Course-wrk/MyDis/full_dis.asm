@@ -391,10 +391,7 @@ FIND_FILE_NAME_END:
 PRINT_FILE_NAME:
     MOV         BYTE PTR [BX], "$"                  ; make file name ASCII$
     MOV         BX, DX                              ; BX = beggining of file name
-    CMP         BX, DX
-    JE          TO_EXIT
     PRINT_MSG   [BX]                                ; print file name
-TO_EXIT:
     JMP         EXIT                                ; jump to exit
 DECODE_NEW_EXT_INSTRUCTION:
     INC         INS_EXT
