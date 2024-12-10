@@ -20,7 +20,7 @@ exit:
     int     21h 
 calc    proc near 
 
-    lods    word ptr ss:[si]    
+    SEGSS   lodsw    
     mov     si,   ax            
     lodsw                       
     mov     cx,   ax            
