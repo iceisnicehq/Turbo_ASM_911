@@ -41,9 +41,9 @@ Start:
     IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
     btc     [bp], reg
     ENDM
-    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
-    btc     [1234h], reg
-    ENDM
+    ;IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
+    ;btc     [1234h], reg
+    ;ENDM
     IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
     btc     [si], reg
     ENDM
@@ -73,9 +73,9 @@ Start:
     btc     [di+1234h], reg
     ENDM
 
-    IRP     reg, <eax, ecx, edx, ebx, esp, ebp, esi, edi>
-    btc     [1234h], reg
-    ENDM
+    ;IRP     reg, <eax, ecx, edx, ebx, esp, ebp, esi, edi>
+    ;btc     [1234h], reg
+    ;ENDM
     IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
     btc     reg, 1
     ENDM
