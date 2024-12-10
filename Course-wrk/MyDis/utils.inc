@@ -23,7 +23,7 @@ INS_STR PROC
     MOV         DI, INS_END_PTR
     LEA         AX, INS_BUFFER
     CMP         AX, DI ; Check if string is a mnemonic.
-    XOR         AH, AH
+    MOV         AH, 0
     JNE         @@FIND_END
     INC         AH
     
@@ -156,14 +156,15 @@ GET_CMD_ARG PROC
     @@READ_ARG:
         MOV         AL, ES:[SI]
         CMP         AL, " "
-        JE          @@RETURN
+        JE          @@PUT_DOLLAR
         CMP         AL, 0Dh ; Return if new line.
-        JE          @@RETURN 
+        JE          @@PUT_DOLLAR 
         MOV         [BX + DI], AL
         INC         SI
         INC         DI
         JMP         @@READ_ARG
-  
+    @@PUT_DOLLAR:
+        MOV         BYTE PTR [BX + DI], "$"   
     @@RETURN:
     POP         DI AX
     RET
@@ -177,21 +178,21 @@ GET_CMD_ARG ENDP
 RESET_INSTRUCTION PROC 
     PUSH         BX CX
 
-    LEA         BX, IP_BUFFER
-    MOV         CX, IP_BUFFER_CAPACITY
-    @@RESET_IP_BUFFER:
-        MOV         BYTE PTR [BX], " "
-        INC         BX
-        LOOP        @@RESET_IP_BUFFER
+    ; LEA         BX, IP_BUFFER
+    ; MOV         CX, IP_BUFFER_CAPACITY-4
+    ; @@RESET_IP_BUFFER:
+    ;     MOV         BYTE PTR [BX], " "
+    ;     INC         BX
+    ;     LOOP        @@RESET_IP_BUFFER
 
 
-    LEA         BX, MC_BUFFER
-    MOV         MC_END_PTR, BX
-    MOV         CX, MC_BUFFER_CAPACITY
-    @@RESET_MC_BUFFER:
-        MOV         BYTE PTR [BX], " "
-        INC         BX
-        LOOP        @@RESET_MC_BUFFER
+    ; LEA         BX, MC_BUFFER
+    ; MOV         MC_END_PTR, BX
+    ; MOV         CX, MC_BUFFER_CAPACITY
+    ; @@RESET_MC_BUFFER:
+    ;     MOV         BYTE PTR [BX], " "
+    ;     INC         BX
+    ;     LOOP        @@RESET_MC_BUFFER
     
     LEA         BX, INS_BUFFER
     MOV         INS_END_PTR, BX
@@ -251,8 +252,8 @@ READ_UPCOMING_BYTE PROC
     MOV         DL, [BX] ; dl is the byte
     INC         DATA_INDEX
     INC         IP_VALUE
-    SPUT_BYTE   MC_END_PTR, DL, 0
-    SPUT_CHAR   MC_END_PTR, " "
+    ; SPUT_BYTE   MC_END_PTR, DL, 0
+    ; SPUT_CHAR   MC_END_PTR, " "
         
     @@RETURN:
     POP         AX BX
@@ -358,17 +359,17 @@ PUT_OPERAND PROC
 @@EA_NORMAL:
     CMP         ADDR_OVR, 2
     JNE         @@NO_SIB
-    XOR         BH, BH
-    MOV         BL, BASE
+    MOVZX       BX, BASE
     ADD         BL, 8
     SHL         BL, 1
     MOV         SI, REGISTERS[BX]
     CALL        INS_STR
-    INS_CHAR    " "
-    INS_CHAR    "+"
-    INS_CHAR    " "
-    XOR         BH, BH
-    MOV         BL, INDEX
+    LEA         SI, PL_SP_PL
+    CALL        INS_STR
+    ; INS_CHAR    " "
+    ; INS_CHAR    "+"
+    ; INS_CHAR    " "
+    MOVZX       BX, INDEX
     ADD         BL, 8
     SHL         BL, 1
     MOV         SI, REGISTERS[BX]
@@ -395,10 +396,11 @@ PUT_OPERAND PROC
 @@CHECK_MODE:
     CMP         MODE, 000b
     JE          @@EA_END
-
-    INS_CHAR    " "
-    INS_CHAR    "+"
-    INS_CHAR    " "
+    LEA         SI, PL_SP_PL
+    CALL        INS_STR
+    ; INS_CHAR    " "
+    ; INS_CHAR    "+"
+    ; INS_CHAR    " "
     
 @@PRINT_DISP:
     MOV         DX, DISP
@@ -406,9 +408,10 @@ PUT_OPERAND PROC
     JE          @@PRINT_BYTE_DISP
     CMP         ADDR_OVR, 0
     JE          @@DISP16
+    PUSH        DX
     MOV         DX, DISP32
     INS_WORD    DX
-    MOV         DX, DISP
+    POP         DX
 @@DISP16:
     INS_WORD    DX
     SPUT_CHAR   INS_END_PTR, "h"
@@ -603,7 +606,7 @@ FPRINT_INSTRUCTION PROC
     MOV         BX, RES_FILE_HANDLE
     INT         21h    
     JNC         @@RETURN
-    PRINT_MSG   ERR_MSG_GENERIC
+    PRINT_MSG   ERR_MSG
     
     @@RETURN:
     POP         DX CX BX AX
