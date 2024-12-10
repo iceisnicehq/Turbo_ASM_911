@@ -3,6 +3,87 @@
 .code 
     org 100h        
 Start:
+    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
+    btc     ax, reg
+    btc     cx, reg
+    btc     dx, reg
+    btc     bx, reg
+    btc     sp, reg
+    btc     bp, reg
+    btc     si, reg
+    btc     di, reg
+    ENDM
+    IRP     reg, <eax, ecx, edx, ebx, esp, ebp, esi, edi>
+    btc     eax, reg
+    btc     ecx, reg
+    btc     edx, reg
+    btc     ebx, reg
+    btc     esp, reg
+    btc     ebp, reg
+    btc     esi, reg
+    btc     edi, reg
+    ENDM
+    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
+    btc     [bx+si], reg
+    ENDM
+    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
+    btc     [bx+di], reg
+    ENDM
+    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
+    btc     [bp+si], reg
+    ENDM
+    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
+    btc     [bp+di], reg
+    ENDM
+    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
+    btc     [bp], reg
+    ENDM
+    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
+    btc     [bp], reg
+    ENDM
+    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
+    btc     [1234h], reg
+    ENDM
+    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
+    btc     [si], reg
+    ENDM
+    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
+    btc     [di], reg
+    ENDM
+
+    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
+    btc     [bx+si+1234h], reg
+    ENDM
+    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
+    btc     [bx+di+1234h], reg
+    ENDM
+    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
+    btc     [bp+si+1234h], reg
+    ENDM
+    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
+    btc     [bp+di+1234h], reg
+    ENDM
+    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
+    btc     [bp+1234h], reg
+    ENDM
+    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
+    btc     [si+1234h], reg
+    ENDM
+    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
+    btc     [di+1234h], reg
+    ENDM
+
+    IRP     reg, <eax, ecx, edx, ebx, esp, ebp, esi, edi>
+    btc     [1234h], reg
+    ENDM
+    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
+    btc     reg, 1
+    ENDM
+    IRP     reg, <eax, ecx, edx, ebx, esp, ebp, esi, edi>
+    btc     reg, 0ffh
+    ENDM
+
+
     btc     word ptr ds:[0FFFFh], 1
     btc     word ptr cs:[EBP + EAX + 0FFFF0000h], AX
     btc     word ptr cs:[EBP + EAX + 01h], AX
