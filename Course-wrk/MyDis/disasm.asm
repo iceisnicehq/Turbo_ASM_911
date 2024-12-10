@@ -5,7 +5,7 @@ SMART
 .486
 .STACK 100h
 .DATA
-    HELP_MSG                DB "To disassemble run: DISASM.EXE [data_file].COM [result_file].ASM$"
+    HELP_MSG                DB "To disassemble run: DISASM.EXE [data_file].COM [result_file].ASM",0Dh, 0Ah, "$"
     ERR_MSG_GENERIC         DB "Error occurred $"
     SUCCESS_MSG             DB 0Dh, 0Ah, "Result successfully written to file: $"
 
@@ -105,6 +105,8 @@ OPEN_RESULT_FILE:
 EXIT_WITH_ERR:                                      ; Print the error, which occurred while opening file.
     
     PUSH        DX                                  ; Save file name offset 
+    LEA         BX, HELP_MSG
+    PRINT_MSG   [BX]
     LEA         BX, ERR_MSG_GENERIC                 ; load bx with offset of err msg
     PRINT_MSG   [BX]                                ; print err message
     POP         DX                                  ; Restore file name offset
