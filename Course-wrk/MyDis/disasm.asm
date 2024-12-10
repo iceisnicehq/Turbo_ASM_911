@@ -6,9 +6,9 @@ SMART
 .STACK 100h
 .DATA
     HELP_MSG                DB "To disassemble run: DISASM.EXE [data_file].COM [result_file].ASM",0Dh, 0Ah, "$"
-    ERR_MSG_GENERIC         DB "Error occurred $"
+    ERR_MSG                 DB "Error occurred $"
     SUCCESS_MSG             DB 0Dh, 0Ah, "Result successfully written to file: $"
-
+    PL_SP_PL                DB " + $"
 INSTRUCTION STRUC
     MNEMONIC            DW ?
     TYPEOF              DB ?
@@ -18,9 +18,9 @@ ENDS
 
 MAX_FILE_NAME           EQU 128
 DATA_BUFFER_CAPACITY    EQU 255
-IP_BUFFER_CAPACITY      EQU 8
-MC_BUFFER_CAPACITY      EQU 45
-INS_BUFFER_CAPACITY     EQU 55
+IP_BUFFER_CAPACITY      EQU 4
+; MC_BUFFER_CAPACITY      EQU 45
+INS_BUFFER_CAPACITY     EQU 65
 
 IP_VALUE                DW 0FFh
 
@@ -59,10 +59,10 @@ DATA_BUFFER             DB DATA_BUFFER_CAPACITY DUP (?) ; Bytes, which were read
 DATA_SIZE               DW 0                            ; The size of currently read data buffer.
 DATA_INDEX              DW 0                            ; Position of the data buffer that we are currently at.
 
-IP_BUFFER               DB IP_BUFFER_CAPACITY DUP (?)   ; Offset from the start of code segment as a string.
-MC_BUFFER               DB MC_BUFFER_CAPACITY DUP (?)   ; Machine code as a string.
+IP_BUFFER               DB "0000h:  "   ; Offset from the start of code segment as a string.
+; MC_BUFFER               DB MC_BUFFER_CAPACITY DUP (?)   ; Machine code as a string.
 INS_BUFFER              DB INS_BUFFER_CAPACITY DUP (?)  ; Instruction as a string.
-MC_END_PTR              DW ?                            ; Pointer to the end of machine code written.
+; MC_END_PTR              DW ?                            ; Pointer to the end of machine code written.
 INS_END_PTR             DW ?                            ; Pointer to the end of instruction written.
 
 include    "opcodes.inc"
@@ -107,21 +107,21 @@ EXIT_WITH_ERR:                                      ; Print the error, which occ
     PUSH        DX                                  ; Save file name offset 
     LEA         BX, HELP_MSG
     PRINT_MSG   [BX]
-    LEA         BX, ERR_MSG_GENERIC                 ; load bx with offset of err msg
+    LEA         BX, ERR_MSG                 ; load bx with offset of err msg
     PRINT_MSG   [BX]                                ; print err message
     POP         DX                                  ; Restore file name offset
 
 PREP_FIND_FILE_NAME_END:
-    MOV         BX, DX                              ; BX = file name beggining offset 
+    ; MOV         BX, DX                              ; BX = file name beggining offset 
     
 FIND_FILE_NAME_END:
-    CMP         BYTE PTR [BX], 0                    ; is file name ends reached?
-    JE          PRINT_FILE_NAME                     ; if yes print file name
-    INC         BX                                  ; if no move up one letter
-    JMP         FIND_FILE_NAME_END                  ; loop for file name
+    ; CMP         BYTE PTR [BX], 0                    ; is file name ends reached?
+    ; JE          PRINT_FILE_NAME                     ; if yes print file name
+    ; INC         BX                                  ; if no move up one letter
+    ; JMP         FIND_FILE_NAME_END                  ; loop for file name
     
 PRINT_FILE_NAME:
-    MOV         BYTE PTR [BX], "$"                  ; make file name ASCII$
+    ; MOV         BYTE PTR [BX], "$"                  ; make file name ASCII$
     MOV         BX, DX                              ; BX = beggining of file name
     PRINT_MSG   [BX]                                ; print file name 
     JMP         EXIT                                ; jump to exit
@@ -171,8 +171,8 @@ NOT_JECXZ:
 PRINT_OFFSET:
     LEA         DI, IP_BUFFER                       ; load offset of the ip_buffer (which is the beginning of the lines)
     SPUT_WORD   DI, IP_VALUE                        ; put ip_value into the mc_buffer
-    SPUT_CHAR   DI, "h"                             ; put h into the mc_buffer
-    SPUT_CHAR   DI, ":"                             ; put : into the mc_buffer
+    ; SPUT_CHAR   DI, "h"                             ; put h into the mc_buffer
+    ; SPUT_CHAR   DI, ":"                             ; put : into the mc_buffer
 
 CHECK_PREFIX_TYPE: 
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_EXT        ; check if current instr is seg_ovr
@@ -180,7 +180,7 @@ CHECK_PREFIX_TYPE:
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_SIZE_OVR        ; check if current instr is seg_ovr
     JNE         NO_SIZE_OVR
     INC         SIZE_OVR
-    JMP         DECODE_NEW_EXT_INSTRUCTION
+    JMP         DECODE_NEW_INSTRUCTION
 NO_SIZE_OVR:
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_ADDR_OVR        ; check if current instr is seg_ovr
     JNE         NO_ADDR_OVR
@@ -195,17 +195,19 @@ NO_ADDR_OVR:
 
 SKIP_OFFSET:
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_UNKNOWN        ; check if instruction is unknown
-    JNE         PRINT_MNEMONIC                                      ; jump if instruction is not unknown
-    MOV         SI,    CURRENT_INSTRUCTION.MNEMONIC                 ; SI = instr mneonic offset
+    ; JNE         PRINT_MNEMONIC                                      ; jump if instruction is not unknown
+    PUSHF
+    MOV         SI, CURRENT_INSTRUCTION.MNEMONIC                 ; SI = instr mneonic offset
     CALL        INS_STR                                             ; put string at DS:SI (instr mnemonic) into the ip_buffer
-    JMP         END_LINE                                            ; put crlf
+    POPF
+    JE          SHORT END_LINE                                            ; put crlf
 
-PRINT_MNEMONIC:
-    MOV         SI, CURRENT_INSTRUCTION.MNEMONIC                    ; print curr
-    CALL        INS_STR                                             ;   intr mnemonic to the ip_buffer
+; PRINT_MNEMONIC:
+;     MOV         SI, CURRENT_INSTRUCTION.MNEMONIC                    ; print curr
+;     CALL        INS_STR                                             ;   intr mnemonic to the ip_buffer
     
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_PREFIX         ; check if instr is prefix (e.g. lock, rep, repne)
-    JNE         ANALYZE_OPERANDS                                    ; if not a prefix then analyze ops
+    JNE         SHORT ANALYZE_OPERANDS                                    ; if not a prefix then analyze ops
     INC         HAS_PREFIX                                 ; if prefix then save for later
     JMP         DECODE_NEW_INSTRUCTION                              ; start decoding
         
