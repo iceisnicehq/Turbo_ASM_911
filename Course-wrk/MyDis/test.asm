@@ -3,6 +3,7 @@
 .code 
     org 100h        
 Start:
+;segs
     IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
     btc     ax, reg
     btc     cx, reg
@@ -12,6 +13,21 @@ Start:
     btc     bp, reg
     btc     si, reg
     btc     di, reg
+    btc     [bx+si], reg
+    btc     [bx+di], reg
+    btc     [bp+si], reg
+    btc     [bp+di], reg
+    btc     [bp], reg
+    btc     [si], reg
+    btc     [di], reg
+    btc     [bx+si+1234h], reg
+    btc     [bx+di+1234h], reg
+    btc     [bp+si+1234h], reg
+    btc     [bp+di+1234h], reg
+    btc     [bp+1234h], reg
+    btc     [si+1234h], reg
+    btc     [di+1234h], reg
+    btc     reg, 1
     ENDM
     IRP     reg, <eax, ecx, edx, ebx, esp, ebp, esi, edi>
     btc     eax, reg
@@ -23,62 +39,16 @@ Start:
     btc     esi, reg
     btc     edi, reg
     ENDM
-    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
-    btc     [bx+si], reg
-    ENDM
-    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
-    btc     [bx+di], reg
-    ENDM
-    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
-    btc     [bp+si], reg
-    ENDM
-    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
-    btc     [bp+di], reg
-    ENDM
-    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
-    btc     [bp], reg
-    ENDM
-    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
-    btc     [bp], reg
-    ENDM
+
     ;IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
     ;btc     [1234h], reg
     ;ENDM
-    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
-    btc     [si], reg
-    ENDM
-    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
-    btc     [di], reg
-    ENDM
 
-    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
-    btc     [bx+si+1234h], reg
-    ENDM
-    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
-    btc     [bx+di+1234h], reg
-    ENDM
-    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
-    btc     [bp+si+1234h], reg
-    ENDM
-    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
-    btc     [bp+di+1234h], reg
-    ENDM
-    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
-    btc     [bp+1234h], reg
-    ENDM
-    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
-    btc     [si+1234h], reg
-    ENDM
-    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
-    btc     [di+1234h], reg
-    ENDM
 
     ;IRP     reg, <eax, ecx, edx, ebx, esp, ebp, esi, edi>
     ;btc     [1234h], reg
     ;ENDM
-    IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
-    btc     reg, 1
-    ENDM
+
     IRP     reg, <eax, ecx, edx, ebx, esp, ebp, esi, edi>
     btc     reg, 0ffh
     ENDM
