@@ -3,6 +3,7 @@
 .stack 100h
 .data
     FileName        db      "result.txt", 0
+    FailText        db      "minimum number of words - 2", 0Dh, 0Ah
     crif            db      0Dh, 0Ah, '$'
     InputText       db      255, 0, 255 DUP('$')
     OutputText      db      256 DUP ('$')
@@ -20,6 +21,7 @@ start:
     inc     si
     xor     cx, cx 
     xor     bx, bx 
+    xor     bp, bp
 Process:    
 skip_spaces:
     lodsb
@@ -69,12 +71,16 @@ write_word:
     stosb
     inc     bp
 skip_word:
-    jmp     Process
-next:
+    cmp     al, 0Dh
+    jnz     Process
+next: 
     mov     dx, offset crif
     mov     ah, 09h
     int     21h
+    cmp     bx, 2
+    jb      fail
     mov     ah, 3ch
+    xor     cx,cx
     mov     dx, offset FileName
     int     21h
 
@@ -89,6 +95,14 @@ next:
     mov     ah, 08h
     int     21h
     mov     ah, 3eh           
+    int     21h
+    mov     ah, 4Ch
+    int     21h 
+fail:
+    mov     dx, offset FailText
+    mov     ah, 09h
+    int     21h
+    mov     ah, 08h
     int     21h
     mov     ah, 4Ch
     int     21h 
