@@ -4,8 +4,18 @@
     ORG 100H        
 START:
 ;segs
+
 JCC_REL16_PREF:
     LOCK BTC DWORD PTR ES:[EAX + EBP*8 + 87654321h], 0ffh
+    LOCK BTC DWORD PTR ES:[EAX + EBP*8 + 87654321h], 0ffh
+	BTC word ptr ds:[1234h], ax
+	btc WORD PTR cs:[12345678h], ax
+	btc dword ptr es:[123h], 01h
+	btc dword ptr ss:[12345678h], 10h
+    IRP     EA, <[bx+si], [bx+di], [bp+si], [bp+di], [bp], [di], [si]>
+    BTC EA, 0a0h
+    BTC DWORD PTR EA, 0b0h
+    ENDM
     IRP     reg, <ax, cx, dx, bx, sp, bp, si, di>
     btc     ax, reg
     btc     cx, reg
@@ -281,16 +291,28 @@ JCC_REL8:
     JLE     JCC_REL16
     JNLE    JCC_REL16
 JCC_REL8_PREF:
+    JNLE    JCC_REL16
+	db 2eh
     JO      JCC_REL8_PREF
+	db 3eh
     JB      JCC_REL8_PREF
+	db 2eh
     JZ      JCC_REL8_PREF
+	db 3eh
     JBE     JCC_REL8_PREF
+	db 2eh
     JCXZ    JCC_REL8_PREF
+	db 3eh
     JECXZ   JCC_REL8_PREF
+	db 3eh
     JNO     JCC_REL16_PREF
+	db 2eh
     JNB     JCC_REL16_PREF
+	db 2eh
     JNZ     JCC_REL16_PREF
+	db 3eh
     JNBE    JCC_REL16_PREF
+	db 3eh
     JNS     JCC_REL16_PREF
     AAD
 END     START
