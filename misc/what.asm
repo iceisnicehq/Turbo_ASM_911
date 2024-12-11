@@ -74,13 +74,14 @@ skip_word:
     cmp     al, 0Dh
     jnz     Process
 next: 
+int 3
     mov     dx, offset crif
     mov     ah, 09h
     int     21h
     cmp     bx, 2
     jb      fail
     mov     ah, 3ch
-    xor     cx,cx
+    xor     cx, cx
     mov     dx, offset FileName
     int     21h
 
