@@ -364,11 +364,8 @@ PUT_OPERAND PROC
     SHL         BL, 1
     MOV         SI, REGISTERS[BX]
     CALL        INS_STR
-    LEA         SI, PL_SP_PL
+    LEA         SI, SP_PL_SP
     CALL        INS_STR
-    ; INS_CHAR    " "
-    ; INS_CHAR    "+"
-    ; INS_CHAR    " "
     MOVZX       BX, INDEX
     ADD         BL, 8
     SHL         BL, 1
@@ -396,11 +393,8 @@ PUT_OPERAND PROC
 @@CHECK_MODE:
     CMP         MODE, 000b
     JE          @@EA_END
-    LEA         SI, PL_SP_PL
+    LEA         SI, SP_PL_SP
     CALL        INS_STR
-    ; INS_CHAR    " "
-    ; INS_CHAR    "+"
-    ; INS_CHAR    " "
     
 @@PRINT_DISP:
     MOV         DX, DISP
@@ -479,13 +473,11 @@ DECODE_MODRM_SIB PROC
 @@NOT_SIB:
     MOV         AL, DL
     AND         AL, 11000000b
-    ; MOV         CL, 6
     SHR         AL, 5
     MOV         BYTE PTR [BX], AL
     
     MOV         AL, DL
     AND         AL, 00111000b
-    ; MOV         CL, 3
     SHR         AL, 3
     MOV         BYTE PTR [BX + 1], AL
     

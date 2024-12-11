@@ -5,67 +5,63 @@ SMART
 .486
 .STACK 100h
 .DATA
+    INSTRUCTION STRUC
+        MNEMONIC            DW ?
+        TYPEOF              DB ?
+        OP1                 DB ?
+        OP2                 DB ?
+    ENDS
+
+    MAX_FILE_NAME           EQU 128
+    DATA_BUFFER_CAPACITY    EQU 255
+    IP_BUFFER_CAPACITY      EQU 4
+    INS_BUFFER_CAPACITY     EQU 65
+
     HELP_MSG                DB "To disassemble run: DISASM.EXE [data_file].COM [result_file].ASM",0Dh, 0Ah, "$"
     ERR_MSG                 DB "Error occurred $"
     SUCCESS_MSG             DB 0Dh, 0Ah, "Result successfully written to file: $"
-    PL_SP_PL                DB " + $"
-INSTRUCTION STRUC
-    MNEMONIC            DW ?
-    TYPEOF              DB ?
-    OP1                 DB ?
-    OP2                 DB ?
-ENDS
+    SP_PL_SP                DB " + $"
 
-MAX_FILE_NAME           EQU 128
-DATA_BUFFER_CAPACITY    EQU 255
-IP_BUFFER_CAPACITY      EQU 4
-; MC_BUFFER_CAPACITY      EQU 45
-INS_BUFFER_CAPACITY     EQU 65
+    IP_VALUE                DW 0FFh
 
-IP_VALUE                DW 0FFh
+    IP_BUFFER               DB "0000h:  "   ; Offset from the start of code segment as a string.
+    INS_BUFFER              DB INS_BUFFER_CAPACITY DUP (0)  ; Instruction as a string.
+    INS_END_PTR             DW 0   
 
-LABEL MODRM_BYTE
-    MODE                DB ?
-    REG                 DB ?
-    RM                  DB ?
-LABEL SIB_BYTE
-    SCALE               DB ?
-    INDEX               DB ?
-    BASE                DB ?
+    LABEL CURRENT_INSTRUCTION
+        INSTRUCTION { }
+    DATA_SIZE               DW ?                            ; The size of currently read data buffer.
+    DATA_INDEX              DW ?                            ; Position of the data buffer that we are currently at.
+    DATA_BUFFER             DB DATA_BUFFER_CAPACITY DUP (?) ; Bytes, which were read from file.
 
-IMM                     DW ?
-DISP32                  DW ?
-DISP                    DW ?
-LABEL PREF_SEG  WORD 
-    HAS_PREFIX          DB ?
-    SEG_OVR             DB ?
-LABEL ADDR_SIZE WORD 
-    ADDR_OVR            DB ?
-    SIZE_OVR            DB ?
-LABEL EXT_MODRM WORD 
-    INS_EXT             DB ?
-    IS_MODRM_DECODED    DB ?
+    DATA_FILE_NAME          DB MAX_FILE_NAME DUP(?)
+    RES_FILE_NAME           DB MAX_FILE_NAME DUP(?)
+    DATA_FILE_HANDLE        DW ?
+    RES_FILE_HANDLE         DW ?
 
+    IMM                     DW ?
+    DISP32                  DW ?
+    DISP                    DW ?
 
-LABEL CURRENT_INSTRUCTION
-    INSTRUCTION { }
+    LABEL MODRM_BYTE
+        MODE                DB ?
+        REG                 DB ?
+        RM                  DB ?
+    LABEL SIB_BYTE
+        SCALE               DB ?
+        INDEX               DB ?
+        BASE                DB ?
+    LABEL PREF_SEG  WORD 
+        HAS_PREFIX          DB ?
+        SEG_OVR             DB ?
+    LABEL ADDR_SIZE WORD 
+        ADDR_OVR            DB ?
+        SIZE_OVR            DB ?
+    LABEL EXT_MODRM WORD 
+        INS_EXT             DB ?
+        IS_MODRM_DECODED    DB ?
 
-DATA_FILE_NAME          DB MAX_FILE_NAME DUP(0)
-RES_FILE_NAME           DB MAX_FILE_NAME DUP(0)
-DATA_FILE_HANDLE        DW ?
-RES_FILE_HANDLE         DW ?
-
-DATA_BUFFER             DB DATA_BUFFER_CAPACITY DUP (?) ; Bytes, which were read from file.
-DATA_SIZE               DW 0                            ; The size of currently read data buffer.
-DATA_INDEX              DW 0                            ; Position of the data buffer that we are currently at.
-
-IP_BUFFER               DB "0000h:  "   ; Offset from the start of code segment as a string.
-; MC_BUFFER               DB MC_BUFFER_CAPACITY DUP (?)   ; Machine code as a string.
-INS_BUFFER              DB INS_BUFFER_CAPACITY DUP (?)  ; Instruction as a string.
-; MC_END_PTR              DW ?                            ; Pointer to the end of machine code written.
-INS_END_PTR             DW ?                            ; Pointer to the end of instruction written.
-
-include    "opcodes.inc"
+    include    "opcodes.inc"
 
 .CODE
 include    "macro.inc"
@@ -162,17 +158,13 @@ LOAD_INSTRUCTION:
 NOT_JECXZ:
     XOR         AX, AX
     OR          AX, PREF_SEG
-    ; OR          AL, SEG_OVR 
     OR          AX, ADDR_SIZE
-    ; OR          AL, SIZE_OVR
     OR          AL, INS_EXT
     JNZ         CHECK_PREFIX_TYPE
 
 PRINT_OFFSET:
     LEA         DI, IP_BUFFER                       ; load offset of the ip_buffer (which is the beginning of the lines)
     SPUT_WORD   DI, IP_VALUE                        ; put ip_value into the mc_buffer
-    ; SPUT_CHAR   DI, "h"                             ; put h into the mc_buffer
-    ; SPUT_CHAR   DI, ":"                             ; put : into the mc_buffer
 
 CHECK_PREFIX_TYPE: 
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_EXT        ; check if current instr is seg_ovr
@@ -195,17 +187,11 @@ NO_ADDR_OVR:
 
 SKIP_OFFSET:
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_UNKNOWN        ; check if instruction is unknown
-    ; JNE         PRINT_MNEMONIC                                      ; jump if instruction is not unknown
     PUSHF
     MOV         SI, CURRENT_INSTRUCTION.MNEMONIC                 ; SI = instr mneonic offset
     CALL        INS_STR                                             ; put string at DS:SI (instr mnemonic) into the ip_buffer
     POPF
     JE          SHORT END_LINE                                            ; put crlf
-
-; PRINT_MNEMONIC:
-;     MOV         SI, CURRENT_INSTRUCTION.MNEMONIC                    ; print curr
-;     CALL        INS_STR                                             ;   intr mnemonic to the ip_buffer
-    
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_PREFIX         ; check if instr is prefix (e.g. lock, rep, repne)
     JNE         SHORT ANALYZE_OPERANDS                                    ; if not a prefix then analyze ops
     INC         HAS_PREFIX                                 ; if prefix then save for later
