@@ -380,7 +380,7 @@ PUT_OPERAND PROC
 @@PRINT_BYTE_DISP:
     OR          DL, DL
     JNZ         @@NON_ZERO_BYTE_DISP
-    SUB         INS_END_PTR, 3
+    DEC         INS_END_PTR
     JMP         @@EA_END
     
 @@NON_ZERO_BYTE_DISP:
@@ -554,8 +554,9 @@ FPRINT_INSTRUCTION PROC
 
     ADD         BX, 2
     MOV         CX, BX
-    LEA         BX, IP_BUFFER
-    SUB         CX, BX
+    LEA         DX, IP_BUFFER
+    SUB         CX, DX
+
     MOV         AH, 40h
     MOV         BX, RES_FILE_HANDLE
     INT         21h    
