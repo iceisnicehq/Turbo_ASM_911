@@ -61,7 +61,7 @@ SMART
         INS_EXT             DB ?
         IS_MODRM_DECODED    DB ?
 
-    include    "opcodes.inc"
+include    "opcodes.inc"
 
 .CODE
 include    "macro.inc"
@@ -137,19 +137,21 @@ PROGRAM_SUCCESS:
     
 LOAD_INSTRUCTION:
     MOV         AX, SIZE INSTRUCTION                ; load size of instruction struct  (5 bytes)
+    MOV         CX, AX
     MUL         DL                                  ; mul read byte in dl by 5 to get its value in inst list
-    LEA         BX, INSTRUCTION_LIST                ; make bx point to list begining
-    ADD         BX, AX                              ; move bx from begining list to read instruction
-    
-    MOV         AX, [BX].MNEMONIC                   ; save mnemonic
-    MOV         CURRENT_INSTRUCTION.MNEMONIC, AX    ;   of curr instr
-    MOV         AL, [BX].TYPEOF                     ; save typeof
-    MOV         CURRENT_INSTRUCTION.TYPEOF, AL      ;   of curr instr
-    MOV         AL, [BX].OP1                        ; save op1
-    MOV         CURRENT_INSTRUCTION.OP1, AL         ;   of curr instr
-    MOV         AL, [BX].OP2                        ; save op2 
-    MOV         CURRENT_INSTRUCTION.OP2, AL         ;   of curr instr
-    
+    LEA         SI, INSTRUCTION_LIST                ; make bx point to list begining
+    ADD         SI, AX                              ; move bx from begining list to read instruction
+    LEA         DI, CURRENT_INSTRUCTION
+    ; MOV         CX, 3
+    REP         MOVSB
+    ; MOV         AX, [BX].MNEMONIC                   ; save mnemonic
+    ; MOV         CURRENT_INSTRUCTION.MNEMONIC, AX    ;   of curr instr
+    ; MOV         AL, [BX].TYPEOF                     ; save typeof
+    ; MOV         CURRENT_INSTRUCTION.TYPEOF, AL      ;   of curr instr
+    ; MOV         AL, [BX].OP1                        ; save op1
+    ; MOV         CURRENT_INSTRUCTION.OP1, AL         ;   of curr instr
+    ; MOV         AL, [BX].OP2                        ; save op2 
+    ; MOV         CURRENT_INSTRUCTION.OP2, AL         ;   of curr instr
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_JCXZ
     JNE         NOT_JECXZ
     CMP         ADDR_OVR, 1
