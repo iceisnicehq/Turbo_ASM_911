@@ -20,7 +20,6 @@ SMART
     HELP_MSG                DB "To disassemble run: DISASM.EXE [data_file].COM [result_file].ASM",0Dh, 0Ah, "$"
     ERR_MSG                 DB "Error occurred $"
     SUCCESS_MSG             DB 0Dh, 0Ah, "Result successfully written to file: $"
-    SP_PL_SP                DB " + $"
 
     IP_VALUE                DW 0FFh
 
@@ -229,7 +228,6 @@ READ_OPERANDS:
     CMP         CURRENT_INSTRUCTION.OP2, OP_NONE                    ; check if op2 is void
     JE          END_LINE                                            ; if yes then go ro printing
     INS_CHAR    ","                                                 ; if no, then put ','
-    INS_CHAR    " "                                                 ;   and ' ' for second op
     MOV         DL, CURRENT_INSTRUCTION.OP2                         ; put op2 
     CALL        PUT_OPERAND                                         ;   into the string
     
