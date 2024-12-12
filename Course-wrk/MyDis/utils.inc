@@ -11,7 +11,6 @@ PRINT PROC
     POP         DX AX
     RET
 PRINT ENDP
-
 ;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
 ; Puts a string to instruction buffer.
 ; IN
@@ -31,10 +30,6 @@ INS_STR PROC
         CMP         BYTE PTR [SI], "$"
         JE          @@ADD_SPACING
         MOVSB
-        ; MOV         AL, [SI]
-        ; MOV         [DI], AL
-        ; INC         SI
-        ; INC         DI
         JMP         @@FIND_END
     
     @@ADD_SPACING: ; Add spacing if string is a mnemonic.
@@ -48,8 +43,6 @@ INS_STR PROC
         CMP         DI, BX
         JAE         @@RETURN
         STOSB
-        ; MOV         BYTE PTR [DI], " "
-        ; INC         DI
         JMP         @@ADD_SPACE
     
     @@RETURN:
@@ -90,7 +83,6 @@ SPUT_HEX PROC
         JBE         @@HEX_DIGIT
         
         @@HEX_LETTER:
-        ; SUB         DL, 10
         ADD         DL, 37h ; 37h = "A"(41h) - 0Ah 
         JMP         @@ADD_TO_BUFFER
         
@@ -113,8 +105,6 @@ SPUT_HEX PROC
     @@CHECK_SHIFT:
     POP         SI DX
     MOV         CX, SI ; Number of characters written.
-    CMP         DH, 1
-    JNE         @@RETURN
     CMP         BYTE PTR [BX], "A"
     JB          @@RETURN
     @@SHIFT_HEX:
@@ -178,22 +168,6 @@ GET_CMD_ARG ENDP
 RESET_INSTRUCTION PROC 
     PUSH         BX CX
 
-    ; LEA         BX, IP_BUFFER
-    ; MOV         CX, IP_BUFFER_CAPACITY-4
-    ; @@RESET_IP_BUFFER:
-    ;     MOV         BYTE PTR [BX], " "
-    ;     INC         BX
-    ;     LOOP        @@RESET_IP_BUFFER
-
-
-    ; LEA         BX, MC_BUFFER
-    ; MOV         MC_END_PTR, BX
-    ; MOV         CX, MC_BUFFER_CAPACITY
-    ; @@RESET_MC_BUFFER:
-    ;     MOV         BYTE PTR [BX], " "
-    ;     INC         BX
-    ;     LOOP        @@RESET_MC_BUFFER
-    
     LEA         BX, INS_BUFFER
     MOV         INS_END_PTR, BX
     MOV         CX, INS_BUFFER_CAPACITY
@@ -201,15 +175,11 @@ RESET_INSTRUCTION PROC
         MOV         BYTE PTR [BX], "$"
         INC         BX
         LOOP        @@RESET_INSTRUCTION_BUFFER
-    
-    ; MOV         TYPE_OVR, 0
+
     MOV         PREF_SEG, 0
-    ; MOV         HAS_PREFIX, 0
     MOV         ADDR_SIZE, 0
-    ; MOV         SIZE_OVR, 0
     MOV         EXT_MODRM, 0
-    ; MOV         IS_MODRM_DECODED, 0
-    ; MOV         IS_SIB_DECODED, 0
+
     POP         CX BX
     RET
 RESET_INSTRUCTION ENDP
@@ -252,8 +222,6 @@ READ_UPCOMING_BYTE PROC
     MOV         DL, [BX] ; dl is the byte
     INC         DATA_INDEX
     INC         IP_VALUE
-    ; SPUT_BYTE   MC_END_PTR, DL, 0
-    ; SPUT_CHAR   MC_END_PTR, " "
         
     @@RETURN:
     POP         AX BX
@@ -364,8 +332,7 @@ PUT_OPERAND PROC
     SHL         BL, 1
     MOV         SI, REGISTERS[BX]
     CALL        INS_STR
-    LEA         SI, SP_PL_SP
-    CALL        INS_STR
+    INS_CHAR    "+"
     MOVZX       BX, INDEX
     ADD         BL, 8
     SHL         BL, 1
@@ -393,8 +360,7 @@ PUT_OPERAND PROC
 @@CHECK_MODE:
     CMP         MODE, 000b
     JE          @@EA_END
-    LEA         SI, SP_PL_SP
-    CALL        INS_STR
+    INS_CHAR    "+"
     
 @@PRINT_DISP:
     MOV         DX, DISP
@@ -590,10 +556,6 @@ FPRINT_INSTRUCTION PROC
     MOV         CX, BX
     LEA         BX, IP_BUFFER
     SUB         CX, BX
-
-    LEA         DX, IP_BUFFER
-    MOV         AH, 09h
-    INT         21h
     MOV         AH, 40h
     MOV         BX, RES_FILE_HANDLE
     INT         21h    
