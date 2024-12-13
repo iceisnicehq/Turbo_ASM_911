@@ -27,8 +27,6 @@ SMART
     INS_BUFFER              DB INS_BUFFER_CAPACITY DUP (0)  ; Instruction as a string.
     INS_END_PTR             DW 0   
 
-    LABEL CURRENT_INSTRUCTION
-        INSTRUCTION { }
     DATA_SIZE               DW ?                            ; The size of currently read data buffer.
     DATA_INDEX              DW ?                            ; Position of the data buffer that we are currently at.
     DATA_BUFFER             DB DATA_BUFFER_CAPACITY DUP (?) ; Bytes, which were read from file.
@@ -41,25 +39,29 @@ SMART
     IMM                     DW ?
     DISP32                  DW ?
     DISP                    DW ?
-
+    LABEL CURRENT_INSTRUCTION
+        INSTRUCTION { }
+    LABEL PREF_BYTES
+                            DB ?
+    LABEL ADDR_SIZE WORD 
+        ADDR_OVR            DB ?
+        SIZE_OVR            DB ?
+    LABEL EXT_SEG  WORD 
+        INS_EXT             DB ?
+        SEG_OVR             DB ?
+    LABEL PREF_MODRM WORD 
+        HAS_PREFIX          DB ?
+        IS_MODRM_DECODED    DB ?
+    LABEL SIB_BYTE
+        SCALE               DB ?
+        INDEX               DB ?
+        BASE                DB ?
     LABEL MODRM_BYTE
         MODE                DB ?
         REG                 DB ?
         RM                  DB ?
-    LABEL SIB_BYTE
-        SCALE               DB ?
-        INDEX               DB ?
-    LABEL PREF_BYTES
-        BASE                DB ?
-        LABEL ADDR_SIZE WORD 
-            ADDR_OVR            DB ?
-            SIZE_OVR            DB ?
-        LABEL EXT_SEG  WORD 
-            INS_EXT             DB ?
-            SEG_OVR             DB ?
-        LABEL PREF_MODRM WORD 
-            HAS_PREFIX          DB ?
-            IS_MODRM_DECODED    DB ?
+
+
 
 include    "opcodes.inc"
 
@@ -121,8 +123,6 @@ PRINT_FILE_NAME:
     MOV         BX, DX                              ; BX = beggining of file name
     PRINT_MSG   [BX]                                ; print file name 
     JMP         EXIT                                ; jump to exit
-; DECODE_NEW_EXT_INSTRUCTION:
-;     INC         INS_EXT
 DECODE_NEW_INSTRUCTION:    
     CALL        READ_UPCOMING_BYTE                  ; reads upcoming byte and saves it in ascii to mc_buffer
     OR          DH, DH                              ; normal byte
@@ -142,16 +142,7 @@ LOAD_INSTRUCTION:
     LEA         SI, INSTRUCTION_LIST                ; make bx point to list begining
     ADD         SI, AX                              ; move bx from begining list to read instruction
     LEA         DI, CURRENT_INSTRUCTION
-    ; MOV         CX, 3
     REP         MOVSB ; mnem(2b) + type(1b) + op1(1b) + op2(2b)
-    ; MOV         AX, [BX].MNEMONIC                   ; save mnemonic
-    ; MOV         CURRENT_INSTRUCTION.MNEMONIC, AX    ;   of curr instr
-    ; MOV         AL, [BX].TYPEOF                     ; save typeof
-    ; MOV         CURRENT_INSTRUCTION.TYPEOF, AL      ;   of curr instr
-    ; MOV         AL, [BX].OP1                        ; save op1
-    ; MOV         CURRENT_INSTRUCTION.OP1, AL         ;   of curr instr
-    ; MOV         AL, [BX].OP2                        ; save op2 
-    ; MOV         CURRENT_INSTRUCTION.OP2, AL         ;   of curr instr
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_JCXZ
     JNE         SHORT NOT_JECXZ
     CMP         ADDR_OVR, 1
@@ -168,50 +159,29 @@ PRINT_OFFSET:
     LEA         DI, IP_BUFFER                       ; load offset of the ip_buffer (which is the beginning of the lines)
     SPUT_WORD   DI, IP_VALUE                        ; put ip_value into the mc_buffer
 
-;   make it more unique
-;   label pref_bytes
-;   
 CHECK_PREFIX_TYPE: 
-    ; CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_PREFIX        ; check if current instr is seg_ovr
-    ; JAE         SHORT SKIP_OFFSET ;DECODE_NEW_EXT_INSTRUCTION
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_SEG_OVR
-    JA          SHORT SKIP_OFFSET
-    JB          SHORT NOT_SEG_OVR
+    ; JA          SHORT SKIP_OFFSET
+    JNE         SHORT NOT_SEG_OVR
     MOV         AX, CURRENT_INSTRUCTION.MNEMONIC                    ; if seg ovr, save its mnemonic to ax
     MOV         SEG_OVR, AL                                         ; save seg_ovr 
     JMP         DECODE_NEW_INSTRUCTION                              ; continue decoding_instr
 NOT_SEG_OVR:
     MOVZX       BX, CURRENT_INSTRUCTION.TYPEOF
     ADD         BYTE PTR PREF_BYTES[BX], BL
-    JMP         DECODE_NEW_INSTRUCTION
-    ; CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_SIZE_OVR        ; check if current instr is seg_ovr
-    ; JNE         NO_SIZE_OVR
-    ; INC         SIZE_OVR
-;     JMP         DECODE_NEW_INSTRUCTION
-; NO_SIZE_OVR:
-;     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_ADDR_OVR        ; check if current instr is seg_ovr
-;     JNE         NO_ADDR_OVR
-;     INC         ADDR_OVR
-;     JMP         DECODE_NEW_INSTRUCTION
-; NO_ADDR_OVR:        
-;     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_SEG_OVR        ; check if current instr is seg_ovr
-;     JNE         SKIP_OFFSET                                         ; if not then skip
-;     MOV         AX, CURRENT_INSTRUCTION.MNEMONIC                    ; if seg ovr, save its mnemonic to ax
-;     MOV         SEG_OVR, AL                                         ; save seg_ovr 
-;     JMP         DECODE_NEW_INSTRUCTION                              ; continue decoding_instr
-
+    CMP         BL, INS_TYPE_PREFIX
+    JNAE        DECODE_NEW_INSTRUCTION
 SKIP_OFFSET:
-    CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_UNKNOWN        ; check if instruction is unknown
-    PUSHF 
+    ; CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_UNKNOWN        ; check if instruction is unknown
+    ; PUSHF
     MOV         SI, CURRENT_INSTRUCTION.MNEMONIC                 ; SI = instr mneonic offset
     CALL        INS_STR                                             ; put string at DS:SI (instr mnemonic) into the ip_buffer
-    ; JE          SHORT END_LINE                                            ; put crlf
-    ; CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_PREFIX         ; check if instr is prefix (e.g. lock, rep, repne)
-    ; JNE         SHORT ANALYZE_OPERANDS                                    ; if not a prefix then analyze ops
-    ; INC         HAS_PREFIX                                 ; if prefix then save for later
-    POPF
-    JA        SHORT ANALYZE_OPERANDS
-    JMP         DECODE_NEW_INSTRUCTION                              ; start decoding
+    ; POPF
+    ; JE          DECODE_NEW_INSTRUCTION
+    CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_UNKNOWN        ; check if instruction is unknown
+    JBE         DECODE_NEW_INSTRUCTION
+    ; JA          SHORT ANALYZE_OPERANDS
+    ; JMP         DECODE_NEW_INSTRUCTION                              ; start decoding
         
 ANALYZE_OPERANDS:
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_AAD         ; check if the second byte of the instruction is constant (e.g. AAD)
