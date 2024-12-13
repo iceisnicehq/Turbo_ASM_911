@@ -1,5 +1,5 @@
-WORD_PTR                DB "WORD PTR $"
-DWORD_PTR               DB "DWORD PTR $"
+WORD_PTR                DB "word ptr $"
+DWORD_PTR               DB "dword ptr $"
 
 REG_AX                  DB "AX$"
 REG_CX                  DB "CX$"
@@ -19,17 +19,17 @@ REG_EBP                 DB "EBP$"
 REG_ESI                 DB "ESI$"
 REG_EDI                 DB "EDI$"
 
-REG_ES                  DB "ES$"
-REG_CS                  DB "CS$"
-REG_SS                  DB "SS$"
-REG_DS                  DB "DS$"
-REG_FS                  DB "FS$"
-REG_GS                  DB "GS$"
+REG_ES                  DB "ES:$"
+REG_CS                  DB "CS:$"
+REG_SS                  DB "SS:$"
+REG_DS                  DB "DS:$"
+REG_FS                  DB "FS:$"
+REG_GS                  DB "GS:$"
 
-EA_BX_SI                DB "BX + SI$"
-EA_BX_DI                DB "BX + DI$"
-EA_BP_SI                DB "BP + SI$"
-EA_BP_DI                DB "BP + DI$"
+EA_BX_SI                DB "BX+SI$"
+EA_BX_DI                DB "BX+DI$"
+EA_BP_SI                DB "BP+SI$"
+EA_BP_DI                DB "BP+DI$"
 EA_SI                   DB "SI$"
 EA_DI                   DB "DI$"
 EA_BP                   DB "BP$"
@@ -96,12 +96,12 @@ INS_JECXZ       DB "JECXZ $"
 INS_LOCK        DB "LOCK $"
 
 INS_TYPES ENUM {
-    INS_TYPE_SIZE_OVR, ; 0h
-    INS_TYPE_ADDR_OVR, ; 1h
-    INS_TYPE_PREFIX,   ; 2h
-    INS_TYPE_SEG_OVR,  ; 3h
-    INS_TYPE_EXT,      ; 4h
-    INS_TYPE_UNKNOWN,
+    INS_TYPE_ADDR_OVR = 1, ; 1h
+    INS_TYPE_SIZE_OVR, ; 2h
+    INS_TYPE_EXT,      ; 3h
+    INS_TYPE_SEG_OVR,  ; 4h
+    INS_TYPE_PREFIX,   ; 5h
+    INS_TYPE_UNKNOWN,  ; 6h 
     INS_TYPE_NORMAL,
     INS_TYPE_JCXZ,
     INS_TYPE_AAD
