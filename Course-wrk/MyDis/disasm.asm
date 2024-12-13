@@ -42,7 +42,6 @@ SMART
     LABEL CURRENT_INSTRUCTION
         INSTRUCTION { }
     LABEL PREF_BYTES
-                            DB ?
     LABEL ADDR_SIZE WORD 
         ADDR_OVR            DB ?
         SIZE_OVR            DB ?
@@ -161,27 +160,19 @@ PRINT_OFFSET:
 
 CHECK_PREFIX_TYPE: 
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_SEG_OVR
-    ; JA          SHORT SKIP_OFFSET
     JNE         SHORT NOT_SEG_OVR
     MOV         AX, CURRENT_INSTRUCTION.MNEMONIC                    ; if seg ovr, save its mnemonic to ax
     MOV         SEG_OVR, AL                                         ; save seg_ovr 
     JMP         DECODE_NEW_INSTRUCTION                              ; continue decoding_instr
 NOT_SEG_OVR:
     MOVZX       BX, CURRENT_INSTRUCTION.TYPEOF
-    ADD         BYTE PTR PREF_BYTES[BX], BL
+    MOV         BYTE PTR PREF_BYTES[BX-1], BL
     CMP         BL, INS_TYPE_PREFIX
     JNAE        DECODE_NEW_INSTRUCTION
-SKIP_OFFSET:
-    ; CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_UNKNOWN        ; check if instruction is unknown
-    ; PUSHF
     MOV         SI, CURRENT_INSTRUCTION.MNEMONIC                 ; SI = instr mneonic offset
     CALL        INS_STR                                             ; put string at DS:SI (instr mnemonic) into the ip_buffer
-    ; POPF
-    ; JE          DECODE_NEW_INSTRUCTION
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_UNKNOWN        ; check if instruction is unknown
-    JBE         DECODE_NEW_INSTRUCTION
-    ; JA          SHORT ANALYZE_OPERANDS
-    ; JMP         DECODE_NEW_INSTRUCTION                              ; start decoding
+    JBE         DECODE_NEW_INSTRUCTION                            ; start decoding
         
 ANALYZE_OPERANDS:
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_AAD         ; check if the second byte of the instruction is constant (e.g. AAD)
