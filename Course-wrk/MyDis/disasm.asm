@@ -175,7 +175,7 @@ NOT_SEG_OVR:
         
 ANALYZE_OPERANDS:
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_AAD         ; check if the second byte of the instruction is constant (e.g. AAD)
-    JNE         READ_OPERANDS                                       ; if not then read ops
+    JNE         SHORT READ_OPERANDS                                       ; if not then read ops
     CALL        READ_UPCOMING_BYTE                                  ; if yes read the second const byte
     JMP         SHORT END_LINE
 

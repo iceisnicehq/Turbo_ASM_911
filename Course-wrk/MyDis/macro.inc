@@ -2,7 +2,7 @@ GET_FILE MACRO NAME
     LEA         BX, NAME
     CALL        GET_CMD_ARG
     CMP         BYTE PTR [BX], 0
-    JE          PRINT_HELP
+    JE          SHORT PRINT_HELP
 ENDM
 ;---------------+-------------------------------+----------------
 PRINT_MSG MACRO MSG
