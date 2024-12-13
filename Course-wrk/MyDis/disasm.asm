@@ -49,16 +49,16 @@ SMART
     LABEL SIB_BYTE
         SCALE               DB ?
         INDEX               DB ?
+    LABEL PREF_BYTES
         BASE                DB ?
-    LABEL PREF_BYTES 
         LABEL ADDR_SIZE WORD 
-            SIZE_OVR            DB ?
             ADDR_OVR            DB ?
-        LABEL PREF_SEG  WORD 
-            HAS_PREFIX          DB ?
-            SEG_OVR             DB ?
-        LABEL EXT_MODRM WORD 
+            SIZE_OVR            DB ?
+        LABEL EXT_SEG  WORD 
             INS_EXT             DB ?
+            SEG_OVR             DB ?
+        LABEL PREF_MODRM WORD 
+            HAS_PREFIX          DB ?
             IS_MODRM_DECODED    DB ?
 
 include    "opcodes.inc"
@@ -73,8 +73,8 @@ START:
     CALL        RESET_INSTRUCTION                   ; reset inst_buffer to " " and "$"
     JMP         SHORT GET_FILE_NAMES                ; jump to reading file names
 PRINT_HELP:
-    PRINT_MSG    HELP_MSG                           ; print help msg
-    JMP          EXIT                               ; jmp to exit
+    PRINT_MSG   HELP_MSG                           ; print help msg
+    JMP         EXIT                               ; jmp to exit
 
 GET_FILE_NAMES:                                     ; Get file names from command line argument list
     MOV         SI, 82h                             ; inc si to 82h where cmd start
@@ -126,9 +126,9 @@ PRINT_FILE_NAME:
 DECODE_NEW_INSTRUCTION:    
     CALL        READ_UPCOMING_BYTE                  ; reads upcoming byte and saves it in ascii to mc_buffer
     OR          DH, DH                              ; normal byte
-    JE          LOAD_INSTRUCTION                    ; load instruction
+    JE          SHORT LOAD_INSTRUCTION                    ; load instruction
     CMP         DH, 1                               ; file end reached 
-    JE          PROGRAM_SUCCESS                     ; print succes msg and end programm
+    JE          SHORT PROGRAM_SUCCESS                     ; print succes msg and end programm
     JMP         EXIT_WITH_ERR
 PROGRAM_SUCCESS:
     LEA         DX, RES_FILE_NAME                   ; load offset of res_file name
@@ -153,16 +153,16 @@ LOAD_INSTRUCTION:
     ; MOV         AL, [BX].OP2                        ; save op2 
     ; MOV         CURRENT_INSTRUCTION.OP2, AL         ;   of curr instr
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_JCXZ
-    JNE         NOT_JECXZ
+    JNE         SHORT NOT_JECXZ
     CMP         ADDR_OVR, 1
-    JNE         NOT_JECXZ
+    JNE         SHORT NOT_JECXZ
     MOV         CURRENT_INSTRUCTION.MNEMONIC, OFFSET INS_JECXZ     ;   of curr instr
 NOT_JECXZ:
     XOR         AX, AX
-    OR          AX, PREF_SEG
     OR          AX, ADDR_SIZE
-    OR          AL, INS_EXT
-    JNZ         CHECK_PREFIX_TYPE
+    OR          AX, EXT_SEG
+    OR          AL, HAS_PREFIX
+    JNZ         SHORT CHECK_PREFIX_TYPE
 
 PRINT_OFFSET:
     LEA         DI, IP_BUFFER                       ; load offset of the ip_buffer (which is the beginning of the lines)
@@ -172,10 +172,11 @@ PRINT_OFFSET:
 ;   label pref_bytes
 ;   
 CHECK_PREFIX_TYPE: 
-    CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_EXT        ; check if current instr is seg_ovr
-    JA          SKIP_OFFSET ;DECODE_NEW_EXT_INSTRUCTION
+    ; CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_PREFIX        ; check if current instr is seg_ovr
+    ; JAE         SHORT SKIP_OFFSET ;DECODE_NEW_EXT_INSTRUCTION
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_SEG_OVR
-    JNE         NOT_SEG_OVR
+    JA          SHORT SKIP_OFFSET
+    JB          SHORT NOT_SEG_OVR
     MOV         AX, CURRENT_INSTRUCTION.MNEMONIC                    ; if seg ovr, save its mnemonic to ax
     MOV         SEG_OVR, AL                                         ; save seg_ovr 
     JMP         DECODE_NEW_INSTRUCTION                              ; continue decoding_instr
@@ -201,14 +202,15 @@ NOT_SEG_OVR:
 
 SKIP_OFFSET:
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_UNKNOWN        ; check if instruction is unknown
-    PUSHF
+    PUSHF 
     MOV         SI, CURRENT_INSTRUCTION.MNEMONIC                 ; SI = instr mneonic offset
     CALL        INS_STR                                             ; put string at DS:SI (instr mnemonic) into the ip_buffer
+    ; JE          SHORT END_LINE                                            ; put crlf
+    ; CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_PREFIX         ; check if instr is prefix (e.g. lock, rep, repne)
+    ; JNE         SHORT ANALYZE_OPERANDS                                    ; if not a prefix then analyze ops
+    ; INC         HAS_PREFIX                                 ; if prefix then save for later
     POPF
-    JE          SHORT END_LINE                                            ; put crlf
-    CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_PREFIX         ; check if instr is prefix (e.g. lock, rep, repne)
-    JNE         SHORT ANALYZE_OPERANDS                                    ; if not a prefix then analyze ops
-    INC         HAS_PREFIX                                 ; if prefix then save for later
+    JA        SHORT ANALYZE_OPERANDS
     JMP         DECODE_NEW_INSTRUCTION                              ; start decoding
         
 ANALYZE_OPERANDS:
