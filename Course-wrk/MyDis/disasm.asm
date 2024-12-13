@@ -148,10 +148,9 @@ LOAD_INSTRUCTION:
     JNE         SHORT NOT_JECXZ
     MOV         CURRENT_INSTRUCTION.MNEMONIC, OFFSET INS_JECXZ     ;   of curr instr
 NOT_JECXZ:
-    XOR         AX, AX
+    MOVZX       AX, HAS_PREFIX
     OR          AX, ADDR_SIZE
     OR          AX, EXT_SEG
-    OR          AL, HAS_PREFIX
     JNZ         SHORT CHECK_PREFIX_TYPE
 
 PRINT_OFFSET:
