@@ -176,9 +176,9 @@ RESET_INSTRUCTION PROC
         INC         BX
         LOOP        @@RESET_INSTRUCTION_BUFFER
 
-    MOV         PREF_SEG, 0
     MOV         ADDR_SIZE, 0
-    MOV         EXT_MODRM, 0
+    MOV         EXT_SEG, 0
+    MOV         PREF_MODRM, 0
 
     POP         CX BX
     RET
@@ -265,10 +265,10 @@ PUT_OPERAND PROC
     JE          @@CHECK_SEG
     CMP         SIZE_OVR, 0
     JE          @@EA_START
-    MOV         BL, SIZE_OVR
+    MOVZX       BX, SIZE_OVR
 
     @@EA_START:
-    SHL         BL, 1
+    ; SHL         BL, 1
     MOV         SI, SIZE_OVR_PTRS[BX]
     CALL        INS_STR
 @@CHECK_SEG:
@@ -311,7 +311,6 @@ PUT_OPERAND PROC
     SHL         BL, 1
     MOV         SI, SEG_REGS[BX]
     CALL        INS_STR
-    INS_CHAR    ":"
     INS_CHAR    "["
     CMP         MODE, 000b
     JNE         @@EA_NORMAL
