@@ -18,13 +18,6 @@ INS_BYTE MACRO NUM
     CALL        SPUT_HEX
     MOV         INS_END_PTR, BX
 ENDM
-INS_BYTE_IN_MC MACRO NUM
-    MOVZX       AX, NUM
-    MOV         BX, INS_END_PTR
-    XOR         DL, DL
-    CALL        SPUT_HEX
-    MOV         INS_END_PTR, BX
-ENDM
 ;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
 ; Puts two byte number to instruction buffer.
 ; IN
