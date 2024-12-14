@@ -17,49 +17,14 @@ SMART
     IP_BUFFER_CAPACITY      EQU 4
     INS_BUFFER_CAPACITY     EQU 65
 
-    HELP_MSG                DB "To disassemble run: DISASM.EXE [data_file].COM [result_file].ASM",0Dh, 0Ah, "$"
+    HELP_MSG                DB "To disassemble run: DISASM.EXE [COM_file].COM [RESULT_file].ASM",0Dh, 0Ah, "$"
     ERR_MSG                 DB "Error occurred $"
     SUCCESS_MSG             DB 0Dh, 0Ah, "Result successfully written to file: $"
-
     IP_VALUE                DW 0FFh
 
     IP_BUFFER               DB "0000h:  "
     INS_BUFFER              DB INS_BUFFER_CAPACITY DUP ("$")
-    INS_END_PTR             DW INS_BUFFER   
-
-    DATA_SIZE               DW ?                            ; The size of currently read data buffer.
-    DATA_INDEX              DW ?                            ; Position of the data buffer that we are currently at.
-    DATA_BUFFER             DB DATA_BUFFER_CAPACITY DUP (?) ; Bytes, which were read from file.
-
-    DATA_FILE_NAME          DB MAX_FILE_NAME DUP(?)
-    RES_FILE_NAME           DB MAX_FILE_NAME DUP(?)
-    DATA_FILE_HANDLE        DW ?
-    RES_FILE_HANDLE         DW ?
-
-    IMM                     DW ?
-    DISP32                  DW ?
-    DISP                    DW ?
-    LABEL CURRENT_INSTRUCTION
-        INSTRUCTION { }
-    LABEL PREF_BYTES
-    LABEL ADDR_SIZE WORD 
-        ADDR_OVR            DB ?
-        SIZE_OVR            DB ?
-    LABEL EXT_SEG  WORD 
-        INS_EXT             DB ?
-        SEG_OVR             DB ?
-    LABEL PREF_MODRM WORD 
-        HAS_PREFIX          DB ?
-        IS_MODRM_DECODED    DB ?
-    LABEL SIB_BYTE
-        SCALE               DB ?
-        INDEX               DB ?
-        BASE                DB ?
-    LABEL MODRM_BYTE
-        MODE                DB ?
-        REG                 DB ?
-        RM                  DB ?
-
+    INS_END_PTR             DW INS_BUFFER
 
 WORD_PTR                DB "word ptr $"
 DWORD_PTR               DB "dword ptr $"
@@ -235,31 +200,73 @@ LABEL INSTRUCTION_LIST
     INSTRUCTION             <   INS_JCXZ,       INS_TYPE_JCXZ,      OP_REL8,       OP_NONE         > ; E3h  (JECXZ)
     INSTRUCTION_UNKNOWN     0Ch
     INSTRUCTION             <   INS_LOCK,       INS_TYPE_PREFIX,    OP_NONE,       OP_NONE         > ; F0h
-    INSTRUCTION_UNKNOWN     0Fh
+    INSTRUCTION_UNKNOWN     0Fh   
+
+    DATA_SIZE               DW ?                            ; The size of currently read data buffer.
+    DATA_INDEX              DW ?                            ; Position of the data buffer that we are currently at.
+    DATA_BUFFER             DB DATA_BUFFER_CAPACITY DUP (?) ; Bytes, which were read from file.
+
+    DATA_FILE_NAME          DB MAX_FILE_NAME DUP(?)
+    RES_FILE_NAME           DB MAX_FILE_NAME DUP(?)
+    DATA_FILE_HANDLE        DW ?
+    RES_FILE_HANDLE         DW ?
+
+    IMM                     DW ?
+    DISP32                  DW ?
+    DISP                    DW ?
+    LABEL CURRENT_INSTRUCTION
+        INSTRUCTION { }
+    LABEL PREF_BYTES
+    LABEL ADDR_SIZE WORD 
+        ADDR_OVR            DB ?
+        SIZE_OVR            DB ?
+    LABEL EXT_SEG  WORD 
+        INS_EXT             DB ?
+        SEG_OVR             DB ?
+    LABEL PREF_MODRM WORD 
+        HAS_PREFIX          DB ?
+        IS_MODRM_DECODED    DB ?
+    LABEL SIB_BYTE
+        SCALE               DB ?
+        INDEX               DB ?
+        BASE                DB ?
+    LABEL MODRM_BYTE
+        MODE                DB ?
+        REG                 DB ?
+        RM                  DB ?
+
 
 .CODE
-GET_FILE MACRO NAME
-    LEA         BX, NAME
-    CALL        GET_CMD_ARG
-    CMP         BYTE PTR [BX], 0
-    JE          SHORT PRINT_HELP
-ENDM
-;---------------+-------------------------------+----------------
 PRINT_MSG MACRO MSG
     PUSH        DX
     LEA         DX, MSG
     CALL        PRINT
     POP         DX
 ENDM
+
 ;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-; Closes a file.
+; Puts one byte number to instruction buffer.
 ; IN
-;   FILE_HANDLE - File handle.       
+;   NUM - Number to put. 
 ;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-CLOSE_FILE MACRO FILE_HANDLE
-    MOV         AH, 3Eh
-    MOV         BX, FILE_HANDLE
-    INT         21h
+INS_BYTE MACRO NUM
+    MOVZX       AX, NUM
+    MOV         BX, INS_END_PTR
+    XOR         DL, DL
+    CALL        SPUT_HEX
+    MOV         INS_END_PTR, BX
+ENDM
+;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
+; Puts two byte number to instruction buffer.
+; IN
+;   NUM - Number to put. 
+;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
+INS_WORD MACRO NUM
+    MOV         AX, NUM
+    MOV         BX, INS_END_PTR
+    MOV         DL, 01h
+    CALL        SPUT_HEX
+    MOV         INS_END_PTR, BX
 ENDM
 ;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
 ; Puts a char to string.
@@ -269,97 +276,27 @@ ENDM
 ; OUT
 ;   STR_PTR - Pointer to upcoming character.   
 ;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-SPUT_CHAR MACRO STR_PTR, CHAR
-    PUSH        BX
-    MOV         BX, STR_PTR
+INS_CHAR MACRO  CHAR
+    MOV         BX, INS_END_PTR
     MOV         BYTE PTR [BX], CHAR
-    INC         STR_PTR
-    POP         BX
-ENDM
-
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-; Puts one byte number to string.
-; IN
-;   STR_PTR - Pointer to string.
-;   NUM - Number to put.
-;   ZERO_PREFIX - Set to 1 to print leading 0, when number starts with letter.
-; OUT
-;   STR_PTR - Pointer to upcoming character.   
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-SPUT_BYTE MACRO STR_PTR, NUM, ZERO_PREFIX
-    PUSH        AX BX DX
-    MOVZX       AX, NUM
-    MOV         BX, STR_PTR
-    XOR         DL, DL
-    MOV         DH, ZERO_PREFIX
-    CALL        SPUT_HEX
-    MOV         STR_PTR, BX
-    POP         DX BX AX
-ENDM
-
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-; Puts two byte number to string.
-; IN
-;   STR_PTR - Pointer to string.
-;   NUM - Number to put.
-; OUT
-;   STR_PTR - Pointer to upcoming character.   
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-SPUT_WORD MACRO STR_PTR, NUM
-    PUSH        AX BX DX
-    MOV         AX, NUM
-    MOV         BX, STR_PTR
-    MOV         DL, 01h
-    CALL        SPUT_HEX
-    MOV         STR_PTR, BX
-    POP         DX BX AX
-ENDM
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-; Puts one byte number to instruction buffer.
-; IN
-;   NUM - Number to put. 
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-INS_BYTE MACRO NUM
-    SPUT_BYTE   INS_END_PTR, NUM, 1
-    SPUT_CHAR   INS_END_PTR, "h"
-ENDM
-
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-; Puts two byte number to instruction buffer.
-; IN
-;   NUM - Number to put. 
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-INS_WORD MACRO NUM
-    SPUT_WORD   INS_END_PTR, NUM
-ENDM
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-; Puts a character to instruction buffer.
-; IN
-;   CHAR - Character to put. 
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-INS_CHAR MACRO CHAR
-    SPUT_CHAR   INS_END_PTR, CHAR
+    INC         INS_END_PTR
 ENDM
 
 START:
-    MOV         AX, @DATA                           ;define datasegment
+    MOV         AX, @DATA
     MOV         DS, AX
-    JMP         SHORT GET_FILE_NAMES                ; jump to reading file names
-PRINT_HELP:
-    PRINT_MSG   HELP_MSG                           ; print help msg
-    JMP         EXIT                               ; jmp to exit
-
-GET_FILE_NAMES:                                     ; Get file names from command line argument list
-    MOV         SI, 82h                             ; inc si to 82h where cmd start
-    GET_FILE    DATA_FILE_NAME                      ; Save cmd .COM TEST file to address in memory
-    GET_FILE    RES_FILE_NAME                       ; Save cmd .ASM RES  file to address in memory
+    MOV         SI, 82h   
+    LEA         BX, DATA_FILE_NAME
+    CALL        GET_CMD_ARG
+    LEA         BX, RES_FILE_NAME
+    CALL        GET_CMD_ARG                      
     PUSH        DS
     POP         ES
 
 OPEN_DATA_FILE:
-    MOV         AX, 3D00h                           ; Open file (3Dh) with read access (00h)          
-    LEA         DX, DATA_FILE_NAME                  ; Address of .COM file   
-    INT         21h                                 ; CALL DOS
+    MOV         AX, 3D00h          
+    LEA         DX, DATA_FILE_NAME
+    INT         21h
     JC          SHORT EXIT_WITH_ERR                 ; Print err msg if error occured (cf = 1)
     MOV         DATA_FILE_HANDLE, AX                ; Save .COM file handle
 
@@ -372,8 +309,11 @@ OPEN_RESULT_FILE:
     MOV         RES_FILE_HANDLE, AX                 ; Save result file handle
     JMP         SHORT DECODE_NEW_INSTRUCTION        ; JUMP to decoding
 
+PRINT_HELP:
+    PRINT_MSG   HELP_MSG                           ; print help msg
+    JMP         EXIT                               ; jmp to exit
+
 EXIT_WITH_ERR:                                      ; Print the error, which occurred while opening file.
-    
     PUSH        DX                                  ; Save file name offset 
     LEA         BX, HELP_MSG
     PRINT_MSG   [BX]
@@ -385,13 +325,11 @@ PRINT_FILE_NAME:
     MOV         BX, DX                              ; BX = beggining of file name
     PRINT_MSG   [BX]                                ; print file name 
     JMP         EXIT                                ; jump to exit
+
 DECODE_NEW_INSTRUCTION:    
     CALL        READ_UPCOMING_BYTE                  ; reads upcoming byte and saves it in ascii to mc_buffer
     OR          DH, DH                              ; normal byte
     JE          SHORT LOAD_INSTRUCTION                    ; load instruction
-    CMP         DH, 1                               ; file end reached 
-    JE          SHORT PROGRAM_SUCCESS                     ; print succes msg and end programm
-    JMP         EXIT_WITH_ERR
 PROGRAM_SUCCESS:
     LEA         DX, RES_FILE_NAME                   ; load offset of res_file name
     PRINT_MSG   SUCCESS_MSG                         ; print success msg
@@ -417,8 +355,10 @@ NOT_JECXZ:
     JNZ         SHORT CHECK_PREFIX_TYPE
 
 PRINT_OFFSET:
-    LEA         DI, IP_BUFFER                       ; load offset of the ip_buffer (which is the beginning of the lines)
-    SPUT_WORD   DI, IP_VALUE                        ; put ip_value into the mc_buffer
+    LEA         BX, IP_BUFFER                       ; load offset of the ip_buffer (which is the beginning of the lines)
+    MOV         AX, IP_VALUE
+    MOV         DL, 01h
+    CALL        SPUT_HEX
 
 CHECK_PREFIX_TYPE: 
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_SEG_OVR
@@ -440,44 +380,60 @@ ANALYZE_OPERANDS:
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_AAD         ; check if the second byte of the instruction is constant (e.g. AAD)
     JNE         SHORT READ_OPERANDS                                       ; if not then read ops
     CALL        READ_UPCOMING_BYTE                                  ; if yes read the second const byte
-    JMP         SHORT END_LINE
+    JMP         SHORT PRINT_TO_FILE
 
 READ_OPERANDS:
-    MOV         DL, CURRENT_INSTRUCTION.OP1                         ; decode 
+    MOV         AL, CURRENT_INSTRUCTION.OP1                         ; decode 
     CALL        DECODE_OPERAND                                      ;   op1 of curr instr
-    MOV         DL, CURRENT_INSTRUCTION.OP2                         ; decode
+    MOV         AL, CURRENT_INSTRUCTION.OP2                         ; decode
     CALL        DECODE_OPERAND                                      ;   op2 of curr instr
     
-    MOV         DL, CURRENT_INSTRUCTION.OP1                         ; put op1
+    MOV         AL, CURRENT_INSTRUCTION.OP1                         ; put op1
     CALL        PUT_OPERAND                                         ;   into mnem_buffer string
     CMP         CURRENT_INSTRUCTION.OP2, OP_NONE                    ; check if op2 is void
-    JE          END_LINE                                            ; if yes then go ro printing
+    JE          PRINT_TO_FILE                                            ; if yes then go ro printing
     INS_CHAR    ","                                                 ; if no, then put ','
-    MOV         DL, CURRENT_INSTRUCTION.OP2                         ; put op2 
+    MOV         AL, CURRENT_INSTRUCTION.OP2                         ; put op2 
     CALL        PUT_OPERAND                                         ;   into the string
     
-END_LINE:
-    CALL        FPRINT_INSTRUCTION                                  ; print the ip, mc, mnemonic to res file
-    CALL        RESET_INSTRUCTION                                   ; reset instructin buffer
+PRINT_TO_FILE:
+    MOV         BX, INS_END_PTR
+    MOV         WORD PTR [BX], 0A0Dh   ; Add CRLF at the end.
+    INC         BX
+    INC         BX
+    MOV         CX, BX
+    LEA         DX, IP_BUFFER
+    SUB         CX, DX
+    MOV         AH, 40h
+    MOV         BX, RES_FILE_HANDLE
+    INT         21h
+       
+    LEA         DI, INS_BUFFER
+    MOV         INS_END_PTR, DI
+    MOV         CX, INS_BUFFER_CAPACITY
+    MOV         AL, "$"
+    REP STOSB
+    MOV         ADDR_SIZE, 0
+    MOV         EXT_SEG, 0
+    MOV         PREF_MODRM, 0
     JMP         DECODE_NEW_INSTRUCTION                              ; start decoding all over
 
 EXIT:
-    CLOSE_FILE  DATA_FILE_HANDLE
-    CLOSE_FILE  RES_FILE_HANDLE
-
+    MOV         AH, 3Eh
+    MOV         BX, DATA_FILE_HANDLE
+    INT         21h  
+    MOV         BX, RES_FILE_HANDLE
+    INT         21h 
     MOV         AX, 4C00h
     INT         21h
 
 PRINT PROC  ; dx = offset
-    PUSH        AX
     MOV         AH, 09h
     INT         21h
-    POP         AX
     RET
 PRINT ENDP
 
 INS_STR PROC ; SI = pointer to ASCII$ string
-    PUSH        BX SI DI
     MOV         DI, INS_END_PTR
 @@FIND_END:
     CMP         BYTE PTR [SI], "$"
@@ -486,18 +442,14 @@ INS_STR PROC ; SI = pointer to ASCII$ string
     JMP         @@FIND_END
 @@RETURN:
     MOV         INS_END_PTR, DI
-    POP         DI SI BX
     RET
 INS_STR ENDP     
 
 SPUT_HEX PROC ; IN (AX - hex_num; BX - str_ptr; DL=1 if word), OUT BX - end_str_ptr
-    PUSH        SI AX CX DX
-    int 3
     MOV         CX, 10h
     MOV         SI, 2
     CMP         DL, 1
     JNE         SHORT @@PREP_DIVIDE
-@@WORD_NUM:
     SHL         SI, 1   ; if word to write
 @@PREP_DIVIDE:
     PUSH        SI
@@ -507,19 +459,15 @@ SPUT_HEX PROC ; IN (AX - hex_num; BX - str_ptr; DL=1 if word), OUT BX - end_str_
     DIV         CX
     CMP         DL, 9
     JBE         SHORT @@HEX_DIGIT
-    
 @@HEX_LETTER:
     ADD         DL, 37h ; 37h = "A"(41h) - 0Ah 
     JMP         SHORT @@ADD_TO_BUFFER
-    
 @@HEX_DIGIT:
     ADD         DL, 30h
-    
 @@ADD_TO_BUFFER:
     MOV         [BX + SI], DL
     OR          AX, AX
     JNE         @@DIVIDE
-        
     OR          SI, SI
     JE          SHORT @@CHECK_SHIFT
 @@ADD_LEADING_ZEROS:
@@ -527,9 +475,8 @@ SPUT_HEX PROC ; IN (AX - hex_num; BX - str_ptr; DL=1 if word), OUT BX - end_str_
     MOV         BYTE PTR [BX + SI], "0"
     OR          SI, SI
     JNE         @@ADD_LEADING_ZEROS
-    
 @@CHECK_SHIFT:
-    POP         SI DX
+    POP         SI
     MOV         CX, SI ; Number of characters written.
     CMP         BYTE PTR [BX], "A"
     JB          SHORT @@RETURN
@@ -541,89 +488,55 @@ SPUT_HEX PROC ; IN (AX - hex_num; BX - str_ptr; DL=1 if word), OUT BX - end_str_
     JNE         @@SHIFT_HEX
     MOV         BYTE PTR [BX], "0"
     INC         CX
-    
 @@RETURN:
     ADD         BX, CX
-    POP         CX AX SI
     RET
 SPUT_HEX ENDP
 
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-; Gets the upcoming argument, separated by a space, from command line.
-; IN
-;   BX - Pointer to string to write argument into.
-;   SI - Pointer to current command line character.
-; OUT
-;   SI - Pointer to upcoming command line character.                  
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
 GET_CMD_ARG PROC 
-    PUSH        AX DI
-  
     XOR         DI, DI
-    @@READ_SPACES: ; Read leading spaces.
-        MOV         AL, ES:[SI]
-        CMP         AL, 0Dh ; Return if new line (no input found).
-        JE          SHORT @@RETURN
-        CMP         AL, " "
-        JNE         SHORT @@READ_ARG
-        INC         SI
-        JMP         @@READ_SPACES
-    
-    @@READ_ARG:
-        MOV         AL, ES:[SI]
-        CMP         AL, " "
-        JE          SHORT @@PUT_DOLLAR
-        CMP         AL, 0Dh ; Return if new line.
-        JE          SHORT @@PUT_DOLLAR 
-        MOV         [BX + DI], AL
-        INC         SI
-        INC         DI
-        JMP         @@READ_ARG
-    @@PUT_DOLLAR:
-        MOV         BYTE PTR [BX + DI], "$"   
-    @@RETURN:
-    POP         DI AX
+@@READ_SPACES: ; Read leading spaces.
+    MOV         AL, ES:[SI]
+    CMP         AL, 0Dh ; Return if new line (no input found).
+    JE          SHORT @@RETURN
+    CMP         AL, " "
+    JNE         SHORT @@READ_ARG
+    INC         SI
+    JMP         @@READ_SPACES
+@@READ_ARG:
+    MOV         AL, ES:[SI]
+    CMP         AL, " "
+    JE          SHORT @@PUT_DOLLAR
+    CMP         AL, 0Dh ; Return if new line.
+    JE          SHORT @@PUT_DOLLAR 
+    MOV         [BX + DI], AL
+    INC         SI
+    INC         DI
+    JMP         @@READ_ARG
+@@PUT_DOLLAR:
+    MOV         BYTE PTR [BX + DI], "$"   
+@@RETURN:
     RET
 GET_CMD_ARG ENDP
 
 ;---------------------------------------------DISASSEMBLER-PROCS------------------------------------------------------------------------------  
-RESET_INSTRUCTION PROC 
-    LEA         DI, INS_BUFFER
-    MOV         INS_END_PTR, DI
-    MOV         CX, INS_BUFFER_CAPACITY
-    MOV         AL, "$"
-    REP STOSB
-    MOV         ADDR_SIZE, 0
-    MOV         EXT_SEG, 0
-    MOV         PREF_MODRM, 0
-    RET
-RESET_INSTRUCTION ENDP
-
 READ_UPCOMING_BYTE PROC 
     PUSH        BX AX; save bx
     MOV         BX, DATA_SIZE ; bx = data_size (bytes which were read)
     CMP         BX, DATA_INDEX ; bx = index to which data was read to
     JA          SHORT @@CHECK_FILE_END ;end if end of file met
-    
     MOV         AH, 3Fh ; Read more bytes into buffer.
     MOV         BX, DATA_FILE_HANDLE 
     MOV         CX, DATA_BUFFER_CAPACITY ;0ffh
     LEA         DX, DATA_BUFFER ;memory address
     INT         21h
-    JC          SHORT @@ERROR
     MOV         DATA_SIZE, AX 
     MOV         DATA_INDEX, 0
-    
 @@CHECK_FILE_END:   ; Check if we have reached the file end.
     CMP         DATA_SIZE, 0
     JNE         @@GET_BYTE
     MOV         DH, 1
     JMP         SHORT @@RETURN
-    
-@@ERROR:
-    MOV         DH, 2
-    JMP         SHORT @@RETURN
-    
 @@GET_BYTE: ; Get byte from buffer.
     XOR         DH, DH
     LEA         BX, DATA_BUFFER
@@ -631,46 +544,38 @@ READ_UPCOMING_BYTE PROC
     MOV         DL, [BX] ; dl is the byte
     INC         DATA_INDEX
     INC         IP_VALUE
-        
 @@RETURN:
     POP         AX BX
     RET
 READ_UPCOMING_BYTE ENDP
      
 PUT_OPERAND PROC ; DL = Operand
-    PUSH        AX BX DX SI
     XOR         BX, BX
-    
-    CMP         DL, OP_NONE
+    CMP         AL, OP_NONE
     JE          @@RETURN
-    CMP         DL, OP_IMM8
+    CMP         AL, OP_IMM8
     JE          @@PRINT_IMM8
-    CMP         DL, OP_REL16
+    CMP         AL, OP_REL16
     JBE         @@PRINT_REL
-    CMP         DL, OP_REG16
+    CMP         AL, OP_REG16
     JE          @@PRINT_REG
-
     CMP         MODE, 110b
     JNE         SHORT @@EFFECTIVE_ADDRESSING
-    
     MOV         BL, RM
     CMP         SIZE_OVR, 0
     JE          SHORT @@PRINT_MODRM_REG
     ADD         BL, REG_SHIFT
-    
-    @@PRINT_MODRM_REG:
+@@PRINT_MODRM_REG:
     MOV         SI, REGISTERS[BX]
     CALL        INS_STR
     JMP         @@RETURN
-    
-    @@EFFECTIVE_ADDRESSING:
+@@EFFECTIVE_ADDRESSING:
     CMP         CURRENT_INSTRUCTION.OP2, OP_REG16
     JE          SHORT @@CHECK_SEG
     CMP         SIZE_OVR, 0
     JE          SHORT @@EA_START
     MOVZX       BX, SIZE_OVR
-
-    @@EA_START:
+@@EA_START:
     MOV         SI, SIZE_OVR_PTRS[BX]
     CALL        INS_STR
 @@CHECK_SEG:
@@ -721,7 +626,6 @@ PUT_OPERAND PROC ; DL = Operand
 @@MODRM32:
     CMP         RM, 1010b
     JE          @@PRINT_DISP
-
 @@EA_NORMAL:
     CMP         ADDR_OVR, 2
     JNE         SHORT @@NO_SIB
@@ -741,7 +645,6 @@ PUT_OPERAND PROC ; DL = Operand
     ADD         DL, SCALE
     INS_CHAR    DL
     JMP         SHORT @@CHECK_MODE
-    
 @@NO_SIB:
     XOR         BH, BH
     MOV         BL, RM
@@ -751,12 +654,10 @@ PUT_OPERAND PROC ; DL = Operand
 @@EA16:
     MOV         SI, EFFECTIVE_ADDRESSES[BX]
     CALL        INS_STR
-    
 @@CHECK_MODE:
     CMP         MODE, 000b
     JE          @@EA_END
     INS_CHAR    "+"
-    
 @@PRINT_DISP:
     MOV         DX, DISP
     CMP         MODE, 010b
@@ -769,40 +670,35 @@ PUT_OPERAND PROC ; DL = Operand
     POP         DX
 @@DISP16:
     INS_WORD    DX
-    SPUT_CHAR   INS_END_PTR, "h"
+    INS_CHAR    "h"
     JMP         SHORT @@EA_END
-    
 @@PRINT_BYTE_DISP:
     OR          DL, DL
     JNZ         SHORT @@NON_ZERO_BYTE_DISP
     DEC         INS_END_PTR
     JMP         SHORT @@EA_END
-    
 @@NON_ZERO_BYTE_DISP:
     INS_BYTE    DL
-
+    INS_CHAR    "h"
 @@EA_END:
     INS_CHAR    "]"
     JMP         SHORT @@RETURN
-    
 @@PRINT_IMM8:
     MOV         DX, IMM
     INS_BYTE    DL
+    INS_CHAR    "h"
     JMP         SHORT @@RETURN
-    
 @@PRINT_REL:
-    MOV         AX, IMM
-    CMP         DL, OP_REL16
+    MOV         DX, IMM
+    CMP         AL, OP_REL16
     JE          SHORT @@REL16
     CBW
 @@REL16:
-    ADD         AX, IP_VALUE
-    INC         AX
-    INS_WORD    AX
-    SPUT_CHAR   INS_END_PTR, "h"
+    ADD         DX, IP_VALUE
+    INC         DX
+    INS_WORD    DX
+    INS_CHAR    "h"
     JMP         SHORT @@RETURN
-    
-    
 @@PRINT_REG:
     MOV         BL, REG
     CMP         SIZE_OVR, 0
@@ -811,9 +707,7 @@ PUT_OPERAND PROC ; DL = Operand
 @@PRINT_REG_NAME:
     MOV         SI, REGISTERS[BX]
     CALL        INS_STR
-    
 @@RETURN:
-    POP         SI DX BX AX
     RET
 PUT_OPERAND ENDP
 
@@ -823,7 +717,6 @@ PUT_OPERAND ENDP
 DECODE_MODRM_SIB PROC 
     PUSH        AX DX 
     CALL        READ_UPCOMING_BYTE
-    PUSH        BX
     MOV         BX, OFFSET MODRM_BYTE
     MOV         IS_MODRM_DECODED, 1    
     CMP         ADDR_OVR, 2
@@ -844,7 +737,7 @@ DECODE_MODRM_SIB PROC
     AND         AL, 00000111b
     SHL         AL, 1
     MOV         [BX + 2], AL
-    POP         BX DX AX
+    POP         DX AX
     RET
 DECODE_MODRM_SIB ENDP
 
@@ -854,18 +747,15 @@ DECODE_MODRM_SIB ENDP
 ;   DL - Operands value.    
 ;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
 DECODE_OPERAND PROC 
-    PUSH        AX BX DX
-    MOV         AL, DL
     XOR         BX, BX
     CMP         AL, OP_REG16
     JAE         SHORT @@READ_MODRM
     CMP         AL, OP_IMM8
     JAE         SHORT @@READ_IMM
-    JMP         @@RETURN      
+    JMP         @@RETURN
 @@READ_IMM:
     CALL        READ_UPCOMING_BYTE
     MOVSX       BX, DL
-@@STORE_IMM:
     CMP         AL, OP_REL16
     JNE         SHORT @@SAVE_IMM
     CALL        READ_UPCOMING_BYTE
@@ -923,27 +813,6 @@ DECODE_OPERAND PROC
 @@STORE_DISP:
     MOV         DISP, BX
 @@RETURN:
-    POP         DX BX AX
     RET
 DECODE_OPERAND ENDP
-
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-; Prints current decoded instruction to file.
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+    
-FPRINT_INSTRUCTION PROC 
-    PUSH        AX BX CX DX
-    MOV         BX, INS_END_PTR
-    MOV         WORD PTR [BX], 0A0Dh   ; Add CRLF at the end.
-    INC         BX
-    INC         BX
-    MOV         CX, BX
-    LEA         DX, IP_BUFFER
-    SUB         CX, DX
-    MOV         AH, 40h
-    MOV         BX, RES_FILE_HANDLE
-    INT         21h    
-    POP         DX CX BX AX
-    RET
-FPRINT_INSTRUCTION ENDP
-
     END START
