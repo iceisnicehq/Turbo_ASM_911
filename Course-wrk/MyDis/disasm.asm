@@ -2,7 +2,7 @@ LOCALS @@
 SMART 
 
 .MODEL SMALL
-.486
+.386
 .STACK 100h
 .DATA
     INSTRUCTION STRUC
@@ -24,8 +24,8 @@ SMART
     IP_VALUE                DW 0FFh
 
     IP_BUFFER               DB "0000h:  "   ; Offset from the start of code segment as a string.
-    INS_BUFFER              DB INS_BUFFER_CAPACITY DUP (0)  ; Instruction as a string.
-    INS_END_PTR             DW 0   
+    INS_BUFFER              DB INS_BUFFER_CAPACITY DUP ("$")  ; Instruction as a string.
+    INS_END_PTR             DW INS_BUFFER   
 
     DATA_SIZE               DW ?                            ; The size of currently read data buffer.
     DATA_INDEX              DW ?                            ; Position of the data buffer that we are currently at.
@@ -71,7 +71,6 @@ include    "utils.inc"
 START:
     MOV         AX, @DATA                           ;define datasegment
     MOV         DS, AX
-    CALL        RESET_INSTRUCTION                   ; reset inst_buffer to " " and "$"
     JMP         SHORT GET_FILE_NAMES                ; jump to reading file names
 PRINT_HELP:
     PRINT_MSG   HELP_MSG                           ; print help msg
@@ -83,6 +82,7 @@ GET_FILE_NAMES:                                     ; Get file names from comman
     GET_FILE    RES_FILE_NAME                       ; Save cmd .ASM RES  file to address in memory
     PUSH        DS
     POP         ES
+
 OPEN_DATA_FILE:
     MOV         AX, 3D00h                           ; Open file (3Dh) with read access (00h)          
     LEA         DX, DATA_FILE_NAME                  ; Address of .COM file   

@@ -19,12 +19,12 @@ REG_EBP                 DB "EBP$"
 REG_ESI                 DB "ESI$"
 REG_EDI                 DB "EDI$"
 
-REG_ES                  DB "ES:$"
-REG_CS                  DB "CS:$"
-REG_SS                  DB "SS:$"
-REG_DS                  DB "DS:$"
-REG_FS                  DB "FS:$"
-REG_GS                  DB "GS:$"
+SEG_ES                  DB "ES:$"
+SEG_CS                  DB "CS:$"
+SEG_SS                  DB "SS:$"
+SEG_DS                  DB "DS:$"
+SEG_FS                  DB "FS:$"
+SEG_GS                  DB "GS:$"
 
 EA_BX_SI                DB "BX+SI$"
 EA_BX_DI                DB "BX+DI$"
@@ -43,21 +43,22 @@ LABEL REGISTERS
     DWORD_REGS          DW REG_EAX, REG_ECX, REG_EDX, REG_EBX, REG_ESP, REG_EBP, REG_ESI, REG_EDI
 
 LABEL SEG_REGS
-                        DW REG_ES, REG_CS, REG_SS, REG_DS, REG_FS, REG_GS
+                        DW SEG_ES, SEG_CS, SEG_SS, SEG_DS, SEG_FS, SEG_GS
 
 LABEL SIZE_OVR_PTRS
     PTRS                DW WORD_PTR, DWORD_PTR
     
+SEG_VALS ENUM {
+VAL_ES = 2,
+VAL_CS = 4,
+VAL_SS = 6,
+VAL_DS = 8,
+VAL_FS = 10,
+VAL_GS = 12
+}
 INS_OPERANDS ENUM {
     OP_NONE,
 
-    OP_ES, 
-    OP_CS,  
-    OP_SS,   
-    OP_DS, 
-    OP_FS,
-    OP_GS,
-    
     OP_IMM8,   
     OP_REL8, 
     OP_REL16, 
@@ -67,31 +68,31 @@ INS_OPERANDS ENUM {
 }
 
 
-INS_UNKNOWN     DB "Unknown instruction$"
+INS_UNKNOWN     DB "Unknown inst$"
 
-INS_AAD         DB "AAD $"
+INS_AAD         DB "AAD$"
 
-INS_BTC         DB "BTC $"
+INS_BTC         DB "BTC     $"
 
-INS_JO          DB "JO $"
-INS_JNO         DB "JNO $"
-INS_JB          DB "JB $"
-INS_JNB         DB "JNB $"
-INS_JZ          DB "JZ $"
-INS_JNZ         DB "JNZ $"
-INS_JBE         DB "JBE $"
-INS_JNBE        DB "JNBE $"
-INS_JS          DB "JS $"
-INS_JNS         DB "JNS $"
-INS_JP          DB "JP $"
-INS_JNP         DB "JNP $"
-INS_JL          DB "JL $"
-INS_JNL         DB "JNL $"
-INS_JLE         DB "JLE $"
-INS_JNLE        DB "JNLE $"
+INS_JO          DB "JO      $"
+INS_JNO         DB "JNO     $"
+INS_JB          DB "JB      $"
+INS_JNB         DB "JNB     $"
+INS_JZ          DB "JZ      $"
+INS_JNZ         DB "JNZ     $"
+INS_JBE         DB "JBE     $"
+INS_JNBE        DB "JNBE    $"
+INS_JS          DB "JS      $"
+INS_JNS         DB "JNS     $"
+INS_JP          DB "JP      $"
+INS_JNP         DB "JNP     $"
+INS_JL          DB "JL      $"
+INS_JNL         DB "JNL     $"
+INS_JLE         DB "JLE     $"
+INS_JNLE        DB "JNLE    $"
 
-INS_JCXZ        DB "JCXZ $"
-INS_JECXZ       DB "JECXZ $"
+INS_JCXZ        DB "JCXZ    $"
+INS_JECXZ       DB "JECXZ   $"
 
 INS_LOCK        DB "LOCK $"
 
@@ -115,16 +116,16 @@ LABEL INSTRUCTION_LIST
     INSTRUCTION_UNKNOWN     0Fh
     INSTRUCTION             <   OP_NONE,        INS_TYPE_EXT,       OP_NONE,       OP_NONE         > ; 0Fh
     INSTRUCTION_UNKNOWN     16h 
-    INSTRUCTION             <   OP_ES,          INS_TYPE_SEG_OVR,   OP_NONE,       OP_NONE         > ; 26h
+    INSTRUCTION             <   VAL_ES,         INS_TYPE_SEG_OVR,   OP_NONE,       OP_NONE         > ; 26h
     INSTRUCTION_UNKNOWN     07h 
-    INSTRUCTION             <   OP_CS,          INS_TYPE_SEG_OVR,   OP_NONE,       OP_NONE         > ; 2Eh
+    INSTRUCTION             <   VAL_CS,         INS_TYPE_SEG_OVR,   OP_NONE,       OP_NONE         > ; 2Eh
     INSTRUCTION_UNKNOWN     07h 
-    INSTRUCTION             <   OP_SS,          INS_TYPE_SEG_OVR,   OP_NONE,       OP_NONE         > ; 36h
+    INSTRUCTION             <   VAL_SS,         INS_TYPE_SEG_OVR,   OP_NONE,       OP_NONE         > ; 36h
     INSTRUCTION_UNKNOWN     07h 
-    INSTRUCTION             <   OP_DS,          INS_TYPE_SEG_OVR,   OP_NONE,       OP_NONE         > ; 3Eh
+    INSTRUCTION             <   VAL_DS,         INS_TYPE_SEG_OVR,   OP_NONE,       OP_NONE         > ; 3Eh
     INSTRUCTION_UNKNOWN     25h 
-    INSTRUCTION             <   OP_FS,          INS_TYPE_SEG_OVR,   OP_NONE,       OP_NONE         > ; 64h
-    INSTRUCTION             <   OP_GS,          INS_TYPE_SEG_OVR,   OP_NONE,       OP_NONE         > ; 65h
+    INSTRUCTION             <   VAL_FS,         INS_TYPE_SEG_OVR,   OP_NONE,       OP_NONE         > ; 64h
+    INSTRUCTION             <   VAL_GS,         INS_TYPE_SEG_OVR,   OP_NONE,       OP_NONE         > ; 65h
     INSTRUCTION             <   OP_NONE,        INS_TYPE_SIZE_OVR,  OP_NONE,       OP_NONE         > ; 66h
     INSTRUCTION             <   OP_NONE,        INS_TYPE_ADDR_OVR,  OP_NONE,       OP_NONE         > ; 67h
     INSTRUCTION_UNKNOWN     08h

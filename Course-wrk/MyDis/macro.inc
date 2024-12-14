@@ -67,7 +67,7 @@ SPUT_WORD MACRO STR_PTR, NUM
     PUSH        AX BX DX
     MOV         AX, NUM
     MOV         BX, STR_PTR
-    MOV         DX, 0101h
+    MOV         DL, 01h
     CALL        SPUT_HEX
     MOV         STR_PTR, BX
     POP         DX BX AX
