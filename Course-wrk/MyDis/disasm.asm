@@ -17,10 +17,9 @@ SMART
     IP_BUFFER_CAPACITY      EQU 4
     INS_BUFFER_CAPACITY     EQU 65
 
-    HELP_MSG                DB "To disassemble run: DISASM.EXE [data_file].COM [result_file].ASM",0Dh, 0Ah, "$"
+    HELP_MSG                DB "To disassemble run: DISASM.EXE [COM_file].COM [RESULT_file].ASM",0Dh, 0Ah, "$"
     ERR_MSG                 DB "Error occurred $"
     SUCCESS_MSG             DB 0Dh, 0Ah, "Result successfully written to file: $"
-
     IP_VALUE                DW 0FFh
 
     IP_BUFFER               DB "0000h:  "
@@ -69,24 +68,20 @@ include    "macro.inc"
 include    "utils.inc"
 
 START:
-    MOV         AX, @DATA                           ;define datasegment
+    MOV         AX, @DATA
     MOV         DS, AX
-    JMP         SHORT GET_FILE_NAMES                ; jump to reading file names
-PRINT_HELP:
-    PRINT_MSG   HELP_MSG                           ; print help msg
-    JMP         EXIT                               ; jmp to exit
-
-GET_FILE_NAMES:                                     ; Get file names from command line argument list
-    MOV         SI, 82h                             ; inc si to 82h where cmd start
-    GET_FILE    DATA_FILE_NAME                      ; Save cmd .COM TEST file to address in memory
-    GET_FILE    RES_FILE_NAME                       ; Save cmd .ASM RES  file to address in memory
+    MOV         SI, 82h   
+    LEA         BX, DATA_FILE_NAME
+    CALL        GET_CMD_ARG
+    LEA         BX, RES_FILE_NAME
+    CALL        GET_CMD_ARG                      
     PUSH        DS
     POP         ES
 
 OPEN_DATA_FILE:
-    MOV         AX, 3D00h                           ; Open file (3Dh) with read access (00h)          
-    LEA         DX, DATA_FILE_NAME                  ; Address of .COM file   
-    INT         21h                                 ; CALL DOS
+    MOV         AX, 3D00h          
+    LEA         DX, DATA_FILE_NAME
+    INT         21h
     JC          SHORT EXIT_WITH_ERR                 ; Print err msg if error occured (cf = 1)
     MOV         DATA_FILE_HANDLE, AX                ; Save .COM file handle
 
@@ -99,8 +94,11 @@ OPEN_RESULT_FILE:
     MOV         RES_FILE_HANDLE, AX                 ; Save result file handle
     JMP         SHORT DECODE_NEW_INSTRUCTION        ; JUMP to decoding
 
+PRINT_HELP:
+    PRINT_MSG   HELP_MSG                           ; print help msg
+    JMP         EXIT                               ; jmp to exit
+
 EXIT_WITH_ERR:                                      ; Print the error, which occurred while opening file.
-    
     PUSH        DX                                  ; Save file name offset 
     LEA         BX, HELP_MSG
     PRINT_MSG   [BX]
@@ -112,13 +110,11 @@ PRINT_FILE_NAME:
     MOV         BX, DX                              ; BX = beggining of file name
     PRINT_MSG   [BX]                                ; print file name 
     JMP         EXIT                                ; jump to exit
+
 DECODE_NEW_INSTRUCTION:    
     CALL        READ_UPCOMING_BYTE                  ; reads upcoming byte and saves it in ascii to mc_buffer
     OR          DH, DH                              ; normal byte
     JE          SHORT LOAD_INSTRUCTION                    ; load instruction
-    CMP         DH, 1                               ; file end reached 
-    JE          SHORT PROGRAM_SUCCESS                     ; print succes msg and end programm
-    JMP         EXIT_WITH_ERR
 PROGRAM_SUCCESS:
     LEA         DX, RES_FILE_NAME                   ; load offset of res_file name
     PRINT_MSG   SUCCESS_MSG                         ; print success msg
@@ -144,8 +140,11 @@ NOT_JECXZ:
     JNZ         SHORT CHECK_PREFIX_TYPE
 
 PRINT_OFFSET:
-    LEA         DI, IP_BUFFER                       ; load offset of the ip_buffer (which is the beginning of the lines)
-    SPUT_WORD   DI, IP_VALUE                        ; put ip_value into the mc_buffer
+    LEA         BX, IP_BUFFER                       ; load offset of the ip_buffer (which is the beginning of the lines)
+    MOV         AX, IP_VALUE
+    MOV         DL, 01h
+    CALL        SPUT_HEX
+    ; SPUT_WORD   DI, IP_VALUE                        ; put ip_value into the mc_buffer
 
 CHECK_PREFIX_TYPE: 
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_SEG_OVR
@@ -167,31 +166,50 @@ ANALYZE_OPERANDS:
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_AAD         ; check if the second byte of the instruction is constant (e.g. AAD)
     JNE         SHORT READ_OPERANDS                                       ; if not then read ops
     CALL        READ_UPCOMING_BYTE                                  ; if yes read the second const byte
-    JMP         SHORT END_LINE
+    JMP         SHORT PRINT_TO_FILE
 
 READ_OPERANDS:
-    MOV         DL, CURRENT_INSTRUCTION.OP1                         ; decode 
+    MOV         AL, CURRENT_INSTRUCTION.OP1                         ; decode 
     CALL        DECODE_OPERAND                                      ;   op1 of curr instr
-    MOV         DL, CURRENT_INSTRUCTION.OP2                         ; decode
+    MOV         AL, CURRENT_INSTRUCTION.OP2                         ; decode
     CALL        DECODE_OPERAND                                      ;   op2 of curr instr
     
-    MOV         DL, CURRENT_INSTRUCTION.OP1                         ; put op1
+    MOV         AL, CURRENT_INSTRUCTION.OP1                         ; put op1
     CALL        PUT_OPERAND                                         ;   into mnem_buffer string
     CMP         CURRENT_INSTRUCTION.OP2, OP_NONE                    ; check if op2 is void
-    JE          END_LINE                                            ; if yes then go ro printing
+    JE          PRINT_TO_FILE                                            ; if yes then go ro printing
     INS_CHAR    ","                                                 ; if no, then put ','
-    MOV         DL, CURRENT_INSTRUCTION.OP2                         ; put op2 
+    MOV         AL, CURRENT_INSTRUCTION.OP2                         ; put op2 
     CALL        PUT_OPERAND                                         ;   into the string
     
-END_LINE:
-    CALL        FPRINT_INSTRUCTION                                  ; print the ip, mc, mnemonic to res file
-    CALL        RESET_INSTRUCTION                                   ; reset instructin buffer
+PRINT_TO_FILE:
+    MOV         BX, INS_END_PTR
+    MOV         WORD PTR [BX], 0A0Dh   ; Add CRLF at the end.
+    INC         BX
+    INC         BX
+    MOV         CX, BX
+    LEA         DX, IP_BUFFER
+    SUB         CX, DX
+    MOV         AH, 40h
+    MOV         BX, RES_FILE_HANDLE
+    INT         21h
+       
+    LEA         DI, INS_BUFFER
+    MOV         INS_END_PTR, DI
+    MOV         CX, INS_BUFFER_CAPACITY
+    MOV         AL, "$"
+    REP STOSB
+    MOV         ADDR_SIZE, 0
+    MOV         EXT_SEG, 0
+    MOV         PREF_MODRM, 0
     JMP         DECODE_NEW_INSTRUCTION                              ; start decoding all over
 
 EXIT:
-    CLOSE_FILE  DATA_FILE_HANDLE
-    CLOSE_FILE  RES_FILE_HANDLE
-
+    MOV         AH, 3Eh
+    MOV         BX, DATA_FILE_HANDLE
+    INT         21h  
+    MOV         BX, RES_FILE_HANDLE
+    INT         21h  
     MOV         AX, 4C00h
     INT         21h
     END START

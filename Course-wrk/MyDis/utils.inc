@@ -1,13 +1,10 @@
 PRINT PROC  ; dx = offset
-    PUSH        AX
     MOV         AH, 09h
     INT         21h
-    POP         AX
     RET
 PRINT ENDP
 
 INS_STR PROC ; SI = pointer to ASCII$ string
-    PUSH        BX SI DI
     MOV         DI, INS_END_PTR
 @@FIND_END:
     CMP         BYTE PTR [SI], "$"
@@ -16,18 +13,14 @@ INS_STR PROC ; SI = pointer to ASCII$ string
     JMP         @@FIND_END
 @@RETURN:
     MOV         INS_END_PTR, DI
-    POP         DI SI BX
     RET
 INS_STR ENDP     
 
 SPUT_HEX PROC ; IN (AX - hex_num; BX - str_ptr; DL=1 if word), OUT BX - end_str_ptr
-    PUSH        SI AX CX DX
-    int 3
     MOV         CX, 10h
     MOV         SI, 2
     CMP         DL, 1
     JNE         SHORT @@PREP_DIVIDE
-@@WORD_NUM:
     SHL         SI, 1   ; if word to write
 @@PREP_DIVIDE:
     PUSH        SI
@@ -37,19 +30,15 @@ SPUT_HEX PROC ; IN (AX - hex_num; BX - str_ptr; DL=1 if word), OUT BX - end_str_
     DIV         CX
     CMP         DL, 9
     JBE         SHORT @@HEX_DIGIT
-    
 @@HEX_LETTER:
     ADD         DL, 37h ; 37h = "A"(41h) - 0Ah 
     JMP         SHORT @@ADD_TO_BUFFER
-    
 @@HEX_DIGIT:
     ADD         DL, 30h
-    
 @@ADD_TO_BUFFER:
     MOV         [BX + SI], DL
     OR          AX, AX
     JNE         @@DIVIDE
-        
     OR          SI, SI
     JE          SHORT @@CHECK_SHIFT
 @@ADD_LEADING_ZEROS:
@@ -57,9 +46,8 @@ SPUT_HEX PROC ; IN (AX - hex_num; BX - str_ptr; DL=1 if word), OUT BX - end_str_
     MOV         BYTE PTR [BX + SI], "0"
     OR          SI, SI
     JNE         @@ADD_LEADING_ZEROS
-    
 @@CHECK_SHIFT:
-    POP         SI DX
+    POP         SI
     MOV         CX, SI ; Number of characters written.
     CMP         BYTE PTR [BX], "A"
     JB          SHORT @@RETURN
@@ -71,89 +59,55 @@ SPUT_HEX PROC ; IN (AX - hex_num; BX - str_ptr; DL=1 if word), OUT BX - end_str_
     JNE         @@SHIFT_HEX
     MOV         BYTE PTR [BX], "0"
     INC         CX
-    
 @@RETURN:
     ADD         BX, CX
-    POP         CX AX SI
     RET
 SPUT_HEX ENDP
 
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-; Gets the upcoming argument, separated by a space, from command line.
-; IN
-;   BX - Pointer to string to write argument into.
-;   SI - Pointer to current command line character.
-; OUT
-;   SI - Pointer to upcoming command line character.                  
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
 GET_CMD_ARG PROC 
-    PUSH        AX DI
-  
     XOR         DI, DI
-    @@READ_SPACES: ; Read leading spaces.
-        MOV         AL, ES:[SI]
-        CMP         AL, 0Dh ; Return if new line (no input found).
-        JE          SHORT @@RETURN
-        CMP         AL, " "
-        JNE         SHORT @@READ_ARG
-        INC         SI
-        JMP         @@READ_SPACES
-    
-    @@READ_ARG:
-        MOV         AL, ES:[SI]
-        CMP         AL, " "
-        JE          SHORT @@PUT_DOLLAR
-        CMP         AL, 0Dh ; Return if new line.
-        JE          SHORT @@PUT_DOLLAR 
-        MOV         [BX + DI], AL
-        INC         SI
-        INC         DI
-        JMP         @@READ_ARG
-    @@PUT_DOLLAR:
-        MOV         BYTE PTR [BX + DI], "$"   
-    @@RETURN:
-    POP         DI AX
+@@READ_SPACES: ; Read leading spaces.
+    MOV         AL, ES:[SI]
+    CMP         AL, 0Dh ; Return if new line (no input found).
+    JE          SHORT @@RETURN
+    CMP         AL, " "
+    JNE         SHORT @@READ_ARG
+    INC         SI
+    JMP         @@READ_SPACES
+@@READ_ARG:
+    MOV         AL, ES:[SI]
+    CMP         AL, " "
+    JE          SHORT @@PUT_DOLLAR
+    CMP         AL, 0Dh ; Return if new line.
+    JE          SHORT @@PUT_DOLLAR 
+    MOV         [BX + DI], AL
+    INC         SI
+    INC         DI
+    JMP         @@READ_ARG
+@@PUT_DOLLAR:
+    MOV         BYTE PTR [BX + DI], "$"   
+@@RETURN:
     RET
 GET_CMD_ARG ENDP
 
 ;---------------------------------------------DISASSEMBLER-PROCS------------------------------------------------------------------------------  
-RESET_INSTRUCTION PROC 
-    LEA         DI, INS_BUFFER
-    MOV         INS_END_PTR, DI
-    MOV         CX, INS_BUFFER_CAPACITY
-    MOV         AL, "$"
-    REP STOSB
-    MOV         ADDR_SIZE, 0
-    MOV         EXT_SEG, 0
-    MOV         PREF_MODRM, 0
-    RET
-RESET_INSTRUCTION ENDP
-
 READ_UPCOMING_BYTE PROC 
     PUSH        BX AX; save bx
     MOV         BX, DATA_SIZE ; bx = data_size (bytes which were read)
     CMP         BX, DATA_INDEX ; bx = index to which data was read to
     JA          SHORT @@CHECK_FILE_END ;end if end of file met
-    
     MOV         AH, 3Fh ; Read more bytes into buffer.
     MOV         BX, DATA_FILE_HANDLE 
     MOV         CX, DATA_BUFFER_CAPACITY ;0ffh
     LEA         DX, DATA_BUFFER ;memory address
     INT         21h
-    JC          SHORT @@ERROR
     MOV         DATA_SIZE, AX 
     MOV         DATA_INDEX, 0
-    
 @@CHECK_FILE_END:   ; Check if we have reached the file end.
     CMP         DATA_SIZE, 0
     JNE         @@GET_BYTE
     MOV         DH, 1
     JMP         SHORT @@RETURN
-    
-@@ERROR:
-    MOV         DH, 2
-    JMP         SHORT @@RETURN
-    
 @@GET_BYTE: ; Get byte from buffer.
     XOR         DH, DH
     LEA         BX, DATA_BUFFER
@@ -161,46 +115,38 @@ READ_UPCOMING_BYTE PROC
     MOV         DL, [BX] ; dl is the byte
     INC         DATA_INDEX
     INC         IP_VALUE
-        
 @@RETURN:
     POP         AX BX
     RET
 READ_UPCOMING_BYTE ENDP
      
 PUT_OPERAND PROC ; DL = Operand
-    PUSH        AX BX DX SI
     XOR         BX, BX
-    
-    CMP         DL, OP_NONE
+    CMP         AL, OP_NONE
     JE          @@RETURN
-    CMP         DL, OP_IMM8
+    CMP         AL, OP_IMM8
     JE          @@PRINT_IMM8
-    CMP         DL, OP_REL16
+    CMP         AL, OP_REL16
     JBE         @@PRINT_REL
-    CMP         DL, OP_REG16
+    CMP         AL, OP_REG16
     JE          @@PRINT_REG
-
     CMP         MODE, 110b
     JNE         SHORT @@EFFECTIVE_ADDRESSING
-    
     MOV         BL, RM
     CMP         SIZE_OVR, 0
     JE          SHORT @@PRINT_MODRM_REG
     ADD         BL, REG_SHIFT
-    
-    @@PRINT_MODRM_REG:
+@@PRINT_MODRM_REG:
     MOV         SI, REGISTERS[BX]
     CALL        INS_STR
     JMP         @@RETURN
-    
-    @@EFFECTIVE_ADDRESSING:
+@@EFFECTIVE_ADDRESSING:
     CMP         CURRENT_INSTRUCTION.OP2, OP_REG16
     JE          SHORT @@CHECK_SEG
     CMP         SIZE_OVR, 0
     JE          SHORT @@EA_START
     MOVZX       BX, SIZE_OVR
-
-    @@EA_START:
+@@EA_START:
     MOV         SI, SIZE_OVR_PTRS[BX]
     CALL        INS_STR
 @@CHECK_SEG:
@@ -251,7 +197,6 @@ PUT_OPERAND PROC ; DL = Operand
 @@MODRM32:
     CMP         RM, 1010b
     JE          @@PRINT_DISP
-
 @@EA_NORMAL:
     CMP         ADDR_OVR, 2
     JNE         SHORT @@NO_SIB
@@ -271,7 +216,6 @@ PUT_OPERAND PROC ; DL = Operand
     ADD         DL, SCALE
     INS_CHAR    DL
     JMP         SHORT @@CHECK_MODE
-    
 @@NO_SIB:
     XOR         BH, BH
     MOV         BL, RM
@@ -281,12 +225,10 @@ PUT_OPERAND PROC ; DL = Operand
 @@EA16:
     MOV         SI, EFFECTIVE_ADDRESSES[BX]
     CALL        INS_STR
-    
 @@CHECK_MODE:
     CMP         MODE, 000b
     JE          @@EA_END
     INS_CHAR    "+"
-    
 @@PRINT_DISP:
     MOV         DX, DISP
     CMP         MODE, 010b
@@ -299,40 +241,35 @@ PUT_OPERAND PROC ; DL = Operand
     POP         DX
 @@DISP16:
     INS_WORD    DX
-    SPUT_CHAR   INS_END_PTR, "h"
+    INS_CHAR    "h"
     JMP         SHORT @@EA_END
-    
 @@PRINT_BYTE_DISP:
     OR          DL, DL
     JNZ         SHORT @@NON_ZERO_BYTE_DISP
     DEC         INS_END_PTR
     JMP         SHORT @@EA_END
-    
 @@NON_ZERO_BYTE_DISP:
     INS_BYTE    DL
-
+    INS_CHAR    "h"
 @@EA_END:
     INS_CHAR    "]"
     JMP         SHORT @@RETURN
-    
 @@PRINT_IMM8:
     MOV         DX, IMM
     INS_BYTE    DL
+    INS_CHAR    "h"
     JMP         SHORT @@RETURN
-    
 @@PRINT_REL:
-    MOV         AX, IMM
-    CMP         DL, OP_REL16
+    MOV         DX, IMM
+    CMP         AL, OP_REL16
     JE          SHORT @@REL16
     CBW
 @@REL16:
-    ADD         AX, IP_VALUE
-    INC         AX
-    INS_WORD    AX
-    SPUT_CHAR   INS_END_PTR, "h"
+    ADD         DX, IP_VALUE
+    INC         DX
+    INS_WORD    DX
+    INS_CHAR    "h"
     JMP         SHORT @@RETURN
-    
-    
 @@PRINT_REG:
     MOV         BL, REG
     CMP         SIZE_OVR, 0
@@ -341,9 +278,7 @@ PUT_OPERAND PROC ; DL = Operand
 @@PRINT_REG_NAME:
     MOV         SI, REGISTERS[BX]
     CALL        INS_STR
-    
 @@RETURN:
-    POP         SI DX BX AX
     RET
 PUT_OPERAND ENDP
 
@@ -353,7 +288,6 @@ PUT_OPERAND ENDP
 DECODE_MODRM_SIB PROC 
     PUSH        AX DX 
     CALL        READ_UPCOMING_BYTE
-    PUSH        BX
     MOV         BX, OFFSET MODRM_BYTE
     MOV         IS_MODRM_DECODED, 1    
     CMP         ADDR_OVR, 2
@@ -374,7 +308,7 @@ DECODE_MODRM_SIB PROC
     AND         AL, 00000111b
     SHL         AL, 1
     MOV         [BX + 2], AL
-    POP         BX DX AX
+    POP         DX AX
     RET
 DECODE_MODRM_SIB ENDP
 
@@ -384,18 +318,15 @@ DECODE_MODRM_SIB ENDP
 ;   DL - Operands value.    
 ;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
 DECODE_OPERAND PROC 
-    PUSH        AX BX DX
-    MOV         AL, DL
     XOR         BX, BX
     CMP         AL, OP_REG16
     JAE         SHORT @@READ_MODRM
     CMP         AL, OP_IMM8
     JAE         SHORT @@READ_IMM
-    JMP         @@RETURN      
+    JMP         @@RETURN
 @@READ_IMM:
     CALL        READ_UPCOMING_BYTE
     MOVSX       BX, DL
-@@STORE_IMM:
     CMP         AL, OP_REL16
     JNE         SHORT @@SAVE_IMM
     CALL        READ_UPCOMING_BYTE
@@ -453,25 +384,5 @@ DECODE_OPERAND PROC
 @@STORE_DISP:
     MOV         DISP, BX
 @@RETURN:
-    POP         DX BX AX
     RET
 DECODE_OPERAND ENDP
-
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-; Prints current decoded instruction to file.
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+    
-FPRINT_INSTRUCTION PROC 
-    PUSH        AX BX CX DX
-    MOV         BX, INS_END_PTR
-    MOV         WORD PTR [BX], 0A0Dh   ; Add CRLF at the end.
-    INC         BX
-    INC         BX
-    MOV         CX, BX
-    LEA         DX, IP_BUFFER
-    SUB         CX, DX
-    MOV         AH, 40h
-    MOV         BX, RES_FILE_HANDLE
-    INT         21h    
-    POP         DX CX BX AX
-    RET
-FPRINT_INSTRUCTION ENDP
