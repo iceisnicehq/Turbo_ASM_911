@@ -144,7 +144,6 @@ PRINT_OFFSET:
     MOV         AX, IP_VALUE
     MOV         DL, 01h
     CALL        SPUT_HEX
-    ; SPUT_WORD   DI, IP_VALUE                        ; put ip_value into the mc_buffer
 
 CHECK_PREFIX_TYPE: 
     CMP         CURRENT_INSTRUCTION.TYPEOF, INS_TYPE_SEG_OVR
@@ -209,7 +208,7 @@ EXIT:
     MOV         BX, DATA_FILE_HANDLE
     INT         21h  
     MOV         BX, RES_FILE_HANDLE
-    INT         21h  
+    INT         21h 
     MOV         AX, 4C00h
     INT         21h
     END START
