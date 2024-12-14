@@ -10,8 +10,9 @@ ENDM
 ; IN
 ;   NUM - Number to put. 
 ;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-INS_BYTE MACRO NUM
-    MOVZX       AX, NUM
+INS_BYTE MACRO
+    ; MOVZX       AX, NUM
+    XOR         AH, AH
     MOV         BX, INS_END_PTR
     XOR         DL, DL
     STC
@@ -23,8 +24,8 @@ ENDM
 ; IN
 ;   NUM - Number to put. 
 ;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-INS_WORD MACRO NUM
-    MOV         AX, NUM
+INS_WORD MACRO
+    ; MOV         AX, NUM
     MOV         BX, INS_END_PTR
     MOV         DL, 1
     CALL        SPUT_HEX

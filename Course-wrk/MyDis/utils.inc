@@ -17,7 +17,6 @@ INS_STR PROC ; SI = pointer to ASCII$ string
 INS_STR ENDP     
 
 SPUT_HEX PROC ; IN (AX - hex_num; BX - str_ptr; DL=1 if word), OUT BX - end_str_ptr
-    INT 3
     PUSHF       
     MOV         CX, 10h
     MOV         SI, 2
@@ -241,47 +240,47 @@ PUT_OPERAND PROC ; DL = Operand
     JE          @@EA_END
     INS_CHAR    "+"
 @@PRINT_DISP:
-    MOV         DX, DISP
+    MOV         AX, DISP
     CMP         MODE, 010b
     JE          SHORT @@PRINT_BYTE_DISP
     CMP         ADDR_OVR, 0
     JE          SHORT @@DISP16
-    PUSH        DX
-    MOV         DX, DISP32
+    PUSH        AX
+    MOV         AX, DISP32
     STC 
-    INS_WORD    DX
-    POP         DX
+    INS_WORD
+    POP         AX
 @@DISP16:
     CLC
-    INS_WORD    DX
+    INS_WORD
     INS_CHAR    "h"
     JMP         SHORT @@EA_END
 @@PRINT_BYTE_DISP:
-    OR          DL, DL
+    OR          AL, AL
     JNZ         SHORT @@NON_ZERO_BYTE_DISP
     DEC         INS_END_PTR
     JMP         SHORT @@EA_END
 @@NON_ZERO_BYTE_DISP:
-    INS_BYTE    DL
+    INS_BYTE
     INS_CHAR    "h"
 @@EA_END:
     INS_CHAR    "]"
     JMP         SHORT @@RETURN
 @@PRINT_IMM8:
-    MOV         DX, IMM
     CMP         AL, OP_REL8
+    MOV         AX, IMM
     JAE         @@PRINT_REL
-    INS_BYTE    DL
+    INS_BYTE
     INS_CHAR    "h"
     JMP         SHORT @@RETURN
 @@PRINT_REL:
     JA          SHORT @@REL16
-    MOVSX       DX, DL
+    CBW
 @@REL16:
-    ADD         DX, IP_VALUE
-    INC         DX
+    ADD         AX, IP_VALUE
+    INC         AX
     STC
-    INS_WORD    DX
+    INS_WORD
     INS_CHAR    "h"
     JMP         SHORT @@RETURN
 @@PRINT_REG:
