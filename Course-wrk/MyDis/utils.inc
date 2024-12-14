@@ -17,10 +17,12 @@ INS_STR PROC ; SI = pointer to ASCII$ string
 INS_STR ENDP     
 
 SPUT_HEX PROC ; IN (AX - hex_num; BX - str_ptr; DL=1 if word), OUT BX - end_str_ptr
+    INT 3
+    PUSHF       
     MOV         CX, 10h
     MOV         SI, 2
-    CMP         DL, 1
-    JNE         SHORT @@PREP_DIVIDE
+    OR          DL, DL
+    JZ          SHORT @@PREP_DIVIDE
     SHL         SI, 1   ; if word to write
 @@PREP_DIVIDE:
     PUSH        SI
@@ -47,8 +49,10 @@ SPUT_HEX PROC ; IN (AX - hex_num; BX - str_ptr; DL=1 if word), OUT BX - end_str_
     OR          SI, SI
     JNE         @@ADD_LEADING_ZEROS
 @@CHECK_SHIFT:
-    POP         SI
-    MOV         CX, SI ; Number of characters written.
+    POP         CX
+    POPF
+    JNC         @@RETURN
+    MOV         SI, CX ; Number of characters written.
     CMP         BYTE PTR [BX], "A"
     JB          SHORT @@RETURN
 @@SHIFT_HEX:
@@ -115,6 +119,15 @@ READ_UPCOMING_BYTE PROC
     MOV         DL, [BX] ; dl is the byte
     INC         DATA_INDEX
     INC         IP_VALUE
+    PUSH        DX
+    MOVZX       AX, DL
+    MOV         BX, MC_END_PTR
+    XOR         DL, DL
+    CLC
+    CALL        SPUT_HEX
+    INC         BX
+    MOV         MC_END_PTR, BX
+    POP         DX
 @@RETURN:
     POP         AX BX
     RET
@@ -124,10 +137,8 @@ PUT_OPERAND PROC ; DL = Operand
     XOR         BX, BX
     CMP         AL, OP_NONE
     JE          @@RETURN
-    CMP         AL, OP_IMM8
-    JE          @@PRINT_IMM8
     CMP         AL, OP_REL16
-    JBE         @@PRINT_REL
+    JBE         @@PRINT_IMM8
     CMP         AL, OP_REG16
     JE          @@PRINT_REG
     CMP         MODE, 110b
@@ -237,9 +248,11 @@ PUT_OPERAND PROC ; DL = Operand
     JE          SHORT @@DISP16
     PUSH        DX
     MOV         DX, DISP32
+    STC 
     INS_WORD    DX
     POP         DX
 @@DISP16:
+    CLC
     INS_WORD    DX
     INS_CHAR    "h"
     JMP         SHORT @@EA_END
@@ -256,17 +269,18 @@ PUT_OPERAND PROC ; DL = Operand
     JMP         SHORT @@RETURN
 @@PRINT_IMM8:
     MOV         DX, IMM
+    CMP         AL, OP_REL8
+    JAE         @@PRINT_REL
     INS_BYTE    DL
     INS_CHAR    "h"
     JMP         SHORT @@RETURN
 @@PRINT_REL:
-    MOV         DX, IMM
-    CMP         AL, OP_REL16
-    JE          SHORT @@REL16
-    CBW
+    JA          SHORT @@REL16
+    MOVSX       DX, DL
 @@REL16:
     ADD         DX, IP_VALUE
     INC         DX
+    STC
     INS_WORD    DX
     INS_CHAR    "h"
     JMP         SHORT @@RETURN

@@ -14,6 +14,14 @@ INS_BYTE MACRO NUM
     MOVZX       AX, NUM
     MOV         BX, INS_END_PTR
     XOR         DL, DL
+    STC
+    CALL        SPUT_HEX
+    MOV         INS_END_PTR, BX
+ENDM
+INS_BYTE_IN_MC MACRO NUM
+    MOVZX       AX, NUM
+    MOV         BX, INS_END_PTR
+    XOR         DL, DL
     CALL        SPUT_HEX
     MOV         INS_END_PTR, BX
 ENDM
@@ -25,7 +33,7 @@ ENDM
 INS_WORD MACRO NUM
     MOV         AX, NUM
     MOV         BX, INS_END_PTR
-    MOV         DL, 01h
+    MOV         DL, 1
     CALL        SPUT_HEX
     MOV         INS_END_PTR, BX
 ENDM

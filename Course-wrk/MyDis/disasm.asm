@@ -15,6 +15,7 @@ SMART
     MAX_FILE_NAME           EQU 128
     DATA_BUFFER_CAPACITY    EQU 255
     IP_BUFFER_CAPACITY      EQU 4
+    MC_BUFFER_CAPACITY      EQU 45
     INS_BUFFER_CAPACITY     EQU 65
 
     HELP_MSG                DB "To disassemble run: DISASM.EXE [COM_file].COM [RESULT_file].ASM",0Dh, 0Ah, "$"
@@ -23,9 +24,10 @@ SMART
     IP_VALUE                DW 0FFh
 
     IP_BUFFER               DB "0000h:  "
+    MC_BUFFER               DB MC_BUFFER_CAPACITY DUP (" ")   ; Machine code as a string.
     INS_BUFFER              DB INS_BUFFER_CAPACITY DUP ("$")
     INS_END_PTR             DW INS_BUFFER   
-
+    MC_END_PTR              DW MC_BUFFER
     DATA_SIZE               DW ?                            ; The size of currently read data buffer.
     DATA_INDEX              DW ?                            ; Position of the data buffer that we are currently at.
     DATA_BUFFER             DB DATA_BUFFER_CAPACITY DUP (?) ; Bytes, which were read from file.
@@ -142,7 +144,8 @@ NOT_JECXZ:
 PRINT_OFFSET:
     LEA         BX, IP_BUFFER                       ; load offset of the ip_buffer (which is the beginning of the lines)
     MOV         AX, IP_VALUE
-    MOV         DL, 01h
+    MOV         DL, 1
+    CLC 
     CALL        SPUT_HEX
 
 CHECK_PREFIX_TYPE: 
@@ -192,8 +195,13 @@ PRINT_TO_FILE:
     MOV         AH, 40h
     MOV         BX, RES_FILE_HANDLE
     INT         21h
-       
-    LEA         DI, INS_BUFFER
+
+    LEA         DI, MC_BUFFER
+    MOV         MC_END_PTR, DI
+    MOV         CX, MC_BUFFER_CAPACITY
+    MOV         AL, " "
+    REP STOSB
+    ; LEA         DI, INS_BUFFER
     MOV         INS_END_PTR, DI
     MOV         CX, INS_BUFFER_CAPACITY
     MOV         AL, "$"

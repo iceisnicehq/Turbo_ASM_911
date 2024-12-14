@@ -15,6 +15,7 @@ SMART
     MAX_FILE_NAME           EQU 128
     DATA_BUFFER_CAPACITY    EQU 255
     IP_BUFFER_CAPACITY      EQU 4
+    MC_BUFFER_CAPACITY      EQU 45
     INS_BUFFER_CAPACITY     EQU 65
 
     HELP_MSG                DB "To disassemble run: DISASM.EXE [COM_file].COM [RESULT_file].ASM",0Dh, 0Ah, "$"
@@ -23,8 +24,43 @@ SMART
     IP_VALUE                DW 0FFh
 
     IP_BUFFER               DB "0000h:  "
+    MC_BUFFER               DB MC_BUFFER_CAPACITY DUP (" ")   ; Machine code as a string.
     INS_BUFFER              DB INS_BUFFER_CAPACITY DUP ("$")
-    INS_END_PTR             DW INS_BUFFER
+    INS_END_PTR             DW INS_BUFFER   
+    MC_END_PTR              DW MC_BUFFER
+    DATA_SIZE               DW ?                            ; The size of currently read data buffer.
+    DATA_INDEX              DW ?                            ; Position of the data buffer that we are currently at.
+    DATA_BUFFER             DB DATA_BUFFER_CAPACITY DUP (?) ; Bytes, which were read from file.
+
+    DATA_FILE_NAME          DB MAX_FILE_NAME DUP(?)
+    RES_FILE_NAME           DB MAX_FILE_NAME DUP(?)
+    DATA_FILE_HANDLE        DW ?
+    RES_FILE_HANDLE         DW ?
+
+    IMM                     DW ?
+    DISP32                  DW ?
+    DISP                    DW ?
+    LABEL CURRENT_INSTRUCTION
+        INSTRUCTION { }
+    LABEL PREF_BYTES
+    LABEL ADDR_SIZE WORD 
+        ADDR_OVR            DB ?
+        SIZE_OVR            DB ?
+    LABEL EXT_SEG  WORD 
+        INS_EXT             DB ?
+        SEG_OVR             DB ?
+    LABEL PREF_MODRM WORD 
+        HAS_PREFIX          DB ?
+        IS_MODRM_DECODED    DB ?
+    LABEL SIB_BYTE
+        SCALE               DB ?
+        INDEX               DB ?
+        BASE                DB ?
+    LABEL MODRM_BYTE
+        MODE                DB ?
+        REG                 DB ?
+        RM                  DB ?
+
 
 WORD_PTR                DB "word ptr $"
 DWORD_PTR               DB "dword ptr $"
@@ -200,43 +236,10 @@ LABEL INSTRUCTION_LIST
     INSTRUCTION             <   INS_JCXZ,       INS_TYPE_JCXZ,      OP_REL8,       OP_NONE         > ; E3h  (JECXZ)
     INSTRUCTION_UNKNOWN     0Ch
     INSTRUCTION             <   INS_LOCK,       INS_TYPE_PREFIX,    OP_NONE,       OP_NONE         > ; F0h
-    INSTRUCTION_UNKNOWN     0Fh   
-
-    DATA_SIZE               DW ?                            ; The size of currently read data buffer.
-    DATA_INDEX              DW ?                            ; Position of the data buffer that we are currently at.
-    DATA_BUFFER             DB DATA_BUFFER_CAPACITY DUP (?) ; Bytes, which were read from file.
-
-    DATA_FILE_NAME          DB MAX_FILE_NAME DUP(?)
-    RES_FILE_NAME           DB MAX_FILE_NAME DUP(?)
-    DATA_FILE_HANDLE        DW ?
-    RES_FILE_HANDLE         DW ?
-
-    IMM                     DW ?
-    DISP32                  DW ?
-    DISP                    DW ?
-    LABEL CURRENT_INSTRUCTION
-        INSTRUCTION { }
-    LABEL PREF_BYTES
-    LABEL ADDR_SIZE WORD 
-        ADDR_OVR            DB ?
-        SIZE_OVR            DB ?
-    LABEL EXT_SEG  WORD 
-        INS_EXT             DB ?
-        SEG_OVR             DB ?
-    LABEL PREF_MODRM WORD 
-        HAS_PREFIX          DB ?
-        IS_MODRM_DECODED    DB ?
-    LABEL SIB_BYTE
-        SCALE               DB ?
-        INDEX               DB ?
-        BASE                DB ?
-    LABEL MODRM_BYTE
-        MODE                DB ?
-        REG                 DB ?
-        RM                  DB ?
-
+    INSTRUCTION_UNKNOWN     0Fh
 
 .CODE
+
 PRINT_MSG MACRO MSG
     PUSH        DX
     LEA         DX, MSG
@@ -253,6 +256,14 @@ INS_BYTE MACRO NUM
     MOVZX       AX, NUM
     MOV         BX, INS_END_PTR
     XOR         DL, DL
+    STC
+    CALL        SPUT_HEX
+    MOV         INS_END_PTR, BX
+ENDM
+INS_BYTE_IN_MC MACRO NUM
+    MOVZX       AX, NUM
+    MOV         BX, INS_END_PTR
+    XOR         DL, DL
     CALL        SPUT_HEX
     MOV         INS_END_PTR, BX
 ENDM
@@ -264,7 +275,7 @@ ENDM
 INS_WORD MACRO NUM
     MOV         AX, NUM
     MOV         BX, INS_END_PTR
-    MOV         DL, 01h
+    MOV         DL, 1
     CALL        SPUT_HEX
     MOV         INS_END_PTR, BX
 ENDM
@@ -357,7 +368,8 @@ NOT_JECXZ:
 PRINT_OFFSET:
     LEA         BX, IP_BUFFER                       ; load offset of the ip_buffer (which is the beginning of the lines)
     MOV         AX, IP_VALUE
-    MOV         DL, 01h
+    MOV         DL, 1
+    CLC 
     CALL        SPUT_HEX
 
 CHECK_PREFIX_TYPE: 
@@ -407,8 +419,13 @@ PRINT_TO_FILE:
     MOV         AH, 40h
     MOV         BX, RES_FILE_HANDLE
     INT         21h
-       
-    LEA         DI, INS_BUFFER
+
+    LEA         DI, MC_BUFFER
+    MOV         MC_END_PTR, DI
+    MOV         CX, MC_BUFFER_CAPACITY
+    MOV         AL, " "
+    REP STOSB
+    ; LEA         DI, INS_BUFFER
     MOV         INS_END_PTR, DI
     MOV         CX, INS_BUFFER_CAPACITY
     MOV         AL, "$"
@@ -446,10 +463,12 @@ INS_STR PROC ; SI = pointer to ASCII$ string
 INS_STR ENDP     
 
 SPUT_HEX PROC ; IN (AX - hex_num; BX - str_ptr; DL=1 if word), OUT BX - end_str_ptr
+    INT 3
+    PUSHF       
     MOV         CX, 10h
     MOV         SI, 2
-    CMP         DL, 1
-    JNE         SHORT @@PREP_DIVIDE
+    OR          DL, DL
+    JZ          SHORT @@PREP_DIVIDE
     SHL         SI, 1   ; if word to write
 @@PREP_DIVIDE:
     PUSH        SI
@@ -476,8 +495,10 @@ SPUT_HEX PROC ; IN (AX - hex_num; BX - str_ptr; DL=1 if word), OUT BX - end_str_
     OR          SI, SI
     JNE         @@ADD_LEADING_ZEROS
 @@CHECK_SHIFT:
-    POP         SI
-    MOV         CX, SI ; Number of characters written.
+    POP         CX
+    POPF
+    JNC         @@RETURN
+    MOV         SI, CX ; Number of characters written.
     CMP         BYTE PTR [BX], "A"
     JB          SHORT @@RETURN
 @@SHIFT_HEX:
@@ -544,6 +565,15 @@ READ_UPCOMING_BYTE PROC
     MOV         DL, [BX] ; dl is the byte
     INC         DATA_INDEX
     INC         IP_VALUE
+    PUSH        DX
+    MOVZX       AX, DL
+    MOV         BX, MC_END_PTR
+    XOR         DL, DL
+    CLC
+    CALL        SPUT_HEX
+    INC         BX
+    MOV         MC_END_PTR, BX
+    POP         DX
 @@RETURN:
     POP         AX BX
     RET
@@ -553,10 +583,8 @@ PUT_OPERAND PROC ; DL = Operand
     XOR         BX, BX
     CMP         AL, OP_NONE
     JE          @@RETURN
-    CMP         AL, OP_IMM8
-    JE          @@PRINT_IMM8
     CMP         AL, OP_REL16
-    JBE         @@PRINT_REL
+    JBE         @@PRINT_IMM8
     CMP         AL, OP_REG16
     JE          @@PRINT_REG
     CMP         MODE, 110b
@@ -666,9 +694,11 @@ PUT_OPERAND PROC ; DL = Operand
     JE          SHORT @@DISP16
     PUSH        DX
     MOV         DX, DISP32
+    STC 
     INS_WORD    DX
     POP         DX
 @@DISP16:
+    CLC
     INS_WORD    DX
     INS_CHAR    "h"
     JMP         SHORT @@EA_END
@@ -685,17 +715,18 @@ PUT_OPERAND PROC ; DL = Operand
     JMP         SHORT @@RETURN
 @@PRINT_IMM8:
     MOV         DX, IMM
+    CMP         AL, OP_REL8
+    JAE         @@PRINT_REL
     INS_BYTE    DL
     INS_CHAR    "h"
     JMP         SHORT @@RETURN
 @@PRINT_REL:
-    MOV         DX, IMM
-    CMP         AL, OP_REL16
-    JE          SHORT @@REL16
-    CBW
+    JA          SHORT @@REL16
+    MOVSX       DX, DL
 @@REL16:
     ADD         DX, IP_VALUE
     INC         DX
+    STC
     INS_WORD    DX
     INS_CHAR    "h"
     JMP         SHORT @@RETURN
@@ -815,4 +846,5 @@ DECODE_OPERAND PROC
 @@RETURN:
     RET
 DECODE_OPERAND ENDP
+
     END START
