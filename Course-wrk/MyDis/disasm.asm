@@ -23,8 +23,8 @@ SMART
 
     IP_VALUE                DW 0FFh
 
-    IP_BUFFER               DB "0000h:  "   ; Offset from the start of code segment as a string.
-    INS_BUFFER              DB INS_BUFFER_CAPACITY DUP ("$")  ; Instruction as a string.
+    IP_BUFFER               DB "0000h:  "
+    INS_BUFFER              DB INS_BUFFER_CAPACITY DUP ("$")
     INS_END_PTR             DW INS_BUFFER   
 
     DATA_SIZE               DW ?                            ; The size of currently read data buffer.
@@ -108,17 +108,7 @@ EXIT_WITH_ERR:                                      ; Print the error, which occ
     PRINT_MSG   [BX]                                ; print err message
     POP         DX                                  ; Restore file name offset
 
-PREP_FIND_FILE_NAME_END:
-    ; MOV         BX, DX                              ; BX = file name beggining offset 
-    
-FIND_FILE_NAME_END:
-    ; CMP         BYTE PTR [BX], 0                    ; is file name ends reached?
-    ; JE          PRINT_FILE_NAME                     ; if yes print file name
-    ; INC         BX                                  ; if no move up one letter
-    ; JMP         FIND_FILE_NAME_END                  ; loop for file name
-    
 PRINT_FILE_NAME:
-    ; MOV         BYTE PTR [BX], "$"                  ; make file name ASCII$
     MOV         BX, DX                              ; BX = beggining of file name
     PRINT_MSG   [BX]                                ; print file name 
     JMP         EXIT                                ; jump to exit
@@ -132,7 +122,7 @@ DECODE_NEW_INSTRUCTION:
 PROGRAM_SUCCESS:
     LEA         DX, RES_FILE_NAME                   ; load offset of res_file name
     PRINT_MSG   SUCCESS_MSG                         ; print success msg
-    JMP         PREP_FIND_FILE_NAME_END             ; jump to print file name
+    JMP         PRINT_FILE_NAME             ; jump to print file name
     
 LOAD_INSTRUCTION:
     MOV         AX, SIZE INSTRUCTION                ; load size of instruction struct  (5 bytes)

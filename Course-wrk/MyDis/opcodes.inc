@@ -47,15 +47,17 @@ LABEL SEG_REGS
 
 LABEL SIZE_OVR_PTRS
     PTRS                DW WORD_PTR, DWORD_PTR
-    
-SEG_VALS ENUM {
-VAL_ES = 2,
-VAL_CS = 4,
-VAL_SS = 6,
-VAL_DS = 8,
-VAL_FS = 10,
-VAL_GS = 12
-}
+
+REG_SHIFT               EQU 16
+EA_REG_SHIFT            EQU 32
+
+VAL_ES                  EQU 2
+VAL_CS                  EQU 4
+VAL_SS                  EQU 6
+VAL_DS                  EQU 8
+VAL_FS                  EQU 10
+VAL_GS                  EQU 12
+
 INS_OPERANDS ENUM {
     OP_NONE,
 

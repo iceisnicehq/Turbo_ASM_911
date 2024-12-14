@@ -6,8 +6,10 @@ GET_FILE MACRO NAME
 ENDM
 ;---------------+-------------------------------+----------------
 PRINT_MSG MACRO MSG
-    LEA         SI, MSG
+    PUSH        DX
+    LEA         DX, MSG
     CALL        PRINT
+    POP         DX
 ENDM
 ;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
 ; Closes a file.

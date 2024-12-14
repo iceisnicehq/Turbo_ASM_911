@@ -1,9 +1,8 @@
 PRINT PROC  ; dx = offset
-    PUSH        AX DX
+    PUSH        AX
     MOV         AH, 09h
-    MOV         DX, SI
     INT         21h
-    POP         DX AX
+    POP         AX
     RET
 PRINT ENDP
 
@@ -187,10 +186,9 @@ PUT_OPERAND PROC ; DL = Operand
     MOV         BL, RM
     CMP         SIZE_OVR, 0
     JE          SHORT @@PRINT_MODRM_REG
-    ADD         BL, 8
+    ADD         BL, REG_SHIFT
     
     @@PRINT_MODRM_REG:
-    ; SHL         BL, 1
     MOV         SI, REGISTERS[BX]
     CALL        INS_STR
     JMP         @@RETURN
@@ -258,14 +256,12 @@ PUT_OPERAND PROC ; DL = Operand
     CMP         ADDR_OVR, 2
     JNE         SHORT @@NO_SIB
     MOVZX       BX, BASE
-    ADD         BL, 16
-    ; SHL         BL, 1
+    ADD         BL, REG_SHIFT
     MOV         SI, REGISTERS[BX]
     CALL        INS_STR
     INS_CHAR    "+"
     MOVZX       BX, INDEX
-    ADD         BL, 16
-    ; SHL         BL, 1
+    ADD         BL, REG_SHIFT
     MOV         SI, REGISTERS[BX]
     CALL        INS_STR
     CMP         SCALE, 000b
@@ -281,9 +277,8 @@ PUT_OPERAND PROC ; DL = Operand
     MOV         BL, RM
     CMP         ADDR_OVR, 0
     JE          SHORT @@EA16
-    ADD         BL, 32
+    ADD         BL, EA_REG_SHIFT
 @@EA16:
-    ; SHL         BL, 1
     MOV         SI, EFFECTIVE_ADDRESSES[BX]
     CALL        INS_STR
     
@@ -342,9 +337,8 @@ PUT_OPERAND PROC ; DL = Operand
     MOV         BL, REG
     CMP         SIZE_OVR, 0
     JE          SHORT @@PRINT_REG_NAME
-    ADD         BL, 16    
+    ADD         BL, REG_SHIFT    
 @@PRINT_REG_NAME:
-    ; SHL         BL, 1
     MOV         SI, REGISTERS[BX]
     CALL        INS_STR
     
@@ -391,39 +385,31 @@ DECODE_MODRM_SIB ENDP
 ;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
 DECODE_OPERAND PROC 
     PUSH        AX BX DX
-
     MOV         AL, DL
-
     XOR         BX, BX
     CMP         AL, OP_REG16
     JAE         SHORT @@READ_MODRM
     CMP         AL, OP_IMM8
     JAE         SHORT @@READ_IMM
     JMP         @@RETURN      
-    
 @@READ_IMM:
     CALL        READ_UPCOMING_BYTE
     MOVSX       BX, DL
-    
 @@STORE_IMM:
     CMP         AL, OP_REL16
     JNE         SHORT @@SAVE_IMM
     CALL        READ_UPCOMING_BYTE
     MOV         BH, DL
-
 @@SAVE_IMM:
     MOV         IMM, BX
     JMP         @@RETURN
-    
 @@READ_MODRM:
     CMP         IS_MODRM_DECODED, 0
     JNE         SHORT @@MODRM_DECODED
     CALL        DECODE_MODRM_SIB
-    
 @@MODRM_DECODED:
     CMP         AL, OP_REG16
     JE          @@RETURN    ; Don't read displacement if operand is a register.
-    
     CMP         MODE, 110b
     JE          @@RETURN
     CMP         ADDR_OVR, 0
@@ -464,10 +450,8 @@ DECODE_OPERAND PROC
     MOV         BH, DL
     MOV         DISP32, BX
     POP         BX
-
 @@STORE_DISP:
     MOV         DISP, BX
-
 @@RETURN:
     POP         DX BX AX
     RET
@@ -478,23 +462,16 @@ DECODE_OPERAND ENDP
 ;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+    
 FPRINT_INSTRUCTION PROC 
     PUSH        AX BX CX DX
-    
     MOV         BX, INS_END_PTR
     MOV         WORD PTR [BX], 0A0Dh   ; Add CRLF at the end.
-
     INC         BX
     INC         BX
     MOV         CX, BX
     LEA         DX, IP_BUFFER
     SUB         CX, DX
-
     MOV         AH, 40h
     MOV         BX, RES_FILE_HANDLE
     INT         21h    
-    JNC         SHORT @@RETURN
-    PRINT_MSG   ERR_MSG
-    
-    @@RETURN:
     POP         DX CX BX AX
     RET
 FPRINT_INSTRUCTION ENDP
