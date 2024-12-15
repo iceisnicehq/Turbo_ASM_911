@@ -17,12 +17,13 @@ SMART
     MC_BUFFER_CAPACITY      EQU 45
     INS_BUFFER_CAPACITY     EQU 65
 
-    RES_FILE_NAME           DB "RESULT.ASM", 0
-    RES_FILE_LEN            EQU $ - RES_FILE_NAME  - 1
-    DATA_FILE_NAME          DB "TESTS.COM", 0
-    DATA_FILE_LEN           EQU $ - DATA_FILE_NAME - 1
-    ERR_MSG                 DB 'Error occurred. Make sure COM file is "TESTS.COM". Res_file will be "RESULT.ASM"$'
-    SUCCESS_MSG             DB "Result successfully written to file: $"
+    RES_FILE_NAME           EQU "RESULT.ASM"
+    RES_FILE                DB RES_FILE_NAME, 0
+    RES_FILE_LEN            EQU $ - RES_FILE  - 1
+    DATA_FILE               DB "TESTS.COM", 0
+    DATA_FILE_LEN           EQU $ - DATA_FILE - 1
+    ERR_MSG                 DB 'Error occurred. Make sure COM file is "TESTS.COM". Res_file will be "', RES_FILE_NAME, '"$'
+    SUCCESS_MSG             DB "Result successfully written to file: ", RES_FILE_NAME, "$"
     IP_VALUE                DW 0FFh
 
     IP_BUFFER               DB "0000h:  "
@@ -76,7 +77,7 @@ START:
 
 OPEN_DATA_FILE:
     MOV         AX, 3D00h          
-    LEA         DX, DATA_FILE_NAME
+    LEA         DX, DATA_FILE
     INT         21h
     JC          SHORT EXIT_WITH_ERR                 ; Print err msg if error occured (cf = 1)
     MOV         DATA_FILE_HANDLE, AX                ; Save .COM file handle
@@ -84,18 +85,15 @@ OPEN_DATA_FILE:
 OPEN_RESULT_FILE:
     MOV         AH, 3Ch                             ; Create result file  (.ASM)
     XOR         CX, CX                              ; CX = 0 for normal file
-    LEA         DX, RES_FILE_NAME                   ; DX = Res file offset
+    LEA         DX, RES_FILE                   ; DX = Res file offset
     INT         21h                                 ; Call DOS
-    MOV         BYTE PTR [RES_FILE_NAME + RES_FILE_LEN], "$"
+    MOV         BYTE PTR [RES_FILE + RES_FILE_LEN], "$"
     JC          SHORT EXIT_WITH_ERR                 ; cf = 1 means error
     MOV         RES_FILE_HANDLE, AX                 ; Save result file handle
     JMP         SHORT DECODE_NEW_INSTRUCTION        ; JUMP to decoding
 
 EXIT_WITH_ERR:                                      ; Print the error, which occurred while opening file.
-    LEA         DX, ERR_MSG                         ; load bx with offset of err msg
-PRINT_FILE_NAME:
-    MOV         BX, DX                              ; BX = beggining of file name
-    PRINT_MSG   [BX]                                ; print file name 
+    PRINT_MSG   ERR_MSG                             ; print file name 
     JMP         EXIT                                ; jump to exit
 
 DECODE_NEW_INSTRUCTION:    
@@ -103,9 +101,8 @@ DECODE_NEW_INSTRUCTION:
     OR          DH, DH                              ; normal byte
     JE          SHORT LOAD_INSTRUCTION                    ; load instruction
 PROGRAM_SUCCESS:
-    LEA         DX, RES_FILE_NAME                   ; load offset of res_file name
     PRINT_MSG   SUCCESS_MSG                         ; print success msg
-    JMP         PRINT_FILE_NAME             ; jump to print file name
+    JMP         EXIT                                ; jump to print file name
     
 LOAD_INSTRUCTION:
     MOV         AX, SIZE INSTRUCTION                ; load size of instruction struct  (5 bytes)
