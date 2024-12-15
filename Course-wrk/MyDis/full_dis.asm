@@ -12,15 +12,18 @@ SMART
         OP2                 DB ?
     ENDS
 
-    MAX_FILE_NAME           EQU 128
     DATA_BUFFER_CAPACITY    EQU 255
     IP_BUFFER_CAPACITY      EQU 4
     MC_BUFFER_CAPACITY      EQU 45
     INS_BUFFER_CAPACITY     EQU 65
 
-    HELP_MSG                DB "To disassemble run: DISASM.EXE [COM_file].COM [RESULT_file].ASM",0Dh, 0Ah, "$"
-    ERR_MSG                 DB "Error occurred $"
-    SUCCESS_MSG             DB 0Dh, 0Ah, "Result successfully written to file: $"
+    RES_FILE_NAME           EQU "RESULT.ASM"
+    RES_FILE                DB RES_FILE_NAME, 0
+    RES_FILE_LEN            EQU $ - RES_FILE  - 1
+    DATA_FILE               DB "TESTS.COM", 0
+    DATA_FILE_LEN           EQU $ - DATA_FILE - 1
+    ERR_MSG                 DB 'Error occurred. Make sure COM file is "TESTS.COM". Res_file will be "', RES_FILE_NAME, '"$'
+    SUCCESS_MSG             DB "Result successfully written to file: ", RES_FILE_NAME, "$"
     IP_VALUE                DW 0FFh
 
     IP_BUFFER               DB "0000h:  "
@@ -28,41 +31,8 @@ SMART
     INS_BUFFER              DB INS_BUFFER_CAPACITY DUP ("$")
     INS_END_PTR             DW INS_BUFFER   
     MC_END_PTR              DW MC_BUFFER
-    DATA_SIZE               DW ?                            ; The size of currently read data buffer.
-    DATA_INDEX              DW ?                            ; Position of the data buffer that we are currently at.
-    DATA_BUFFER             DB DATA_BUFFER_CAPACITY DUP (?) ; Bytes, which were read from file.
-
-    DATA_FILE_NAME          DB MAX_FILE_NAME DUP(?)
-    RES_FILE_NAME           DB MAX_FILE_NAME DUP(?)
-    DATA_FILE_HANDLE        DW ?
-    RES_FILE_HANDLE         DW ?
-
-    IMM                     DW ?
-    DISP32                  DW ?
-    DISP                    DW ?
-    LABEL CURRENT_INSTRUCTION
-        INSTRUCTION { }
-    LABEL PREF_BYTES
-    LABEL ADDR_SIZE WORD 
-        ADDR_OVR            DB ?
-        SIZE_OVR            DB ?
-    LABEL EXT_SEG  WORD 
-        INS_EXT             DB ?
-        SEG_OVR             DB ?
-    LABEL PREF_MODRM WORD 
-        HAS_PREFIX          DB ?
-        IS_MODRM_DECODED    DB ?
-    LABEL SIB_BYTE
-        SCALE               DB ?
-        INDEX               DB ?
-        BASE                DB ?
-    LABEL MODRM_BYTE
-        MODE                DB ?
-        REG                 DB ?
-        RM                  DB ?
-
-
-WORD_PTR                DB "word ptr $"
+    
+    WORD_PTR                DB "word ptr $"
 DWORD_PTR               DB "dword ptr $"
 
 REG_AX                  DB "AX$"
@@ -238,6 +208,39 @@ LABEL INSTRUCTION_LIST
     INSTRUCTION             <   INS_LOCK,       INS_TYPE_PREFIX,    OP_NONE,       OP_NONE         > ; F0h
     INSTRUCTION_UNKNOWN     0Fh
 
+    DATA_SIZE               DW ?                            ; The size of currently read data buffer.
+    DATA_INDEX              DW ?                            ; Position of the data buffer that we are currently at.
+    DATA_BUFFER             DB DATA_BUFFER_CAPACITY DUP (?) ; Bytes, which were read from file.
+
+    DATA_FILE_HANDLE        DW ?
+    RES_FILE_HANDLE         DW ?
+
+    IMM                     DW ?
+    DISP32                  DW ?
+    DISP                    DW ?
+    LABEL CURRENT_INSTRUCTION
+        INSTRUCTION { }
+    LABEL PREF_BYTES
+    LABEL ADDR_SIZE WORD 
+        ADDR_OVR            DB ?
+        SIZE_OVR            DB ?
+    LABEL EXT_SEG  WORD 
+        INS_EXT             DB ?
+        SEG_OVR             DB ?
+    LABEL PREF_MODRM WORD 
+        HAS_PREFIX          DB ?
+        IS_MODRM_DECODED    DB ?
+    LABEL SIB_BYTE
+        SCALE               DB ?
+        INDEX               DB ?
+        BASE                DB ?
+    LABEL MODRM_BYTE
+        MODE                DB ?
+        REG                 DB ?
+        RM                  DB ?
+
+
+
 .CODE
 PRINT_MSG MACRO MSG
     PUSH        DX
@@ -289,17 +292,11 @@ ENDM
 START:
     MOV         AX, @DATA
     MOV         DS, AX
-    MOV         SI, 82h   
-    LEA         BX, DATA_FILE_NAME
-    CALL        GET_CMD_ARG
-    LEA         BX, RES_FILE_NAME
-    CALL        GET_CMD_ARG                      
-    PUSH        DS
-    POP         ES
+    MOV         ES, AX
 
 OPEN_DATA_FILE:
     MOV         AX, 3D00h          
-    LEA         DX, DATA_FILE_NAME
+    LEA         DX, DATA_FILE
     INT         21h
     JC          SHORT EXIT_WITH_ERR                 ; Print err msg if error occured (cf = 1)
     MOV         DATA_FILE_HANDLE, AX                ; Save .COM file handle
@@ -307,27 +304,15 @@ OPEN_DATA_FILE:
 OPEN_RESULT_FILE:
     MOV         AH, 3Ch                             ; Create result file  (.ASM)
     XOR         CX, CX                              ; CX = 0 for normal file
-    LEA         DX, RES_FILE_NAME                   ; DX = Res file offset
+    LEA         DX, RES_FILE                   ; DX = Res file offset
     INT         21h                                 ; Call DOS
+    MOV         BYTE PTR [RES_FILE + RES_FILE_LEN], "$"
     JC          SHORT EXIT_WITH_ERR                 ; cf = 1 means error
     MOV         RES_FILE_HANDLE, AX                 ; Save result file handle
     JMP         SHORT DECODE_NEW_INSTRUCTION        ; JUMP to decoding
 
-PRINT_HELP:
-    PRINT_MSG   HELP_MSG                           ; print help msg
-    JMP         EXIT                               ; jmp to exit
-
 EXIT_WITH_ERR:                                      ; Print the error, which occurred while opening file.
-    PUSH        DX                                  ; Save file name offset 
-    LEA         BX, HELP_MSG
-    PRINT_MSG   [BX]
-    LEA         BX, ERR_MSG                 ; load bx with offset of err msg
-    PRINT_MSG   [BX]                                ; print err message
-    POP         DX                                  ; Restore file name offset
-
-PRINT_FILE_NAME:
-    MOV         BX, DX                              ; BX = beggining of file name
-    PRINT_MSG   [BX]                                ; print file name 
+    PRINT_MSG   ERR_MSG                             ; print file name 
     JMP         EXIT                                ; jump to exit
 
 DECODE_NEW_INSTRUCTION:    
@@ -335,9 +320,8 @@ DECODE_NEW_INSTRUCTION:
     OR          DH, DH                              ; normal byte
     JE          SHORT LOAD_INSTRUCTION                    ; load instruction
 PROGRAM_SUCCESS:
-    LEA         DX, RES_FILE_NAME                   ; load offset of res_file name
     PRINT_MSG   SUCCESS_MSG                         ; print success msg
-    JMP         PRINT_FILE_NAME             ; jump to print file name
+    JMP         EXIT                                ; jump to print file name
     
 LOAD_INSTRUCTION:
     MOV         AX, SIZE INSTRUCTION                ; load size of instruction struct  (5 bytes)
@@ -436,6 +420,7 @@ EXIT:
     INT         21h 
     MOV         AX, 4C00h
     INT         21h
+
 PRINT PROC  ; dx = offset
     MOV         AH, 09h
     INT         21h
@@ -504,32 +489,6 @@ SPUT_HEX PROC ; IN (AX - hex_num; BX - str_ptr; DL=1 if word), OUT BX - end_str_
     ADD         BX, CX
     RET
 SPUT_HEX ENDP
-
-GET_CMD_ARG PROC 
-    XOR         DI, DI
-@@READ_SPACES: ; Read leading spaces.
-    MOV         AL, ES:[SI]
-    CMP         AL, 0Dh ; Return if new line (no input found).
-    JE          SHORT @@RETURN
-    CMP         AL, " "
-    JNE         SHORT @@READ_ARG
-    INC         SI
-    JMP         @@READ_SPACES
-@@READ_ARG:
-    MOV         AL, ES:[SI]
-    CMP         AL, " "
-    JE          SHORT @@PUT_DOLLAR
-    CMP         AL, 0Dh ; Return if new line.
-    JE          SHORT @@PUT_DOLLAR 
-    MOV         [BX + DI], AL
-    INC         SI
-    INC         DI
-    JMP         @@READ_ARG
-@@PUT_DOLLAR:
-    MOV         BYTE PTR [BX + DI], "$"   
-@@RETURN:
-    RET
-GET_CMD_ARG ENDP
 
 ;---------------------------------------------DISASSEMBLER-PROCS------------------------------------------------------------------------------  
 READ_UPCOMING_BYTE PROC 
