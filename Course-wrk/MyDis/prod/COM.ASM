@@ -3,11 +3,11 @@
     .CODE 
         ORG 100H        
     START:
-        BTC [4*ebx], eax
-        BTC [4*EBX], ax
-        btc [4*ebp], ax
-        BTC [4*ebp+01h], ebp
-        BTC [4*ebp+100h], ebp
+        BTC [ebx*4], eax
+        BTC [EBX*4], ax
+        btc [ebp*4], ax
+        BTC [ebp*4+01h], ebp
+        BTC [ebp*4+100h], ebp
         btc [eax+ebp], 0FFh
         btc [eax+ebp*8], 0FFh
         btc [ebp+eax], 0FFh
@@ -1082,7 +1082,7 @@ JCC_REL8F:
         LOCK BTC     dword ptr SS:[EBX+EAX*8+12345678h],9Ah
         lock btc	[eax + eax + 4321h], ax
         lock btc	[2*eax + eax + 4321h], ax
-        lock btc	[4*eax + eax + 4321h], ax
+        lock btc	[eax*4 + eax + 4321h], ax
         lock btc	[8*eax + eax + 4321h], ax
         lock btc	[esi + 4321h], ax
         lock btc	[edi + 4321h], ax
