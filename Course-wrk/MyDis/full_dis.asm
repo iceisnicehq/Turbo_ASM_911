@@ -72,7 +72,7 @@ LOCALS @@
                             DW EA_BX_SI, EA_BX_DI, EA_BP_SI, EA_BP_DI, EA_SI, EA_DI, EA_BP, EA_BX
         
     LABEL REGISTERS
-                            DW REG_AX, REG_CX, REG_DX, REG_BX, REG_SP, REG_BP, REG_SI, REG_DI
+                            DW REG_AX,  REG_CX,  REG_DX,  REG_BX,  REG_SP,  REG_BP,  REG_SI,  REG_DI
                             DW REG_EAX, REG_ECX, REG_EDX, REG_EBX, REG_ESP, REG_EBP, REG_ESI, REG_EDI
 
     LABEL SEG_REGS
@@ -239,8 +239,6 @@ LOCALS @@
                 MODE                DB ?
                 REG                 DB ?
                 RM                  DB ?
-
-
 
 .CODE
 
