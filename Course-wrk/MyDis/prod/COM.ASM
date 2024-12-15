@@ -3,20 +3,40 @@
     .CODE 
         ORG 100H        
     START:
-        LOCK BTC     dword ptr ES:[EAX+EBP*8+87654321h], 0FFh
-        LOCK BTC     dword ptr ES:[EAX+EBP*8+87654321h], 0FFh
-        BTC     word ptr DS:[1234h], ax
-        btc     word ptr CS:[12345678h], ax
-        btc     dword ptr ES:[123h], 01h
-        btc     dword ptr SS:[12345678h], 10h
-        LOCK BTC     dword ptr ES:[EAX+EBP*8+87654321h],0FFh
+        BTC [4*ebx], eax
+        BTC [4*EBX], ax
+        btc [4*ebp], ax
+        BTC [4*ebp+01h], ebp
+        BTC [4*ebp+100h], ebp
+        btc [eax+ebp], 0FFh
+        btc [eax+ebp*8], 0FFh
+        btc [ebp+eax], 0FFh
+        btc [ebp+eax*8], 0FFh
+        btc [esp+eax], 0FFh
+        btc [esp+eax*8], 0FFh
+        btc [esp+ebp], 0FFh
+        btc [esp+ebp*8], 0FFh
+        btc [ebp], 0ffh
+        btc [esp], 0ffh
+        BTC     [BX+SI],AX
+        BTC     [BX+DI],AX
+        BTC     [BP+SI],AX
+        BTC     [BP+DI],AX
+        BTC     [BP],AX
+        BTC     [SI],AX
+        BTC     [DI],AX
+        LOCK BTC     dword ptr [EAX+EBX*8+0A7654321h], 0FFh
+        LOCK BTC     word ptr [EAX+EBP*8+87654321h],0FFh
+        LOCK BTC     CS:[EAX+EBX*8+0B7654321h], EAX
+        LOCK BTC     DS:[EAX+EBP*8+87654321h], AX
+        BTC     word ptr ES:[1234h], ax
+        btc     word ptr SS:[12345678h], ax
+        btc     dword ptr FS:[123h], 01h
+        btc     dword ptr GS:[12345678h], 10h
         BTC     DS:[1234h],AX
         BTC     DS:[12345678h],AX
-        LOCK BTC     dword ptr ES:[EAX+EBP*8+87654321h],0FFh
-        LOCK BTC     dword ptr ES:[EAX+EBP*8+87654321h],0FFh
         BTC     dword ptr ES:[0123h],01h
         BTC     dword ptr SS:[12345678h],10h
-        LOCK BTC     dword ptr ES:[EAX+EBP*8+87654321h],0FFh
         BTC     ES:[1234h],AX
         BTC     CS:[12345678h],AX
         BTC     dword ptr ES:[0123h],01h
@@ -44,13 +64,6 @@
         BTC     [ECX+EDX*4+00000100h],AX
         BTC     [EAX+EAX*8+0A0B0C0D0h],AX
         BTC     [EBP+EBP+10203040h],AX
-        LOCK BTC     [BX+SI],AX
-        LOCK BTC     [BX+DI],AX
-        LOCK BTC     [BP+SI],AX
-        LOCK BTC     [BP+DI],AX
-        LOCK BTC     [BP],AX
-        LOCK BTC     [SI],AX
-        LOCK BTC     [DI],AX
         LOCK BTC     [BX+SI+1234h],AX
         LOCK BTC     [BX+DI+1234h],AX
         LOCK BTC     [BP+SI+1234h],AX

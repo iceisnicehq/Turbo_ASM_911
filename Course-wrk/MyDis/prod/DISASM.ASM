@@ -25,7 +25,7 @@ LOCALS @@
     SUCCESS_MSG             DB "Result successfully written to file: ", RES_FILE_NAME, "$"
     IP_VALUE                DW 0FFh
 
-    IP_BUFFER               DB "0000h:  "
+    IP_BUFFER               DB "0000H:  "
     MC_BUFFER               DB MC_BUFFER_CAPACITY DUP (" ")
     INS_BUFFER              DB INS_BUFFER_CAPACITY DUP ("$")
     INS_END_PTR             DW INS_BUFFER   
@@ -545,9 +545,11 @@ PUT_OPERAND PROC ; DL = Operand
     CMP         BASE, 1000b
     JE          SHORT @@PRINT_SS
     CMP         BASE, 1010b
-    JE          SHORT @@PRINT_SS
-    CMP         SCALE, 101b
-    JE          SHORT @@PRINT_SS    
+    JNE         SHORT @@PRINT_SEG
+    CMP         MODE, 000b
+    JNE         SHORT @@PRINT_SS
+    CMP         INDEX, 1010b
+    JE          SHORT @@PRINT_SS  
     JMP         SHORT @@PRINT_SEG
 @@MODRM16:
     CMP         BH, 0100b
@@ -574,26 +576,37 @@ PUT_OPERAND PROC ; DL = Operand
     JMP         SHORT @@EA_NORMAL
 @@MODRM32:
     CMP         RM, 1010b
-    JE          @@PRINT_DISP
+    JE          @@PRINT_DISP       
 @@EA_NORMAL:
     CMP         ADDR_OVR, 2
     JNE         SHORT @@NO_SIB
+    CMP         BASE, 1010b
+    JNE         @@NO_EBP_BASE
+    CMP         MODE, 000b
+    JE          @@NO_BASE
+@@NO_EBP_BASE:
     MOVZX       BX, BASE
     ADD         BL, REG_SHIFT
     MOV         SI, REGISTERS[BX]
     CALL        INS_STR
     INS_CHAR    "+"
+@@NO_BASE:
     MOVZX       BX, INDEX
     ADD         BL, REG_SHIFT
     MOV         SI, REGISTERS[BX]
     CALL        INS_STR
     CMP         SCALE, 000b
-    JE          SHORT @@CHECK_MODE
+    JE          @@CHECK_MODE
     INS_CHAR    "*"
     MOV         DL, "0"
     ADD         DL, SCALE
     INS_CHAR    DL
-    JMP         SHORT @@CHECK_MODE
+    CMP         BASE, 1010b
+    JNE         @@CHECK_MODE
+    CMP         MODE, 000b
+    OR          DWORD PTR [DISP32], 0
+    JNZ         SHORT @@SIB_DISP
+    JMP         @@EA_END
 @@NO_SIB:
     XOR         BH, BH
     MOV         BL, RM
@@ -606,6 +619,7 @@ PUT_OPERAND PROC ; DL = Operand
 @@CHECK_MODE:
     CMP         MODE, 000b
     JE          SHORT @@EA_END
+@@SIB_DISP:
     INS_CHAR    "+"
 @@PRINT_DISP:
     MOV         AX, DISP
@@ -621,7 +635,7 @@ PUT_OPERAND PROC ; DL = Operand
 @@DISP16:
     CLC
     INS_WORD
-    INS_CHAR    "h"
+    INS_CHAR    "H"
     JMP         SHORT @@EA_END
 @@PRINT_BYTE_DISP:
     OR          AL, AL
@@ -630,7 +644,7 @@ PUT_OPERAND PROC ; DL = Operand
     JMP         SHORT @@EA_END
 @@NON_ZERO_BYTE_DISP:
     INS_BYTE
-    INS_CHAR    "h"
+    INS_CHAR    "H"
 @@EA_END:
     INS_CHAR    "]"
     JMP         SHORT @@RETURN
@@ -639,7 +653,7 @@ PUT_OPERAND PROC ; DL = Operand
     MOV         AX, IMM
     JAE         SHORT @@PRINT_REL
     INS_BYTE
-    INS_CHAR    "h"
+    INS_CHAR    "H"
     JMP         SHORT @@RETURN
 @@PRINT_REL:
     JA          SHORT @@REL16
@@ -649,7 +663,7 @@ PUT_OPERAND PROC ; DL = Operand
     INC         AX
     STC
     INS_WORD
-    INS_CHAR    "h"
+    INS_CHAR    "H"
     JMP         SHORT @@RETURN
 @@PRINT_REG:
     MOV         BL, REG
@@ -713,7 +727,7 @@ DECODE_OPERAND PROC
     CALL        DECODE_MODRM_SIB ; MODRM
 @@MODRM_DECODED:
     CMP         AL, OP_REG16
-    JE          SHORT @@RETURN
+    JE          @@RETURN
     CMP         MODE, 110b
     JE          SHORT @@RETURN
     CMP         ADDR_OVR, 0
@@ -732,6 +746,12 @@ DECODE_OPERAND PROC
     JE          SHORT @@DISP16
     CMP         RM, 1010b
     JE          SHORT @@READ_DISP
+    
+CMP ADDR_OVR, 2
+JNE SHORT @@DISP16
+CMP BASE, 1010b
+JE  SHORT @@READ_DISP
+    
     JMP         SHORT @@RETURN
 @@DISP16:
     CMP         RM, 1100b
