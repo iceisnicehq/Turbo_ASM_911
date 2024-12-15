@@ -21,7 +21,7 @@ SMART
     RES_FILE_LEN            EQU $ - RES_FILE_NAME  - 1
     DATA_FILE_NAME          DB "TESTS.COM", 0
     DATA_FILE_LEN           EQU $ - DATA_FILE_NAME - 1
-    ERR_MSG                 DB 'Error occurred. COM file has to be "TESTS.COM", res_file is "RESULT.ASM"$'
+    ERR_MSG                 DB 'Error occurred. Make sure COM file is "TESTS.COM". Res_file will be "RESULT.ASM"$'
     SUCCESS_MSG             DB "Result successfully written to file: $"
     IP_VALUE                DW 0FFh
 
@@ -78,8 +78,6 @@ OPEN_DATA_FILE:
     MOV         AX, 3D00h          
     LEA         DX, DATA_FILE_NAME
     INT         21h
-    MOV         BX, DX
-    MOV         BYTE PTR [BX + DATA_FILE_LEN], "$"
     JC          SHORT EXIT_WITH_ERR                 ; Print err msg if error occured (cf = 1)
     MOV         DATA_FILE_HANDLE, AX                ; Save .COM file handle
 
@@ -88,8 +86,7 @@ OPEN_RESULT_FILE:
     XOR         CX, CX                              ; CX = 0 for normal file
     LEA         DX, RES_FILE_NAME                   ; DX = Res file offset
     INT         21h                                 ; Call DOS
-    MOV         BX, DX
-    MOV         BYTE PTR [BX + RES_FILE_LEN], "$"
+    MOV         BYTE PTR [RES_FILE_NAME + RES_FILE_LEN], "$"
     JC          SHORT EXIT_WITH_ERR                 ; cf = 1 means error
     MOV         RES_FILE_HANDLE, AX                 ; Save result file handle
     JMP         SHORT DECODE_NEW_INSTRUCTION        ; JUMP to decoding
