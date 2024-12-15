@@ -1,8 +1,3 @@
-PRINT PROC  ; dx = offset
-    MOV         AH, 09h
-    INT         21h
-    RET
-PRINT ENDP
 
 INS_STR PROC ; SI = pointer to ASCII$ string
     MOV         DI, INS_END_PTR
@@ -22,7 +17,7 @@ SPUT_HEX PROC ; IN (AX - hex_num; BX - str_ptr; DL=1 if word), OUT BX - end_str_
     MOV         SI, 2
     OR          DL, DL
     JZ          SHORT @@PREP_DIVIDE
-    SHL         SI, 1   ; if word to write
+    SHL         SI, 1
 @@PREP_DIVIDE:
     PUSH        SI
 @@DIVIDE:
@@ -32,7 +27,7 @@ SPUT_HEX PROC ; IN (AX - hex_num; BX - str_ptr; DL=1 if word), OUT BX - end_str_
     CMP         DL, 9
     JBE         SHORT @@HEX_DIGIT
 @@HEX_LETTER:
-    ADD         DL, 37h ; 37h = "A"(41h) - 0Ah 
+    ADD         DL, 37h
     JMP         SHORT @@ADD_TO_BUFFER
 @@HEX_DIGIT:
     ADD         DL, 30h
@@ -50,8 +45,8 @@ SPUT_HEX PROC ; IN (AX - hex_num; BX - str_ptr; DL=1 if word), OUT BX - end_str_
 @@CHECK_SHIFT:
     POP         CX
     POPF
-    JNC         @@RETURN
-    MOV         SI, CX ; Number of characters written.
+    JNC         SHORT @@RETURN
+    MOV         SI, CX
     CMP         BYTE PTR [BX], "A"
     JB          SHORT @@RETURN
 @@SHIFT_HEX:
@@ -67,29 +62,28 @@ SPUT_HEX PROC ; IN (AX - hex_num; BX - str_ptr; DL=1 if word), OUT BX - end_str_
     RET
 SPUT_HEX ENDP
 
-;---------------------------------------------DISASSEMBLER-PROCS------------------------------------------------------------------------------  
-READ_UPCOMING_BYTE PROC 
-    PUSH        BX AX; save bx
-    MOV         BX, DATA_SIZE ; bx = data_size (bytes which were read)
-    CMP         BX, DATA_INDEX ; bx = index to which data was read to
-    JA          SHORT @@CHECK_FILE_END ;end if end of file met
-    MOV         AH, 3Fh ; Read more bytes into buffer.
-    MOV         BX, DATA_FILE_HANDLE 
-    MOV         CX, DATA_BUFFER_CAPACITY ;0ffh
-    LEA         DX, DATA_BUFFER ;memory address
+READ_UPCOMING_BYTE PROC
+    PUSH        BX AX
+    MOV         AX, DATA_SIZE
+    CMP         AX, DATA_INDEX
+    JA          SHORT @@CHECK_FILE_END
+    MOV         AH, 3Fh
+    MOV         BX, COM_FILE_HANDLE 
+    MOV         CX, DATA_BUFFER_CAPACITY
+    MOV         DX, OFFSET DATA_BUFFER
     INT         21h
     MOV         DATA_SIZE, AX 
     MOV         DATA_INDEX, 0
-@@CHECK_FILE_END:   ; Check if we have reached the file end.
-    CMP         DATA_SIZE, 0
-    JNE         @@GET_BYTE
+@@CHECK_FILE_END:
+    OR          AX, AX
+    JNE         SHORT @@GET_BYTE
     MOV         DH, 1
     JMP         SHORT @@RETURN
-@@GET_BYTE: ; Get byte from buffer.
+@@GET_BYTE:
     XOR         DH, DH
-    LEA         BX, DATA_BUFFER
+    MOV         BX, OFFSET DATA_BUFFER
     ADD         BX, DATA_INDEX
-    MOV         DL, [BX] ; dl is the byte
+    MOV         DL, [BX]
     INC         DATA_INDEX
     INC         IP_VALUE
     PUSH        DX
@@ -151,6 +145,10 @@ PUT_OPERAND PROC ; DL = Operand
     CMP         BASE, 1000b
     JE          SHORT @@PRINT_SS
     CMP         BASE, 1010b
+    JNE         SHORT @@PRINT_SEG
+    CMP         MODE, 000b
+    JNE         SHORT @@PRINT_SS
+    CMP         INDEX, 1010b
     JE          SHORT @@PRINT_SS  
     JMP         SHORT @@PRINT_SEG
 @@MODRM16:
@@ -159,7 +157,7 @@ PUT_OPERAND PROC ; DL = Operand
     CMP         BH, 0110b
     JE          SHORT @@PRINT_SS
     CMP         MODE, 000b
-    JE          @@PRINT_SEG
+    JE          SHORT @@PRINT_SEG
     CMP         BH, 1100b
     JNE         SHORT @@PRINT_SEG
 @@PRINT_SS:
@@ -178,26 +176,37 @@ PUT_OPERAND PROC ; DL = Operand
     JMP         SHORT @@EA_NORMAL
 @@MODRM32:
     CMP         RM, 1010b
-    JE          @@PRINT_DISP
+    JE          @@PRINT_DISP       
 @@EA_NORMAL:
     CMP         ADDR_OVR, 2
     JNE         SHORT @@NO_SIB
+    CMP         BASE, 1010b
+    JNE         @@NO_EBP_BASE
+    CMP         MODE, 000b
+    JE          @@NO_BASE
+@@NO_EBP_BASE:
     MOVZX       BX, BASE
     ADD         BL, REG_SHIFT
     MOV         SI, REGISTERS[BX]
     CALL        INS_STR
     INS_CHAR    "+"
+@@NO_BASE:
     MOVZX       BX, INDEX
     ADD         BL, REG_SHIFT
     MOV         SI, REGISTERS[BX]
     CALL        INS_STR
     CMP         SCALE, 000b
-    JE          SHORT @@CHECK_MODE
+    JE          @@CHECK_MODE
     INS_CHAR    "*"
     MOV         DL, "0"
     ADD         DL, SCALE
     INS_CHAR    DL
-    JMP         SHORT @@CHECK_MODE
+    CMP         BASE, 1010b
+    JNE         @@CHECK_MODE
+    CMP         MODE, 000b
+    OR          DWORD PTR [DISP32], 0
+    JNZ         SHORT @@SIB_DISP
+    JMP         @@EA_END
 @@NO_SIB:
     XOR         BH, BH
     MOV         BL, RM
@@ -209,7 +218,8 @@ PUT_OPERAND PROC ; DL = Operand
     CALL        INS_STR
 @@CHECK_MODE:
     CMP         MODE, 000b
-    JE          @@EA_END
+    JE          SHORT @@EA_END
+@@SIB_DISP:
     INS_CHAR    "+"
 @@PRINT_DISP:
     MOV         AX, DISP
@@ -225,7 +235,7 @@ PUT_OPERAND PROC ; DL = Operand
 @@DISP16:
     CLC
     INS_WORD
-    INS_CHAR    "h"
+    INS_CHAR    "H"
     JMP         SHORT @@EA_END
 @@PRINT_BYTE_DISP:
     OR          AL, AL
@@ -234,16 +244,16 @@ PUT_OPERAND PROC ; DL = Operand
     JMP         SHORT @@EA_END
 @@NON_ZERO_BYTE_DISP:
     INS_BYTE
-    INS_CHAR    "h"
+    INS_CHAR    "H"
 @@EA_END:
     INS_CHAR    "]"
     JMP         SHORT @@RETURN
 @@PRINT_IMM8:
     CMP         AL, OP_REL8
     MOV         AX, IMM
-    JAE         @@PRINT_REL
+    JAE         SHORT @@PRINT_REL
     INS_BYTE
-    INS_CHAR    "h"
+    INS_CHAR    "H"
     JMP         SHORT @@RETURN
 @@PRINT_REL:
     JA          SHORT @@REL16
@@ -253,7 +263,7 @@ PUT_OPERAND PROC ; DL = Operand
     INC         AX
     STC
     INS_WORD
-    INS_CHAR    "h"
+    INS_CHAR    "H"
     JMP         SHORT @@RETURN
 @@PRINT_REG:
     MOV         BL, REG
@@ -266,10 +276,7 @@ PUT_OPERAND PROC ; DL = Operand
 @@RETURN:
     RET
 PUT_OPERAND ENDP
-
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-; Decodes upcoming byte from the data stream by MOD, REG and R/M fields.
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+    
+ 
 DECODE_MODRM_SIB PROC 
     PUSH        AX DX 
     CALL        READ_UPCOMING_BYTE
@@ -297,11 +304,6 @@ DECODE_MODRM_SIB PROC
     RET
 DECODE_MODRM_SIB ENDP
 
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-; Decodes instruction operand.
-; IN
-;   DL - Operands value.    
-;-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
 DECODE_OPERAND PROC 
     XOR         BX, BX
     CMP         AL, OP_REG16
@@ -322,29 +324,35 @@ DECODE_OPERAND PROC
 @@READ_MODRM:
     CMP         IS_MODRM_DECODED, 0
     JNE         SHORT @@MODRM_DECODED
-    CALL        DECODE_MODRM_SIB
+    CALL        DECODE_MODRM_SIB ; MODRM
 @@MODRM_DECODED:
     CMP         AL, OP_REG16
-    JE          @@RETURN    ; Don't read displacement if operand is a register.
-    CMP         MODE, 110b
     JE          @@RETURN
+    CMP         MODE, 110b
+    JE          SHORT @@RETURN
     CMP         ADDR_OVR, 0
     JE          SHORT @@MODRM16
     CMP         RM, 1000b     
-    JNE         SHORT @@MODRM16    ; NO SIB
+    JNE         SHORT @@MODRM16
     INC         ADDR_OVR
-    CALL        DECODE_MODRM_SIB   ; IS_SIB_DECODED = 1
+    CALL        DECODE_MODRM_SIB   ; SIB
     CMP         SCALE, 110b
     JNE         SHORT @@MODRM16
     MOV         SCALE, 1000b
 @@MODRM16:
-    CMP         MODE, 010b    ; [...] + disp8 or disp16
+    CMP         MODE, 010b
     JAE         SHORT @@READ_DISP
     CMP         ADDR_OVR, 0
-    JE          @@DISP16
-    CMP         RM, 1010b     ; disp32
+    JE          SHORT @@DISP16
+    CMP         RM, 1010b
     JE          SHORT @@READ_DISP
-    JMP         @@RETURN
+    
+CMP ADDR_OVR, 2
+JNE SHORT @@DISP16
+CMP BASE, 1010b
+JE  SHORT @@READ_DISP
+    
+    JMP         SHORT @@RETURN
 @@DISP16:
     CMP         RM, 1100b
     JE          SHORT @@READ_DISP
@@ -352,10 +360,10 @@ DECODE_OPERAND PROC
     
 @@READ_DISP:
     CALL        READ_UPCOMING_BYTE
-    MOV         BL, DL          ; disp 8
+    MOV         BL, DL
     CMP         MODE, 010b
     JE          SHORT @@STORE_DISP
-    CALL        READ_UPCOMING_BYTE      ;disp 16
+    CALL        READ_UPCOMING_BYTE
     MOV         BH, DL
     CMP         ADDR_OVR, 0
     JE          SHORT @@STORE_DISP
