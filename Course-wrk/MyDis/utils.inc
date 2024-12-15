@@ -151,9 +151,7 @@ PUT_OPERAND PROC ; DL = Operand
     CMP         BASE, 1000b
     JE          SHORT @@PRINT_SS
     CMP         BASE, 1010b
-    JE          SHORT @@PRINT_SS
-    CMP         SCALE, 101b
-    JE          SHORT @@PRINT_SS    
+    JE          SHORT @@PRINT_SS  
     JMP         SHORT @@PRINT_SEG
 @@MODRM16:
     CMP         BH, 0100b
