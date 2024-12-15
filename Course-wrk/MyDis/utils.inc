@@ -67,32 +67,6 @@ SPUT_HEX PROC ; IN (AX - hex_num; BX - str_ptr; DL=1 if word), OUT BX - end_str_
     RET
 SPUT_HEX ENDP
 
-GET_CMD_ARG PROC 
-    XOR         DI, DI
-@@READ_SPACES: ; Read leading spaces.
-    MOV         AL, ES:[SI]
-    CMP         AL, 0Dh ; Return if new line (no input found).
-    JE          SHORT @@RETURN
-    CMP         AL, " "
-    JNE         SHORT @@READ_ARG
-    INC         SI
-    JMP         @@READ_SPACES
-@@READ_ARG:
-    MOV         AL, ES:[SI]
-    CMP         AL, " "
-    JE          SHORT @@PUT_DOLLAR
-    CMP         AL, 0Dh ; Return if new line.
-    JE          SHORT @@PUT_DOLLAR 
-    MOV         [BX + DI], AL
-    INC         SI
-    INC         DI
-    JMP         @@READ_ARG
-@@PUT_DOLLAR:
-    MOV         BYTE PTR [BX + DI], "$"   
-@@RETURN:
-    RET
-GET_CMD_ARG ENDP
-
 ;---------------------------------------------DISASSEMBLER-PROCS------------------------------------------------------------------------------  
 READ_UPCOMING_BYTE PROC 
     PUSH        BX AX; save bx

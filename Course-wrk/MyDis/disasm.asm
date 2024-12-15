@@ -12,15 +12,17 @@ SMART
         OP2                 DB ?
     ENDS
 
-    MAX_FILE_NAME           EQU 128
     DATA_BUFFER_CAPACITY    EQU 255
     IP_BUFFER_CAPACITY      EQU 4
     MC_BUFFER_CAPACITY      EQU 45
     INS_BUFFER_CAPACITY     EQU 65
 
-    HELP_MSG                DB "To disassemble run: DISASM.EXE [COM_file].COM [RESULT_file].ASM",0Dh, 0Ah, "$"
-    ERR_MSG                 DB "Error occurred $"
-    SUCCESS_MSG             DB 0Dh, 0Ah, "Result successfully written to file: $"
+    RES_FILE_NAME           DB "RESULT.ASM", 0
+    RES_FILE_LEN            EQU $ - RES_FILE_NAME  - 1
+    DATA_FILE_NAME          DB "TESTS.COM", 0
+    DATA_FILE_LEN           EQU $ - DATA_FILE_NAME - 1
+    ERR_MSG                 DB 'Error occurred. COM file has to be "TESTS.COM", res_file is "RESULT.ASM"$'
+    SUCCESS_MSG             DB "Result successfully written to file: $"
     IP_VALUE                DW 0FFh
 
     IP_BUFFER               DB "0000h:  "
@@ -32,8 +34,6 @@ SMART
     DATA_INDEX              DW ?                            ; Position of the data buffer that we are currently at.
     DATA_BUFFER             DB DATA_BUFFER_CAPACITY DUP (?) ; Bytes, which were read from file.
 
-    DATA_FILE_NAME          DB MAX_FILE_NAME DUP(?)
-    RES_FILE_NAME           DB MAX_FILE_NAME DUP(?)
     DATA_FILE_HANDLE        DW ?
     RES_FILE_HANDLE         DW ?
 
@@ -72,18 +72,14 @@ include    "utils.inc"
 START:
     MOV         AX, @DATA
     MOV         DS, AX
-    MOV         SI, 82h   
-    LEA         BX, DATA_FILE_NAME
-    CALL        GET_CMD_ARG
-    LEA         BX, RES_FILE_NAME
-    CALL        GET_CMD_ARG                      
-    PUSH        DS
-    POP         ES
+    MOV         ES, AX
 
 OPEN_DATA_FILE:
     MOV         AX, 3D00h          
     LEA         DX, DATA_FILE_NAME
     INT         21h
+    MOV         BX, DX
+    MOV         BYTE PTR [BX + DATA_FILE_LEN], "$"
     JC          SHORT EXIT_WITH_ERR                 ; Print err msg if error occured (cf = 1)
     MOV         DATA_FILE_HANDLE, AX                ; Save .COM file handle
 
@@ -92,22 +88,14 @@ OPEN_RESULT_FILE:
     XOR         CX, CX                              ; CX = 0 for normal file
     LEA         DX, RES_FILE_NAME                   ; DX = Res file offset
     INT         21h                                 ; Call DOS
+    MOV         BX, DX
+    MOV         BYTE PTR [BX + RES_FILE_LEN], "$"
     JC          SHORT EXIT_WITH_ERR                 ; cf = 1 means error
     MOV         RES_FILE_HANDLE, AX                 ; Save result file handle
     JMP         SHORT DECODE_NEW_INSTRUCTION        ; JUMP to decoding
 
-PRINT_HELP:
-    PRINT_MSG   HELP_MSG                           ; print help msg
-    JMP         EXIT                               ; jmp to exit
-
 EXIT_WITH_ERR:                                      ; Print the error, which occurred while opening file.
-    PUSH        DX                                  ; Save file name offset 
-    LEA         BX, HELP_MSG
-    PRINT_MSG   [BX]
-    LEA         BX, ERR_MSG                 ; load bx with offset of err msg
-    PRINT_MSG   [BX]                                ; print err message
-    POP         DX                                  ; Restore file name offset
-
+    LEA         DX, ERR_MSG                         ; load bx with offset of err msg
 PRINT_FILE_NAME:
     MOV         BX, DX                              ; BX = beggining of file name
     PRINT_MSG   [BX]                                ; print file name 
