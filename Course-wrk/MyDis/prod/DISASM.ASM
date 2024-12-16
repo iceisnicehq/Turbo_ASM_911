@@ -316,11 +316,6 @@ NOT_JECXZ:
 PRINT_OFFSET:
     MOV         BX, OFFSET IP_BUFFER
     MOV         AX, IP_VALUE
-    cmp ax, 016CH
-; cmp byte ptr DS:[0113h], 77h
-jne  @@skip
-int 3
-@@skip:
     MOV         DL, 1
     CLC 
     CALL        SPUT_HEX
