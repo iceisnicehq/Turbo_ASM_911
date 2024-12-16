@@ -4,17 +4,17 @@ LOCALS @@
 .386
 .STACK 100h
 .DATA
-    INSTRUCTION STRUC
-        MNEMONIC            DW ?
-        TYPEOF              DB ?
-        OP1                 DB ?
-        OP2                 DB ?
-    ENDS
-
+    REG_SHIFT               EQU 16
+    EA_REG_SHIFT            EQU 32
+    VAL_ES                  EQU 2
+    VAL_CS                  EQU 4
+    VAL_SS                  EQU 6
+    VAL_DS                  EQU 8
+    VAL_FS                  EQU 10
+    VAL_GS                  EQU 12
     DATA_BUFFER_CAPACITY    EQU 255
-    IP_BUFFER_CAPACITY      EQU 4
     MC_BUFFER_CAPACITY      EQU 45
-    INS_BUFFER_CAPACITY     EQU 70
+    INS_BUFFER_CAPACITY     EQU 55
     RES_FILE_NAME           EQU "RESULT.ASM"
     COM_FILE_NAME           EQU "COM.COM"
 
@@ -57,13 +57,13 @@ LOCALS @@
     SEG_FS                  DB "FS:$"
     SEG_GS                  DB "GS:$"
 
-    EA_BX_SI                DB "BX+SI$"
-    EA_BX_DI                DB "BX+DI$"
-    EA_BP_SI                DB "BP+SI$"
-    EA_BP_DI                DB "BP+DI$"
+    BX_SI                   DB "BX+SI$"
+    BX_DI                   DB "BX+DI$"
+    BP_SI                   DB "BP+SI$"
+    BP_DI                   DB "BP+DI$"
 
     LABEL EFFECTIVE_ADDRESSES
-                            DW EA_BX_SI, EA_BX_DI, EA_BP_SI, EA_BP_DI, REG_SI, REG_DI, REG_BP, REG_BX
+                            DW BX_SI, BX_DI, BP_SI, BP_DI, REG_SI, REG_DI, REG_BP, REG_BX
         
     LABEL REGISTERS
                             DW REG_AX,  REG_CX,  REG_DX,  REG_BX,  REG_SP,  REG_BP,  REG_SI,  REG_DI
@@ -75,15 +75,6 @@ LOCALS @@
     LABEL SIZE_OVR_PTRS
                             DW WORD_PTR, DWORD_PTR
 
-    REG_SHIFT               EQU 16
-    EA_REG_SHIFT            EQU 32
-
-    VAL_ES                  EQU 2
-    VAL_CS                  EQU 4
-    VAL_SS                  EQU 6
-    VAL_DS                  EQU 8
-    VAL_FS                  EQU 10
-    VAL_GS                  EQU 12
 
     INS_OPERANDS ENUM {
         OP_NONE,
@@ -137,11 +128,18 @@ LOCALS @@
         INS_TYPE_AAD
     }
 
+    INSTRUCTION STRUC
+        MNEMONIC            DW ?
+        TYPEOF              DB ?
+        OP1                 DB ?
+        OP2                 DB ?
+    ENDS
+
     INSTRUCTION_UNKNOWN MACRO count
         INSTRUCTION count dup  (<   INS_UNKNOWN,    INS_TYPE_UNKNOWN,   OP_NONE,       OP_NONE         >)
     ENDM
 
-    LABEL INSTRUCTION_LIST
+    LABEL INSTRUCTION_SET
         INSTRUCTION_UNKNOWN     0Fh
         INSTRUCTION             <   OP_NONE,        INS_TYPE_EXT,       OP_NONE,       OP_NONE         > ; 0Fh
         INSTRUCTION_UNKNOWN     16h 
@@ -298,7 +296,7 @@ LOAD_INSTRUCTION:
     MOV         AX, SIZE INSTRUCTION
     MOV         CX, AX
     MUL         DL
-    MOV         SI, OFFSET INSTRUCTION_LIST
+    MOV         SI, OFFSET INSTRUCTION_SET
     ADD         SI, AX
     MOV         DI, OFFSET CURRENT_INSTRUCTION
     REP         MOVSB
@@ -316,6 +314,7 @@ NOT_JECXZ:
 PRINT_OFFSET:
     MOV         BX, OFFSET IP_BUFFER
     MOV         AX, IP_VALUE
+
     MOV         DL, 1
     CLC 
     CALL        SPUT_HEX
