@@ -323,7 +323,7 @@ NOT_JECXZ:
 PRINT_OFFSET:
     MOV         BX, OFFSET IP_BUFFER
     MOV         AX, IP_VALUE
-    cmp ax, 15d6h
+    cmp ax, 016CH
 ; cmp byte ptr DS:[0113h], 77h
 jne  @@skip
 int 3
@@ -583,7 +583,7 @@ PUT_OPERAND PROC ; DL = Operand
     JE          @@PRINT_DISP       
 @@EA_NORMAL:
     CMP         ADDR_OVR, 2
-    JNE         SHORT @@NO_SIB
+    JNE         @@NO_SIB
     CMP         BASE, 1010b
     JNE         @@NO_EBP_BASE
     CMP         MODE, 000b
@@ -593,6 +593,8 @@ PUT_OPERAND PROC ; DL = Operand
     ADD         BL, REG_SHIFT
     MOV         SI, REGISTERS[BX]
     CALL        INS_STR
+    CMP         INDEX, 1000b
+    JE          SHORT @@SIB_INDEX_NONE
     INS_CHAR    "+"
 @@NO_BASE:
     MOVZX       BX, INDEX
@@ -605,6 +607,7 @@ PUT_OPERAND PROC ; DL = Operand
     MOV         DL, "0"
     ADD         DL, SCALE
     INS_CHAR    DL
+@@SIB_INDEX_NONE:
     CMP         BASE, 1010b
     JNE         @@CHECK_MODE
     CMP         MODE, 000b
