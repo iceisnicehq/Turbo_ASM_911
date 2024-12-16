@@ -394,11 +394,11 @@ PUT_HEX_TO_STR_BX PROC ; IN (AX - hex_num; BX - str_ptr; DL=1 if word), OUT BX -
     MOV         CX, 10h
     MOV         SI, 2
     OR          DL, DL
-    JZ          SHORT @@PREP_DIVIDE
+    JZ          SHORT @@NOT_WORD
     SHL         SI, 1
-@@PREP_DIVIDE:
+@@NOT_WORD:
     PUSH        SI
-@@DIVIDE:
+@@DIVISION:
     DEC         SI
     XOR         DX, DX
     DIV         CX
@@ -406,33 +406,33 @@ PUT_HEX_TO_STR_BX PROC ; IN (AX - hex_num; BX - str_ptr; DL=1 if word), OUT BX -
     JBE         SHORT @@HEX_DIGIT
 @@HEX_LETTER:
     ADD         DL, 37h
-    JMP         SHORT @@ADD_TO_BUFFER
+    JMP         SHORT @@PUT_TO_STR
 @@HEX_DIGIT:
     ADD         DL, 30h
-@@ADD_TO_BUFFER:
+@@PUT_TO_STR:
     MOV         [BX + SI], DL
     OR          AX, AX
-    JNE         @@DIVIDE
+    JNE         @@DIVISION
     OR          SI, SI
-    JE          SHORT @@CHECK_SHIFT
-@@ADD_LEADING_ZEROS:
+    JE          SHORT @@CHECK_LEADING_ZERO
+@@LEADING_ZEROS:
     DEC         SI
     MOV         BYTE PTR [BX + SI], "0"
     OR          SI, SI
-    JNE         @@ADD_LEADING_ZEROS
-@@CHECK_SHIFT:
+    JNE         @@LEADING_ZEROS
+@@CHECK_LEADING_ZERO:
     POP         CX
     POPF
     JNC         SHORT @@RETURN
     MOV         SI, CX
     CMP         BYTE PTR [BX], "A"
     JB          SHORT @@RETURN
-@@SHIFT_HEX:
+@@ADD_ZERO_SHIFT:
     DEC         SI
     MOV         AL, [BX + SI]
     MOV         [BX + SI + 1], AL
     OR          SI, SI
-    JNE         @@SHIFT_HEX
+    JNE         @@ADD_ZERO_SHIFT
     MOV         BYTE PTR [BX], "0"
     INC         CX
 @@RETURN:
