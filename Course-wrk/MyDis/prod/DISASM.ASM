@@ -14,7 +14,7 @@ LOCALS @@
     DATA_BUFFER_CAPACITY    EQU 255
     IP_BUFFER_CAPACITY      EQU 4
     MC_BUFFER_CAPACITY      EQU 45
-    INS_BUFFER_CAPACITY     EQU 65
+    INS_BUFFER_CAPACITY     EQU 70
     RES_FILE_NAME           EQU "RESULT.ASM"
     COM_FILE_NAME           EQU "COM.COM"
 
@@ -323,6 +323,11 @@ NOT_JECXZ:
 PRINT_OFFSET:
     MOV         BX, OFFSET IP_BUFFER
     MOV         AX, IP_VALUE
+    cmp ax, 15d6h
+; cmp byte ptr DS:[0113h], 77h
+jne  @@skip
+int 3
+@@skip:
     MOV         DL, 1
     CLC 
     CALL        SPUT_HEX
@@ -354,7 +359,6 @@ READ_OPERANDS:
     CALL        DECODE_OPERAND
     MOV         AL, CURRENT_INSTRUCTION.OP2
     CALL        DECODE_OPERAND
-    
     MOV         AL, CURRENT_INSTRUCTION.OP1
     CALL        PUT_OPERAND
     CMP         CURRENT_INSTRUCTION.OP2, OP_NONE
@@ -412,7 +416,7 @@ INS_STR PROC ; SI = pointer to ASCII$ string
 INS_STR ENDP     
 
 SPUT_HEX PROC ; IN (AX - hex_num; BX - str_ptr; DL=1 if word), OUT BX - end_str_ptr
-    PUSHF       
+    PUSHF   
     MOV         CX, 10h
     MOV         SI, 2
     OR          DL, DL
@@ -656,9 +660,6 @@ PUT_OPERAND PROC ; DL = Operand
     INS_CHAR    "H"
     JMP         SHORT @@RETURN
 @@PRINT_REL:
-    JA          SHORT @@REL16
-    CBW
-@@REL16:
     ADD         AX, IP_VALUE
     INC         AX
     STC
@@ -705,13 +706,11 @@ DECODE_MODRM_SIB PROC
 DECODE_MODRM_SIB ENDP
 
 DECODE_OPERAND PROC 
+    CMP         AL, OP_NONE
+    JE          @@RETURN
     XOR         BX, BX
     CMP         AL, OP_REG16
     JAE         SHORT @@READ_MODRM
-    CMP         AL, OP_IMM8
-    JAE         SHORT @@READ_IMM
-    JMP         @@RETURN
-@@READ_IMM:
     CALL        READ_UPCOMING_BYTE
     MOVSX       BX, DL
     CMP         AL, OP_REL16
@@ -748,7 +747,7 @@ DECODE_OPERAND PROC
     JE          SHORT @@READ_DISP
     
 CMP ADDR_OVR, 2
-JNE SHORT @@DISP16
+JNE SHORT @@RETURN
 CMP BASE, 1010b
 JE  SHORT @@READ_DISP
     
