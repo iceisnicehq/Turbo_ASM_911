@@ -84,16 +84,20 @@ LOCALS @@
 
     INS_OPERANDS ENUM NONE, IMM8, REL8, REL16, REG16, REGMEM16
     
-    IRP    char, <JO, JNO, JB, JNB, JZ, JNZ, JBE, JNBE, JS, JNS, JP, JNP, JL, JNL, JLE, JNLE, JCXZ, JECXZ>
+    IRP    char, <JO, JNO, JB, JNB, JZ, JNZ, JBE, JNBE, JS, JNS, JP, JNP, JL, JNL, JLE, JNLE>
          _&char  DB "&char"
          LEN = $ - _&char
                 DB 8 - LEN dup (' '), "$"
+        J8_&char    INSTRUC <_&char,TYPE_JCC_BTC, REL8,   NONE>  ; 70h-7fh
+        J16_&char   INSTRUC <_&char,TYPE_JCC_BTC, REL16,  NONE>  ; 80h-8fh
     ENDM
 
     _UNK                DB "???$"
     _AAD                DB "AAD$"
     _LOCK               DB "LOCK $"
     _BTC                DB "BTC     $"
+    _JCXZ               DB "JCXZ    $"
+    _JECXZ              DB "JECXZ   $"
 
     VAL = 1
     IRP  T, <ADDR_OVR, SIZE_OVR, EXT, SEG_OVR, PREFIX, UNKNOWN, JCC_BTC, JCXZ, AAD>
@@ -105,10 +109,6 @@ LOCALS @@
     PREF_0F    INSTRUC <NONE,  TYPE_EXT,     NONE,  NONE> ; 0Fh
     INS_SIZE   INSTRUC <NONE,  TYPE_SIZE_OVR,NONE,  NONE> ; 66h
     INS_ADDR   INSTRUC <NONE,  TYPE_ADDR_OVR,NONE,  NONE> ; 67h
-IRP     MNM, <JO, JNO, JB, JNB, JZ, JNZ, JBE, JNBE, JS, JNS, JP, JNP, JL, JNL, JLE, JNLE>
-    J8_&MNM    INSTRUC <_&MNM,TYPE_JCC_BTC, REL8,   NONE>  ; 70h-7fh
-    J16_&MNM   INSTRUC <_&MNM,TYPE_JCC_BTC, REL16,  NONE>  ; 80h-8fh
-ENDM
     BTC_BA     INSTRUC <_BTC, TYPE_JCC_BTC, REGMEM16, IMM8> ; BAh
     BTC_BB     INSTRUC <_BTC, TYPE_JCC_BTC, REGMEM16,REG16> ; BBh 
     INS_AAD    INSTRUC <_AAD, TYPE_AAD,     NONE,     NONE> ; D5h
