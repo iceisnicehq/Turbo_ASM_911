@@ -122,12 +122,12 @@ LOCALS @@
         INSTRUC             <   NONE,        TYPE_ADDR_OVR,   NONE,       NONE         > ; 67h
         INSTRUC_UNK     08h
                   ; 70h     71h  72h    73h   74h   75h    76h      77h   78h    79h   7Ah    7Bh   7Ch    7Dh    7Eh     7Fh
-    IRP     MNEM, <_JO, _JNO, _JB, _JNB, _JZ, _JNZ, _JBE, _JNBE, _JS, _JNS, _JP, _JNP, _JL, _JNL, _JLE, _JNLE >
-        INSTRUC             <   MNEM,           TYPE_JCC_BTC,    REL8,       NONE         >
+    IRP     MNEM, <JO, JNO, JB, JNB, JZ, JNZ, JBE, JNBE, JS, JNS, JP, JNP, JL, JNL, JLE, JNLE>
+        INSTRUC             <   _&MNEM,           TYPE_JCC_BTC,    REL8,       NONE         >
     ENDM
                   ; 80h     81h  72h    83h   84h   85h    86h      87h   88h    89h   8Ah    8Bh   8Ch    8Dh    8Eh     8Fh
-    IRP     MNEM, <_JO, _JNO, _JB, _JNB, _JZ, _JNZ, _JBE, _JNBE, _JS, _JNS, _JP, _JNP, _JL, _JNL, _JLE, _JNLE >
-        INSTRUC             <   MNEM,           TYPE_JCC_BTC,    REL16,      NONE         >
+    IRP     MNEM, <JO, JNO, JB, JNB, JZ, JNZ, JBE, JNBE, JS, JNS, JP, JNP, JL, JNL, JLE, JNLE>
+        INSTRUC             <   _&MNEM,           TYPE_JCC_BTC,    REL16,       NONE         >
     ENDM
         INSTRUC_UNK     2Ah
         INSTRUC             <   _BTC,          TYPE_JCC_BTC,    REGMEM16,   IMM8         > ; BAh
@@ -174,21 +174,6 @@ LOCALS @@
             RM                  DB ?
 
 .CODE
-PUT_BYTE_AL    MACRO
-    XOR         AH, AH
-    MOV         BX, INSTRUC_END_PTR
-    XOR         DL, DL
-    STC
-    CALL        PUT_HEX_TO_STR_BX
-    MOV         INSTRUC_END_PTR, BX
-ENDM
-
-PUT_WORD_AX    MACRO
-    MOV         BX, INSTRUC_END_PTR
-    MOV         DL, 1
-    CALL        PUT_HEX_TO_STR_BX
-    MOV         INSTRUC_END_PTR, BX
-ENDM
 
 PUT_CHAR       MACRO  CHAR
     MOV         BX, INSTRUC_END_PTR
@@ -327,6 +312,25 @@ EXIT:
     INT         21h 
     MOV         AX, 4C00h
     INT         21h
+
+;--------;PROCS--------;
+PUT_BYTE_AL     PROC
+    XOR         AH, AH
+    MOV         BX, INSTRUC_END_PTR
+    XOR         DL, DL
+    STC
+    CALL        PUT_HEX_TO_STR_BX
+    MOV         INSTRUC_END_PTR, BX
+    RET
+ENDP
+
+PUT_WORD_AX    PROC
+    MOV         BX, INSTRUC_END_PTR
+    MOV         DL, 1
+    CALL        PUT_HEX_TO_STR_BX
+    MOV         INSTRUC_END_PTR, BX
+    RET
+ENDP
 
 INS_STR PROC ; SI = pointer to ASCII$ string
     MOV         DI, INSTRUC_END_PTR
@@ -531,11 +535,11 @@ INSERT_IN_STRING PROC ; DL = Operand
     PUSH        AX
     MOV         AX, DISP32
     STC 
-    PUT_WORD_AX
+    CALL        PUT_WORD_AX
     POP         AX
     CLC
 @@DISP16:
-    PUT_WORD_AX
+    CALL         PUT_WORD_AX
     PUT_CHAR    "H"
     JMP         SHORT @@EA_END
 @@PRINT_BYTE_DISP:
@@ -544,7 +548,7 @@ INSERT_IN_STRING PROC ; DL = Operand
     DEC         INSTRUC_END_PTR
     JMP         SHORT @@EA_END
 @@NON_ZERO_BYTE_DISP:
-    PUT_BYTE_AL
+    CALL        PUT_BYTE_AL
     PUT_CHAR    "H"
 @@EA_END:
     PUT_CHAR    "]"
@@ -553,14 +557,14 @@ INSERT_IN_STRING PROC ; DL = Operand
     CMP         AL, REL8
     MOV         AX, IMM
     JAE         SHORT @@PRINT_REL
-    PUT_BYTE_AL
+    CALL        PUT_BYTE_AL
     PUT_CHAR    "H"
     JMP         SHORT @@RETURN
 @@PRINT_REL:
     ADD         AX, IP_VALUE
     INC         AX
     STC
-    PUT_WORD_AX
+    CALL        PUT_WORD_AX
     PUT_CHAR    "H"
     JMP         SHORT @@RETURN
 @@PRINT_REG:
