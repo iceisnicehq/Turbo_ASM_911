@@ -16,18 +16,18 @@ LOCALS @@
     MC_BUFFER_CAPACITY      EQU 45
     INS_BUFFER_CAPACITY     EQU 55
     RES_FILE_NAME           EQU "RESULT.ASM"
-    COM_FILE_NAME           EQU "COM.COM"
+    CO_FILE_NAME           EQU "COM.COM"
 
     RES_FILE                DB RES_FILE_NAME, 0
-    COM_FILE                DB COM_FILE_NAME, 0
-    ERR_MSG                 DB 'Error occurred. Make sure COM file is "', COM_FILE_NAME, '". Res_file will be "', RES_FILE_NAME, '"$'
+    CO_FILE                DB CO_FILE_NAME, 0
+    ERR_MSG                 DB 'Error occurred. Make sure COM file is "', CO_FILE_NAME, '". Res_file will be "', RES_FILE_NAME, '"$'
     SUCCESS_DIS             DB 'Result successfully written to file: ', RES_FILE_NAME, '$'
     IP_VALUE                DW 0FFh
 
     IP_BUFFER               DB "0000H:  "
     MC_BUFFER               DB MC_BUFFER_CAPACITY DUP (" ")
     INS_BUFFER              DB INS_BUFFER_CAPACITY DUP ("$")
-    INSTRUC_END_PTR             DW INS_BUFFER   
+    INSTRUC_END_PTR         DW INS_BUFFER   
     MC_END_PTR              DW MC_BUFFER
     
     DWORD_PTR               DB "d"
@@ -88,33 +88,33 @@ LOCALS @@
     }
 
 
-    MNEM_UNK                DB "Unknown inst$"
+    _UNK                DB "Unknown inst$"
 
-    MNEM_AAD                DB "AAD$"
+    _AAD                DB "AAD$"
 
-    MNEM_BTC                DB "BTC     $"
+    _BTC                DB "BTC     $"
 
-    MNEM_JO                 DB "JO      $"
-    MNEM_JNO                DB "JNO     $"
-    MNEM_JB                 DB "JB      $"
-    MNEM_JNB                DB "JNB     $"
-    MNEM_JZ                 DB "JZ      $"
-    MNEM_JNZ                DB "JNZ     $"
-    MNEM_JBE                DB "JBE     $"
-    MNEM_JNBE               DB "JNBE    $"
-    MNEM_JS                 DB "JS      $"
-    MNEM_JNS                DB "JNS     $"
-    MNEM_JP                 DB "JP      $"
-    MNEM_JNP                DB "JNP     $"
-    MNEM_JL                 DB "JL      $"
-    MNEM_JNL                DB "JNL     $"
-    MNEM_JLE                DB "JLE     $"
-    MNEM_JNLE               DB "JNLE    $"
+    _JO                 DB "JO      $"
+    _JNO                DB "JNO     $"
+    _JB                 DB "JB      $"
+    _JNB                DB "JNB     $"
+    _JZ                 DB "JZ      $"
+    _JNZ                DB "JNZ     $"
+    _JBE                DB "JBE     $"
+    _JNBE               DB "JNBE    $"
+    _JS                 DB "JS      $"
+    _JNS                DB "JNS     $"
+    _JP                 DB "JP      $"
+    _JNP                DB "JNP     $"
+    _JL                 DB "JL      $"
+    _JNL                DB "JNL     $"
+    _JLE                DB "JLE     $"
+    _JNLE               DB "JNLE    $"
 
-    MNEM_JCXZ               DB "JCXZ    $"
-    MNEM_JECXZ              DB "JECXZ   $"
+    _JCXZ               DB "JCXZ    $"
+    _JECXZ              DB "JECXZ   $"
 
-    MNEM_LOCK               DB "LOCK $"
+    _LOCK               DB "LOCK $"
 
     TYPES ENUM {
         TYPE_ADDR_OVR = 1,
@@ -136,7 +136,7 @@ LOCALS @@
     ENDS
 
     INSTRUC_UNK MACRO count
-        INSTRUC count dup  (<   MNEM_UNK,    TYPE_UNKNOWN,   OP_NONE,       OP_NONE         >)
+        INSTRUC count dup  (<   _UNK,    TYPE_UNKNOWN,   OP_NONE,       OP_NONE         >)
     ENDM
 
     LABEL INSTRUC_SET
@@ -156,54 +156,30 @@ LOCALS @@
         INSTRUC             <   OP_NONE,        TYPE_SIZE_OVR,   OP_NONE,       OP_NONE         > ; 66h
         INSTRUC             <   OP_NONE,        TYPE_ADDR_OVR,   OP_NONE,       OP_NONE         > ; 67h
         INSTRUC_UNK     08h
-        INSTRUC             <   MNEM_JO,        TYPE_JCC_BTC,    OP_REL8,       OP_NONE         > ; 70h
-        INSTRUC             <   MNEM_JNO,       TYPE_JCC_BTC,    OP_REL8,       OP_NONE         > ; 71h
-        INSTRUC             <   MNEM_JB,        TYPE_JCC_BTC,    OP_REL8,       OP_NONE         > ; 72h
-        INSTRUC             <   MNEM_JNB,       TYPE_JCC_BTC,    OP_REL8,       OP_NONE         > ; 73h
-        INSTRUC             <   MNEM_JZ,        TYPE_JCC_BTC,    OP_REL8,       OP_NONE         > ; 74h
-        INSTRUC             <   MNEM_JNZ,       TYPE_JCC_BTC,    OP_REL8,       OP_NONE         > ; 75h
-        INSTRUC             <   MNEM_JBE,       TYPE_JCC_BTC,    OP_REL8,       OP_NONE         > ; 76h
-        INSTRUC             <   MNEM_JNBE,      TYPE_JCC_BTC,    OP_REL8,       OP_NONE         > ; 77h
-        INSTRUC             <   MNEM_JS,        TYPE_JCC_BTC,    OP_REL8,       OP_NONE         > ; 78h
-        INSTRUC             <   MNEM_JNS,       TYPE_JCC_BTC,    OP_REL8,       OP_NONE         > ; 79h
-        INSTRUC             <   MNEM_JP,        TYPE_JCC_BTC,    OP_REL8,       OP_NONE         > ; 7Ah
-        INSTRUC             <   MNEM_JNP,       TYPE_JCC_BTC,    OP_REL8,       OP_NONE         > ; 7Bh
-        INSTRUC             <   MNEM_JL,        TYPE_JCC_BTC,    OP_REL8,       OP_NONE         > ; 7Ch
-        INSTRUC             <   MNEM_JNL,       TYPE_JCC_BTC,    OP_REL8,       OP_NONE         > ; 7Dh
-        INSTRUC             <   MNEM_JLE,       TYPE_JCC_BTC,    OP_REL8,       OP_NONE         > ; 7Eh
-        INSTRUC             <   MNEM_JNLE,      TYPE_JCC_BTC,    OP_REL8,       OP_NONE         > ; 7Fh
-        INSTRUC             <   MNEM_JO,        TYPE_JCC_BTC,    OP_REL16,      OP_NONE         > ; 80h
-        INSTRUC             <   MNEM_JNO,       TYPE_JCC_BTC,    OP_REL16,      OP_NONE         > ; 81h 
-        INSTRUC             <   MNEM_JB,        TYPE_JCC_BTC,    OP_REL16,      OP_NONE         > ; 82h 
-        INSTRUC             <   MNEM_JNB,       TYPE_JCC_BTC,    OP_REL16,      OP_NONE         > ; 83h 
-        INSTRUC             <   MNEM_JZ,        TYPE_JCC_BTC,    OP_REL16,      OP_NONE         > ; 84h 
-        INSTRUC             <   MNEM_JNZ,       TYPE_JCC_BTC,    OP_REL16,      OP_NONE         > ; 85h 
-        INSTRUC             <   MNEM_JBE,       TYPE_JCC_BTC,    OP_REL16,      OP_NONE         > ; 86h 
-        INSTRUC             <   MNEM_JNBE,      TYPE_JCC_BTC,    OP_REL16,      OP_NONE         > ; 87h 
-        INSTRUC             <   MNEM_JS,        TYPE_JCC_BTC,    OP_REL16,      OP_NONE         > ; 88h 
-        INSTRUC             <   MNEM_JNS,       TYPE_JCC_BTC,    OP_REL16,      OP_NONE         > ; 89h 
-        INSTRUC             <   MNEM_JP,        TYPE_JCC_BTC,    OP_REL16,      OP_NONE         > ; 8Ah 
-        INSTRUC             <   MNEM_JNP,       TYPE_JCC_BTC,    OP_REL16,      OP_NONE         > ; 8Bh 
-        INSTRUC             <   MNEM_JL,        TYPE_JCC_BTC,    OP_REL16,      OP_NONE         > ; 8Ch 
-        INSTRUC             <   MNEM_JNL,       TYPE_JCC_BTC,    OP_REL16,      OP_NONE         > ; 8Dh 
-        INSTRUC             <   MNEM_JLE,       TYPE_JCC_BTC,    OP_REL16,      OP_NONE         > ; 8Eh 
-        INSTRUC             <   MNEM_JNLE,      TYPE_JCC_BTC,    OP_REL16,      OP_NONE         > ; 8Fh  
+                  ; 70h     71h  72h    73h   74h   75h    76h      77h   78h    79h   7Ah    7Bh   7Ch    7Dh    7Eh     7Fh
+    IRP     MNEM, <_JO, _JNO, _JB, _JNB, _JZ, _JNZ, _JBE, _JNBE, _JS, _JNS, _JP, _JNP, _JL, _JNL, _JLE, _JNLE >
+        INSTRUC             <   MNEM,           TYPE_JCC_BTC,    OP_REL8,       OP_NONE         >
+    ENDM
+                  ; 80h     81h  72h    83h   84h   85h    86h      87h   88h    89h   8Ah    8Bh   8Ch    8Dh    8Eh     8Fh
+    IRP     MNEM, <_JO, _JNO, _JB, _JNB, _JZ, _JNZ, _JBE, _JNBE, _JS, _JNS, _JP, _JNP, _JL, _JNL, _JLE, _JNLE >
+        INSTRUC             <   MNEM,           TYPE_JCC_BTC,    OP_REL16,      OP_NONE         >
+    ENDM
         INSTRUC_UNK     2Ah
-        INSTRUC             <   MNEM_BTC,       TYPE_JCC_BTC,    OP_REGMEM16,   OP_IMM8         > ; BAh
-        INSTRUC             <   MNEM_BTC,       TYPE_JCC_BTC,    OP_REGMEM16,   OP_REG16        > ; BBh 
+        INSTRUC             <   _BTC,          TYPE_JCC_BTC,    OP_REGMEM16,   OP_IMM8         > ; BAh
+        INSTRUC             <   _BTC,          TYPE_JCC_BTC,    OP_REGMEM16,   OP_REG16        > ; BBh 
         INSTRUC_UNK     19h
-        INSTRUC             <   MNEM_AAD,        TYPE_AAD,       OP_NONE,       OP_NONE         > ; D5h
+        INSTRUC             <   _AAD,          TYPE_AAD,        OP_NONE,       OP_NONE         > ; D5h
         INSTRUC_UNK     0Dh
-        INSTRUC             <   MNEM_JCXZ,       TYPE_JCXZ,      OP_REL8,       OP_NONE         > ; E3h  (JECXZ)
+        INSTRUC             <   _JCXZ,         TYPE_JCXZ,       OP_REL8,       OP_NONE         > ; E3h  (JECXZ)
         INSTRUC_UNK     0Ch
-        INSTRUC             <   MNEM_LOCK,       TYPE_PREFIX,    OP_NONE,       OP_NONE         > ; F0h
+        INSTRUC             <   _LOCK,         TYPE_PREFIX,     OP_NONE,       OP_NONE         > ; F0h
         INSTRUC_UNK     0Fh
 
     DATA_SIZE                   DW ?                            
     DATA_INDEX                  DW ?
     DATA_BUFFER                 DB DATA_BUFFER_CAPACITY DUP (?) 
 
-    COM_FILE_HANDLE             DW ?
+    CO_FILE_HANDLE             DW ?
     RES_FILE_HANDLE             DW ?
 
     IMM                         DW ?
@@ -222,12 +198,12 @@ LOCALS @@
             SEG_OVR             DB ?
         LABEL PREF_MODRM WORD 
             HAS_PREFIX          DB ?
-            IS_MODRM_DECODED    DB ?
+            IS_MODR_DECODED    DB ?
         LABEL SIB_BYTE
             SCALE               DB ?
             INDEX               DB ?
             BASE                DB ?
-        LABEL MODRM_BYTE
+        LABEL MODR_BYTE
             MODE                DB ?
             REG                 DB ?
             RM                  DB ?
@@ -255,15 +231,25 @@ PUT_CHAR       MACRO  CHAR
     INC         INSTRUC_END_PTR
 ENDM
 
+CMPJNE         MACRO   OP1, OP2, JMP_LABEL
+CMP         OP1, OP2
+JNE         SHORT JMP_LABEL
+ENDM
+
+CMPJE          MACRO   OP1, OP2, JMP_LABEL
+CMP         OP1, OP2
+JE          SHORT JMP_LABEL
+ENDM
+
 START:
     MOV         AX, @DATA
     MOV         DS, AX
     MOV         ES, AX
     MOV         AX, 3D00h          
-    MOV         DX, OFFSET COM_FILE
+    MOV         DX, OFFSET CO_FILE
     INT         21h
     JC          SHORT ERROR_EXIT
-    MOV         COM_FILE_HANDLE, AX
+    MOV         CO_FILE_HANDLE, AX
     MOV         AH, 3Ch
     XOR         CX, CX
     MOV         DX, OFFSET RES_FILE
@@ -303,29 +289,25 @@ PRINT_OFFSET:
     CLC 
     CALL        PUT_HEX_TO_STR_BX
 CHECK_PREFIX_TYPE: 
-    CMP         CURR_INSTRUC.I_TYPE, TYPE_SEG_OVR
-    JNE         SHORT NOT_SEG_OVR
+    CMPJNE      CURR_INSTRUC.I_TYPE, TYPE_SEG_OVR, @@NOT_SEG_OVR
     MOV         AX, CURR_INSTRUC.MNEM
     MOV         SEG_OVR, AL
     JMP         DECODE_NEW_INSTRUC
-NOT_SEG_OVR:
+@@NOT_SEG_OVR:
     MOVZX       BX, CURR_INSTRUC.I_TYPE
     MOV         BYTE PTR PREF_BYTES[BX-1], BL
     CMP         BL, TYPE_PREFIX
     JNAE        DECODE_NEW_INSTRUC
-    CMP         CURR_INSTRUC.I_TYPE, TYPE_JCXZ
-    JNE         SHORT NOT_JECXZ
-    CMP         ADDR_OVR, 1
-    JNE         SHORT NOT_JECXZ
-    MOV         CURR_INSTRUC.MNEM, OFFSET MNEM_JECXZ
-NOT_JECXZ:
+    CMPJNE      CURR_INSTRUC.I_TYPE, TYPE_JCXZ, @@NOT_JECXZ
+    CMPJNE      ADDR_OVR, 1, @@NOT_JECXZ
+    MOV         CURR_INSTRUC.MNEM, OFFSET _JECXZ
+@@NOT_JECXZ:
     MOV         SI, CURR_INSTRUC.MNEM
     CALL        INS_STR
     CMP         CURR_INSTRUC.I_TYPE, TYPE_UNKNOWN
     JBE         DECODE_NEW_INSTRUC
 ANALYZE_OPERANDS:
-    CMP         CURR_INSTRUC.I_TYPE, TYPE_AAD
-    JNE         SHORT READ_OPERANDS
+    CMPJNE      CURR_INSTRUC.I_TYPE, TYPE_AAD, READ_OPERANDS
     CALL        READ_BUFFER_BYTE
     JMP         SHORT PRINT_TO_FILE
 READ_OPERANDS:
@@ -370,7 +352,7 @@ RESET_BUFFER:
     JMP         DECODE_NEW_INSTRUC
 EXIT:
     MOV         AH, 3Eh
-    MOV         BX, COM_FILE_HANDLE
+    MOV         BX, CO_FILE_HANDLE
     INT         21h  
     MOV         BX, RES_FILE_HANDLE
     INT         21h 
@@ -380,8 +362,8 @@ EXIT:
 INS_STR PROC ; SI = pointer to ASCII$ string
     MOV         DI, INSTRUC_END_PTR
 @@FIND_END:
-    CMP         BYTE PTR [SI], "$"
-    JE          SHORT @@RETURN
+    CMP        BYTE PTR [SI], "$" 
+    JE         SHORT @@RETURN
     MOVSB
     JMP         @@FIND_END
 @@RETURN:
@@ -446,7 +428,7 @@ READ_BUFFER_BYTE PROC
     CMP         AX, DATA_INDEX
     JA          SHORT @@CHECK_FILE_END
     MOV         AH, 3Fh
-    MOV         BX, COM_FILE_HANDLE 
+    MOV         BX, CO_FILE_HANDLE 
     MOV         CX, DATA_BUFFER_CAPACITY
     MOV         DX, OFFSET DATA_BUFFER
     INT         21h
@@ -480,27 +462,21 @@ READ_BUFFER_BYTE ENDP
      
 INSERT_OP_IN_STRING PROC ; DL = Operand
     XOR         BX, BX
-    CMP         AL, OP_NONE
-    JE          @@RETURN
     CMP         AL, OP_REL16
     JBE         @@PRINT_IMM8
-    CMP         AL, OP_REG16
+    CMP         AL, OP_REG16 
     JE          @@PRINT_REG
-    CMP         MODE, 110b
-    JNE         SHORT @@EFFECTIVE_ADDRESSING
+    CMPJNE      MODE, 110b, @@EFFECTIVE_ADDRESSING
     MOV         BL, RM
-    CMP         SIZE_OVR, 0
-    JE          SHORT @@PRINT_MODRM_REG
+    CMPJE       SIZE_OVR, 0, @@PRINT_MODR_REG
     ADD         BL, REG_SHIFT
-@@PRINT_MODRM_REG:
+@@PRINT_MODR_REG:
     MOV         SI, REGISTERS[BX]
     CALL        INS_STR
     JMP         @@RETURN
 @@EFFECTIVE_ADDRESSING:
-    CMP         CURR_INSTRUC.OP2, OP_REG16
-    JE          SHORT @@CHECK_SEG
-    CMP         SIZE_OVR, 0
-    JE          SHORT @@EA_START
+    CMPJE       CURR_INSTRUC.OP2, OP_REG16, @@CHECK_SEG
+    CMPJE       SIZE_OVR, 0, @@EA_START
     MOVZX       BX, SIZE_OVR
 @@EA_START:
     MOV         SI, SIZE_OVR_PTRS[BX]
@@ -511,33 +487,21 @@ INSERT_OP_IN_STRING PROC ; DL = Operand
     JNE         SHORT @@PRINT_SEG
     MOV         BL, VAL_DS
     MOV         BH, RM         
-    CMP         ADDR_OVR, 0
-    JE          SHORT @@MODRM16
-    CMP         MODE, 000b
-    JE          SHORT @@CHECK_SIB
-    CMP         BH, 1010b
-    JE          SHORT @@PRINT_SS
+    CMPJE       ADDR_OVR, 0, @@MODRM16
+    CMPJE       MODE, 000b, @@CHECK_SIB
+    CMPJE       BH, 1010b, @@PRINT_SS
 @@CHECK_SIB:
-    CMP         BH, 1000b
-    JNE         SHORT @@PRINT_SEG
-    CMP         BASE, 1000b
-    JE          SHORT @@PRINT_SS
-    CMP         BASE, 1010b
-    JNE         SHORT @@PRINT_SEG
-    CMP         MODE, 000b
-    JNE         SHORT @@PRINT_SS
-    CMP         INDEX, 1010b
-    JE          SHORT @@PRINT_SS  
+    CMPJNE      BH, 1000b, @@PRINT_SEG
+    CMPJE       BASE, 1000b, @@PRINT_SS
+    CMPJNE      BASE, 1010b, @@PRINT_SEG
+    CMPJNE      MODE, 000b, @@PRINT_SS
+    CMPJE       INDEX, 1010b, @@PRINT_SS  
     JMP         SHORT @@PRINT_SEG
 @@MODRM16:
-    CMP         BH, 0100b
-    JE          SHORT @@PRINT_SS
-    CMP         BH, 0110b
-    JE          SHORT @@PRINT_SS
-    CMP         MODE, 000b
-    JE          SHORT @@PRINT_SEG
-    CMP         BH, 1100b
-    JNE         SHORT @@PRINT_SEG
+    CMPJE       BH, 0100b, @@PRINT_SS
+    CMPJE       BH, 0110b, @@PRINT_SS
+    CMPJE       MODE, 000b, @@PRINT_SEG
+    CMPJNE      BH, 1100b, @@PRINT_SEG
 @@PRINT_SS:
     MOV         BL, VAL_SS
 @@PRINT_SEG:
@@ -545,69 +509,54 @@ INSERT_OP_IN_STRING PROC ; DL = Operand
     MOV         SI, SEG_REGS[BX-2]
     CALL        INS_STR
     PUT_CHAR    "["
-    CMP         MODE, 000b
-    JNE         SHORT @@EA_NORMAL
-    CMP         ADDR_OVR, 1
-    JE          SHORT @@MODRM32
-    CMP         RM, 1100b
-    JE          @@PRINT_DISP
-    JMP         SHORT @@EA_NORMAL
+    CMPJNE      MODE, 000b, @@EA_NORMAL
+    CMPJE       ADDR_OVR, 1, @@MODRM32
+    CMPJNE      RM, 1100b, @@EA_NORMAL
+    JMP         @@PRINT_DISP
 @@MODRM32:
     CMP         RM, 1010b
     JE          @@PRINT_DISP       
 @@EA_NORMAL:
-    CMP         ADDR_OVR, 2
-    JNE         @@NO_SIB
-    CMP         BASE, 1010b
-    JNE         @@NO_EBP_BASE
-    CMP         MODE, 000b
-    JE          @@NO_BASE
+    CMPJNE      ADDR_OVR, 2, @@NO_SIB
+    CMPJNE      BASE, 1010b, @@NO_EBP_BASE
+    CMPJE       MODE, 000b, @@NO_BASE
 @@NO_EBP_BASE:
     MOVZX       BX, BASE
     ADD         BL, REG_SHIFT
     MOV         SI, REGISTERS[BX]
     CALL        INS_STR
-    CMP         INDEX, 1000b
-    JE          SHORT @@SIB_INDEX_NONE
+    CMPJE       INDEX, 1000b, @@SIB_INDEX_NONE
     PUT_CHAR    "+"
 @@NO_BASE:
     MOVZX       BX, INDEX
     ADD         BL, REG_SHIFT
     MOV         SI, REGISTERS[BX]
     CALL        INS_STR
-    CMP         SCALE, 000b
-    JE          @@CHECK_MODE
+    CMPJE       SCALE, 000b, @@CHECK_MODE
     PUT_CHAR    "*"
     MOV         DL, "0"
     ADD         DL, SCALE
     PUT_CHAR    DL
 @@SIB_INDEX_NONE:
-    CMP         BASE, 1010b
-    JNE         @@CHECK_MODE
-    CMP         MODE, 000b
+    CMPJNE      BASE, 1010b, @@CHECK_MODE
     OR          DWORD PTR [DISP32], 0
     JNZ         SHORT @@SIB_DISP
     JMP         @@EA_END
 @@NO_SIB:
-    XOR         BH, BH
-    MOV         BL, RM
-    CMP         ADDR_OVR, 0
-    JE          SHORT @@EA16
+    MOVZX       BX, RM
+    CMPJE       ADDR_OVR, 0, @@EA16
     ADD         BL, EA_REG_SHIFT
 @@EA16:
     MOV         SI, EFFECTIVE_ADDRESSES[BX]
     CALL        INS_STR
 @@CHECK_MODE:
-    CMP         MODE, 000b
-    JE          SHORT @@EA_END
+    CMPJE       MODE, 000b, @@EA_END
 @@SIB_DISP:
     PUT_CHAR    "+"
 @@PRINT_DISP:
     MOV         AX, DISP
-    CMP         MODE, 010b
-    JE          SHORT @@PRINT_BYTE_DISP
-    CMP         ADDR_OVR, 0
-    JE          SHORT @@DISP16
+    CMPJE       MODE, 010b, @@PRINT_BYTE_DISP
+    CMPJE       ADDR_OVR, 0, @@DISP16
     PUSH        AX
     MOV         AX, DISP32
     STC 
@@ -645,8 +594,7 @@ INSERT_OP_IN_STRING PROC ; DL = Operand
     JMP         SHORT @@RETURN
 @@PRINT_REG:
     MOV         BL, REG
-    CMP         SIZE_OVR, 0
-    JE          SHORT @@PRINT_REG_NAME
+    CMPJE       SIZE_OVR, 0, @@PRINT_REG_NAME
     ADD         BL, REG_SHIFT    
 @@PRINT_REG_NAME:
     MOV         SI, REGISTERS[BX]
@@ -655,13 +603,12 @@ INSERT_OP_IN_STRING PROC ; DL = Operand
     RET
 INSERT_OP_IN_STRING ENDP
  
-DECODE_MODRM_SIB PROC 
+DECODE_MODR_SIB PROC 
     PUSH        AX DX 
     CALL        READ_BUFFER_BYTE
-    MOV         BX, OFFSET MODRM_BYTE
-    MOV         IS_MODRM_DECODED, 1    
-    CMP         ADDR_OVR, 2
-    JNE         SHORT @@NOT_SIB
+    MOV         BX, OFFSET MODR_BYTE
+    MOV         IS_MODR_DECODED, 1    
+    CMPJNE      ADDR_OVR, 2, @@NOT_SIB
     MOV         BX, OFFSET SIB_BYTE
 @@NOT_SIB:
     MOV         AL, DL
@@ -678,63 +625,50 @@ DECODE_MODRM_SIB PROC
     MOV         [BX + 2], AL
     POP         DX AX
     RET
-DECODE_MODRM_SIB ENDP
+DECODE_MODR_SIB ENDP
 
 READ_OPERAND PROC 
     CMP         AL, OP_REG16
     JAE         SHORT @@READ_MODRM
     CALL        READ_BUFFER_BYTE
     MOVSX       BX, DL
-    CMP         AL, OP_REL16
-    JNE         SHORT @@SAVE_IMM
+    CMPJNE      AL, OP_REL16, @@SAVE_IMM
     CALL        READ_BUFFER_BYTE
     MOV         BH, DL
 @@SAVE_IMM:
     MOV         IMM, BX
     JMP         @@RETURN
 @@READ_MODRM:
-    CMP         IS_MODRM_DECODED, 0
-    JNE         SHORT @@MODRM_DECODED
-    CALL        DECODE_MODRM_SIB ; MODRM
-@@MODRM_DECODED:
+    CMPJNE      IS_MODR_DECODED, 0, @@MODR_DECODED
+    CALL        DECODE_MODR_SIB ; MODRM
+@@MODR_DECODED:
     CMP         AL, OP_REG16
     JE          @@RETURN
-    CMP         MODE, 110b
-    JE          SHORT @@RETURN
-    CMP         ADDR_OVR, 0
-    JE          SHORT @@MODRM16
-    CMP         RM, 1000b     
-    JNE         SHORT @@MODRM16
+    CMPJE       MODE, 110b, @@RETURN
+    CMPJE       ADDR_OVR, 0, @@MODRM16
+    CMPJNE      RM, 1000b, @@MODRM16
     INC         ADDR_OVR
-    CALL        DECODE_MODRM_SIB   ; SIB
-    CMP         SCALE, 110b
-    JNE         SHORT @@MODRM16
+    CALL        DECODE_MODR_SIB   ; SIB
+    CMPJNE      SCALE, 110b, @@MODRM16
     MOV         SCALE, 1000b
 @@MODRM16:
     CMP         MODE, 010b
     JAE         SHORT @@READ_DISP
-    CMP         ADDR_OVR, 0
-    JE          SHORT @@DISP16
-    CMP         RM, 1010b
-    JE          SHORT @@READ_DISP
-    CMP         ADDR_OVR, 2
-    JNE         SHORT @@RETURN
-    CMP         BASE, 1010b
-    JE          SHORT @@READ_DISP
+    CMPJE       ADDR_OVR, 0, @@DISP16
+    CMPJE       RM, 1010b, @@READ_DISP
+    CMPJNE      ADDR_OVR, 2, @@RETURN
+    CMPJE       BASE, 1010b, @@READ_DISP
     JMP         SHORT @@RETURN
 @@DISP16:
-    CMP         RM, 1100b
-    JE          SHORT @@READ_DISP
+    CMPJE       RM, 1100b, @@READ_DISP
     JMP         SHORT @@RETURN
 @@READ_DISP:
     CALL        READ_BUFFER_BYTE
     MOV         BL, DL
-    CMP         MODE, 010b
-    JE          SHORT @@STORE_DISP
+    CMPJE       MODE, 010b, @@STORE_DISP
     CALL        READ_BUFFER_BYTE
     MOV         BH, DL
-    CMP         ADDR_OVR, 0
-    JE          SHORT @@STORE_DISP
+    CMPJE       ADDR_OVR, 0, @@STORE_DISP
     PUSH        BX
     CALL        READ_BUFFER_BYTE
     MOV         BL, DL
