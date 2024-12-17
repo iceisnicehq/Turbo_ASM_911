@@ -33,29 +33,29 @@ LOCALS @@
     DWORD_PTR               DB "d"
     WORD_PTR                DB "word ptr $"
 
-    REG_EAX                 DB "E"
-    REG_AX                  DB "AX$"
-    REG_ECX                 DB "E"  
-    REG_CX                  DB "CX$"
-    REG_EDX                 DB "E"
-    REG_DX                  DB "DX$"
-    REG_EBX                 DB "E"
-    REG_BX                  DB "BX$"
-    REG_ESP                 DB "E"
-    REG_SP                  DB "SP$"
-    REG_EBP                 DB "E"
-    REG_BP                  DB "BP$"
-    REG_ESI                 DB "E"
-    REG_SI                  DB "SI$"
-    REG_EDI                 DB "E"
-    REG_DI                  DB "DI$"
+    _EAX                    DB "E"
+    _AX                     DB "AX$"
+    _ECX                    DB "E"  
+    _CX                     DB "CX$"
+    _EDX                    DB "E"
+    _DX                     DB "DX$"
+    _EBX                    DB "E"
+    _BX                     DB "BX$"
+    _ESP                    DB "E"
+    _SP                     DB "SP$"
+    _EBP                    DB "E"
+    _BP                     DB "BP$"
+    _ESI                    DB "E"
+    _SI                     DB "SI$"
+    _EDI                    DB "E"
+    _DI                     DB "DI$"
 
-    SEG_ES                  DB "ES:$"
-    SEG_CS                  DB "CS:$"
-    SEG_SS                  DB "SS:$"
-    SEG_DS                  DB "DS:$"
-    SEG_FS                  DB "FS:$"
-    SEG_GS                  DB "GS:$"
+    _ES                     DB "ES:$"
+    _CS                     DB "CS:$"
+    _SS                     DB "SS:$"
+    _DS                     DB "DS:$"
+    _FS                     DB "FS:$"
+    _GS                     DB "GS:$"
 
     BX_SI                   DB "BX+SI$"
     BX_DI                   DB "BX+DI$"
@@ -63,14 +63,14 @@ LOCALS @@
     BP_DI                   DB "BP+DI$"
 
     LABEL EFFECTIVE_ADDRESSES
-                            DW BX_SI, BX_DI, BP_SI, BP_DI, REG_SI, REG_DI, REG_BP, REG_BX
+                            DW BX_SI, BX_DI, BP_SI, BP_DI, _SI, _DI, _BP, _BX
         
     LABEL REGISTERS
-                            DW REG_AX,  REG_CX,  REG_DX,  REG_BX,  REG_SP,  REG_BP,  REG_SI,  REG_DI
-                            DW REG_EAX, REG_ECX, REG_EDX, REG_EBX, REG_ESP, REG_EBP, REG_ESI, REG_EDI
+                            DW _AX,  _CX,  _DX,  _BX,  _SP,  _BP,  _SI,  _DI
+                            DW _EAX, _ECX, _EDX, _EBX, _ESP, _EBP, _ESI, _EDI
 
     LABEL SEG_REGS
-                            DW SEG_ES, SEG_CS, SEG_SS, SEG_DS, SEG_FS, SEG_GS
+                            DW _ES, _CS, _SS, _DS, _FS, _GS
 
     LABEL SIZE_OVR_PTRS
                             DW WORD_PTR, DWORD_PTR
@@ -86,7 +86,6 @@ LOCALS @@
         OP_REG16,
         OP_REGMEM16
     }
-
 
     _UNK                DB "Unknown inst$"
 
