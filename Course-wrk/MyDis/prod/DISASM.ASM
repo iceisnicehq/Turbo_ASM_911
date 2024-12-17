@@ -16,11 +16,11 @@ LOCALS @@
     MC_BUFFER_CAPACITY      EQU 45
     INS_BUFFER_CAPACITY     EQU 55
     RES_FILE_NAME           EQU "RESULT.ASM"
-    CO_FILE_NAME           EQU "COM.COM"
+    COM_FILE_NAME           EQU "COM.COM"
 
     RES_FILE                DB RES_FILE_NAME, 0
-    CO_FILE                DB CO_FILE_NAME, 0
-    ERR_MSG                 DB 'Error occurred. Make sure COM file is "', CO_FILE_NAME, '". Res_file will be "', RES_FILE_NAME, '"$'
+    COM_FILE                DB COM_FILE_NAME, 0
+    ERR_MSG                 DB 'Error occurred. Make sure COM file is "', COM_FILE_NAME, '". Res_file will be "', RES_FILE_NAME, '"$'
     SUCCESS_DIS             DB 'Result successfully written to file: ', RES_FILE_NAME, '$'
     IP_VALUE                DW 0FFh
 
@@ -246,7 +246,7 @@ START:
     MOV         DS, AX
     MOV         ES, AX
     MOV         AX, 3D00h          
-    MOV         DX, OFFSET CO_FILE
+    MOV         DX, OFFSET COM_FILE
     INT         21h
     JC          SHORT ERROR_EXIT
     MOV         COM_FILE_HANDLE, AX
