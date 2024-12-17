@@ -12,7 +12,7 @@ LOCALS @@
     VAL_DS                  EQU 8
     VAL_FS                  EQU 10
     VAL_GS                  EQU 12
-    DATA_BUFFER_CAPACITY    EQU 255
+    DATA_BUFFER_CAPACITY    EQU 512
     MC_BUFFER_CAPACITY      EQU 45
     INS_BUFFER_CAPACITY     EQU 55
     RES_FILE_NAME           EQU "RESULT.ASM"
