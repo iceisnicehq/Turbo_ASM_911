@@ -25,6 +25,7 @@
         BTC     [BP],AX
         BTC     [SI],AX
         BTC     [DI],AX
+        BTC     [BX + 0FEDCh], AX
         LOCK BTC     dword ptr [EAX+EBX*8+0A7654321H], 0FFH
         LOCK BTC     word ptr [EAX+EBP*8+87654321H],0FFH
         LOCK BTC     CS:[EAX+EBX*8+0B7654321H], EAX

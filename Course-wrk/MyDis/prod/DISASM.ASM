@@ -555,14 +555,16 @@ INSERT_OP_IN_STRING PROC ; DL = Operand
 @@PRINT_DISP:
     MOV         AX, DISP
     CMPJE       MODE, 010b, @@PRINT_BYTE_DISP
-    CMPJE       ADDR_OVR, 0, @@DISP16
+    CMP         ADDR_OVR, 0
+    STC
+    JE          SHORT @@DISP16
     PUSH        AX
     MOV         AX, DISP32
     STC 
     PUT_WORD_AX
     POP         AX
-@@DISP16:
     CLC
+@@DISP16:
     PUT_WORD_AX
     PUT_CHAR    "H"
     JMP         SHORT @@EA_END
