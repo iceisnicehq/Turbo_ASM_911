@@ -179,7 +179,7 @@ LOCALS @@
     DATA_INDEX                  DW ?
     DATA_BUFFER                 DB DATA_BUFFER_CAPACITY DUP (?) 
 
-    CO_FILE_HANDLE             DW ?
+    COM_FILE_HANDLE             DW ?
     RES_FILE_HANDLE             DW ?
 
     IMM                         DW ?
@@ -249,7 +249,7 @@ START:
     MOV         DX, OFFSET CO_FILE
     INT         21h
     JC          SHORT ERROR_EXIT
-    MOV         CO_FILE_HANDLE, AX
+    MOV         COM_FILE_HANDLE, AX
     MOV         AH, 3Ch
     XOR         CX, CX
     MOV         DX, OFFSET RES_FILE
@@ -352,7 +352,7 @@ RESET_BUFFER:
     JMP         DECODE_NEW_INSTRUC
 EXIT:
     MOV         AH, 3Eh
-    MOV         BX, CO_FILE_HANDLE
+    MOV         BX, COM_FILE_HANDLE
     INT         21h  
     MOV         BX, RES_FILE_HANDLE
     INT         21h 
@@ -428,7 +428,7 @@ READ_BUFFER_BYTE PROC
     CMP         AX, DATA_INDEX
     JA          SHORT @@CHECK_FILE_END
     MOV         AH, 3Fh
-    MOV         BX, CO_FILE_HANDLE 
+    MOV         BX, COM_FILE_HANDLE 
     MOV         CX, DATA_BUFFER_CAPACITY
     MOV         DX, OFFSET DATA_BUFFER
     INT         21h
