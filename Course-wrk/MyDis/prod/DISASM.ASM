@@ -36,12 +36,12 @@ LOCALS @@
             INS_EXT             DB ?
             SEG_OVR             DB ?
             HAS_PREFIX          DB ?
-            IS_MODR_DECODED     DB ?
+            IS_MODRM_DECODED    DB ?
         LABEL SIB_BYTE
             SCALE               DB ?
             INDEX               DB ?
             BASE                DB ?
-        LABEL MODR_BYTE
+        LABEL MODRM_BYTE
             MODE                DB ?
             REG                 DB ?
             RM                  DB ?
@@ -407,9 +407,9 @@ INSERT_IN_STRING PROC ; DL = Operand
     JE          @@PRINT_REG
     CMPJNE      MODE, 110b, @@EFFECTIVE_ADDRESSING
     MOV         BL, RM
-    CMPJE       SIZE_OVR, 0, @@PRINT_MODR_REG
+    CMPJE       SIZE_OVR, 0, @@PRINT_MODRM_REG
     ADD         BL, REG_SHIFT
-@@PRINT_MODR_REG:
+@@PRINT_MODRM_REG:
     MOV         SI, REGISTERS[BX]
     CALL        INS_STR
     JMP         @@RETURN
@@ -544,11 +544,11 @@ INSERT_IN_STRING PROC ; DL = Operand
     RET
 INSERT_IN_STRING ENDP
  
-DECODE_MODR_SIB PROC 
+DECODE_MODRM_SIB PROC 
     PUSH        AX DX 
     CALL        READ_BUFFER_BYTE
-    MOV         BX, OFFSET MODR_BYTE
-    MOV         IS_MODR_DECODED, 1    
+    MOV         BX, OFFSET MODRM_BYTE
+    MOV         IS_MODRM_DECODED, 1    
     CMPJNE      ADDR_OVR, 2, @@NOT_SIB
     MOV         BX, OFFSET SIB_BYTE
 @@NOT_SIB:
@@ -566,7 +566,7 @@ DECODE_MODR_SIB PROC
     MOV         [BX + 2], AL
     POP         DX AX
     RET
-DECODE_MODR_SIB ENDP
+DECODE_MODRM_SIB ENDP
 
 READ_OPERAND PROC 
     CMP         AL, REG16
@@ -580,16 +580,16 @@ READ_OPERAND PROC
     MOV         IMM, BX
     JMP         @@RETURN
 @@READ_MODRM:
-    CMPJNE      IS_MODR_DECODED, 0, @@MODR_DECODED
-    CALL        DECODE_MODR_SIB ; MODRM
-@@MODR_DECODED:
+    CMPJNE      IS_MODRM_DECODED, 0, @@MODRM_DECODED
+    CALL        DECODE_MODRM_SIB ; MODRM
+@@MODRM_DECODED:
     CMP         AL, REG16
     JE          @@RETURN
     CMPJE       MODE, 110b, @@RETURN
     CMPJE       ADDR_OVR, 0, @@MODRM16
     CMPJNE      RM, 1000b, @@MODRM16
     INC         ADDR_OVR
-    CALL        DECODE_MODR_SIB   ; SIB
+    CALL        DECODE_MODRM_SIB   ; SIB
     CMPJNE      SCALE, 110b, @@MODRM16
     MOV         SCALE, 1000b
 @@MODRM16:
