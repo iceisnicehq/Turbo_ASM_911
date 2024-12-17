@@ -231,13 +231,13 @@ PUT_CHAR       MACRO  CHAR
 ENDM
 
 CMPJNE         MACRO   OP1, OP2, JMP_LABEL
-CMP         OP1, OP2
-JNE         SHORT JMP_LABEL
+    CMP         OP1, OP2
+    JNE         SHORT JMP_LABEL
 ENDM
 
 CMPJE          MACRO   OP1, OP2, JMP_LABEL
-CMP         OP1, OP2
-JE          SHORT JMP_LABEL
+    CMP         OP1, OP2
+    JE          SHORT JMP_LABEL
 ENDM
 
 START:
