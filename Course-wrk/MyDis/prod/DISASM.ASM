@@ -5,9 +5,7 @@ LOCALS @@
 .STACK 100h
 .DATA
 
-    INSTRUC STRUC METHOD {
-        decode:word = READ_OPERAND
-    }
+    INSTRUC STRUC
         MNEM                DW ?
         I_TYPE              DB ?
         OP1                 DB ?
@@ -84,15 +82,7 @@ LOCALS @@
     LABEL SIZE_OVR_PTRS
                             DW DWORD_PTR+1, DWORD_PTR
 
-
-    INS_OPERANDS ENUM {
-        NONE,
-        IMM8,   
-        REL8, 
-        REL16,
-        REG16,
-        REGMEM16
-    }
+    INS_OPERANDS ENUM NONE, IMM8, REL8, REL16, REG16, REGMEM16
     
     IRP    char, <JO, JNO, JB, JNB, JZ, JNZ, JBE, JNBE, JS, JNS, JP, JNP, JL, JNL, JLE, JNLE, JCXZ, JECXZ>
          _&char  DB "&char"
@@ -105,18 +95,11 @@ LOCALS @@
     _LOCK               DB "LOCK $"
     _BTC                DB "BTC     $"
 
-    TYPES ENUM {
-        TYPE_ADDR_OVR = 1,
-        TYPE_SIZE_OVR,
-        TYPE_EXT,
-        TYPE_SEG_OVR,
-        TYPE_PREFIX,
-        TYPE_UNKNOWN,
-        TYPE_JCC_BTC,
-        TYPE_JCXZ,
-        TYPE_AAD
-    }
-
+    VAL = 1
+    IRP  T, <ADDR_OVR, SIZE_OVR, EXT, SEG_OVR, PREFIX, UNKNOWN, JCC_BTC, JCXZ, AAD>
+        TYPE_&T = VAL
+        VAL = VAL + 1
+    ENDM
 
     UNK        INSTRUC <_UNK,  TYPE_UNKNOWN, NONE,  NONE> ; 
     PREF_0F    INSTRUC <NONE,  TYPE_EXT,     NONE,  NONE> ; 0Fh
@@ -249,15 +232,11 @@ ANALYZE_OPERANDS:
     JMP         SHORT PRINT_TO_FILE
 READ_OPERANDS:
     MOV         AL, CURR_INSTRUC.OP1
-    CALL        CURR_INSTRUC METHOD INSTRUC:decode
+    CALL        READ_OPERAND
     MOV         AL, CURR_INSTRUC.OP2
     OR          AL, AL
     JE          NO_OP2
-    CALL        CURR_INSTRUC METHOD INSTRUC:decode
-    ; MOV         AL, CURR_INSTRUC.OP2
-    ; OR          AL, AL
-    ; JZ          SHORT NO_OP2
-    ; CALL        READ_OPERAND
+    CALL        READ_OPERAND
 NO_OP2:
     MOV         AL, CURR_INSTRUC.OP1
     CALL        INSERT_IN_STRING
