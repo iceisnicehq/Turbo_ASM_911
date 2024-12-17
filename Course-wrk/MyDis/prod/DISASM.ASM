@@ -4,6 +4,16 @@ LOCALS @@
 .386
 .STACK 100h
 .DATA
+
+    INSTRUC STRUC METHOD {
+        decode:word = READ_OPERAND
+    }
+        MNEM                DW ?
+        I_TYPE              DB ?
+        OP1                 DB ?
+        OP2                 DB ?
+    ENDS
+
     REG_SHIFT               EQU 16
     EA_REG_SHIFT            EQU REG_SHIFT*2
 
@@ -22,6 +32,22 @@ LOCALS @@
     IP_BUFFER               DB "0000H:  "
     MC_BUFFER               DB MC_BUFFER_CAPACITY DUP (" ")
     INS_BUFFER              DB INS_BUFFER_CAPACITY DUP ("$")
+        LABEL PREF_BYTES
+            ADDR_OVR            DB ?
+            SIZE_OVR            DB ?
+            INS_EXT             DB ?
+            SEG_OVR             DB ?
+            HAS_PREFIX          DB ?
+            IS_MODR_DECODED     DB ?
+        LABEL SIB_BYTE
+            SCALE               DB ?
+            INDEX               DB ?
+            BASE                DB ?
+        LABEL MODR_BYTE
+            MODE                DB ?
+            REG                 DB ?
+            RM                  DB ?
+    PREF_BYTES_NUM          EQU $ - PREF_BYTES
     INSTRUC_END_PTR         DW INS_BUFFER   
     MC_END_PTR              DW MC_BUFFER
     
@@ -37,7 +63,9 @@ LOCALS @@
         VAL_&char = VAL
          _&char  DB "&char", ":$"
         VAL = VAL + 2
+        INS_&char INSTRUC <VAL_&char, TYPE_SEG_OVR, NONE, NONE>
     ENDM
+
     BX_SI                   DB "BX+SI$"
     BX_DI                   DB "BX+DI$"
     BP_SI                   DB "BP+SI$"
@@ -69,15 +97,13 @@ LOCALS @@
     IRP    char, <JO, JNO, JB, JNB, JZ, JNZ, JBE, JNBE, JS, JNS, JP, JNP, JL, JNL, JLE, JNLE, JCXZ, JECXZ>
          _&char  DB "&char"
          LEN = $ - _&char
-         DB 8 - LEN dup (' '), "$"
+                DB 8 - LEN dup (' '), "$"
     ENDM
 
     _UNK                DB "???$"
     _AAD                DB "AAD$"
     _LOCK               DB "LOCK $"
     _BTC                DB "BTC     $"
-
-   
 
     TYPES ENUM {
         TYPE_ADDR_OVR = 1,
@@ -91,55 +117,38 @@ LOCALS @@
         TYPE_AAD
     }
 
-    INSTRUC STRUC METHOD {
-        decode:word = READ_OPERAND
-    }
-        MNEM                DW ?
-        I_TYPE              DB ?
-        OP1                 DB ?
-        OP2                 DB ?
-    ENDS
 
-    INSTRUC_UNK MACRO count
-        INSTRUC count dup  (<   _UNK,    TYPE_UNKNOWN,   NONE,       NONE         >)
-    ENDM
+    UNK        INSTRUC <_UNK,  TYPE_UNKNOWN, NONE,  NONE> ; 
+    PREF_0F    INSTRUC <NONE,  TYPE_EXT,     NONE,  NONE> ; 0Fh
+    INS_SIZE   INSTRUC <NONE,  TYPE_SIZE_OVR,NONE,  NONE> ; 66h
+    INS_ADDR   INSTRUC <NONE,  TYPE_ADDR_OVR,NONE,  NONE> ; 67h
+IRP     MNM, <JO, JNO, JB, JNB, JZ, JNZ, JBE, JNBE, JS, JNS, JP, JNP, JL, JNL, JLE, JNLE>
+    J8_&MNM    INSTRUC <_&MNM,TYPE_JCC_BTC, REL8,   NONE>  ; 70h-7fh
+    J16_&MNM   INSTRUC <_&MNM,TYPE_JCC_BTC, REL16,  NONE>  ; 80h-8fh
+ENDM
+    BTC_BA     INSTRUC <_BTC, TYPE_JCC_BTC, REGMEM16, IMM8> ; BAh
+    BTC_BB     INSTRUC <_BTC, TYPE_JCC_BTC, REGMEM16,REG16> ; BBh 
+    INS_AAD    INSTRUC <_AAD, TYPE_AAD,     NONE,     NONE> ; D5h
+    INS_JCXZ   INSTRUC <_JCXZ,TYPE_JCXZ,    REL8,     NONE> ; E3h  (JECXZ)
+    INS_LOCK   INSTRUC <_LOCK,TYPE_PREFIX,  NONE,     NONE> ; F0h
 
-    LABEL INSTRUC_SET
-        INSTRUC_UNK     0Fh
-        INSTRUC             <   NONE,        TYPE_EXT,        NONE,       NONE         > ; 0Fh
-        INSTRUC_UNK     16h 
-        INSTRUC             <   VAL_ES,         TYPE_SEG_OVR,    NONE,       NONE         > ; 26h
-        INSTRUC_UNK     07h 
-        INSTRUC             <   VAL_CS,         TYPE_SEG_OVR,    NONE,       NONE         > ; 2Eh
-        INSTRUC_UNK     07h 
-        INSTRUC             <   VAL_SS,         TYPE_SEG_OVR,    NONE,       NONE         > ; 36h
-        INSTRUC_UNK     07h 
-        INSTRUC             <   VAL_DS,         TYPE_SEG_OVR,    NONE,       NONE         > ; 3Eh
-        INSTRUC_UNK     25h 
-        INSTRUC             <   VAL_FS,         TYPE_SEG_OVR,    NONE,       NONE         > ; 64h
-        INSTRUC             <   VAL_GS,         TYPE_SEG_OVR,    NONE,       NONE         > ; 65h
-        INSTRUC             <   NONE,        TYPE_SIZE_OVR,   NONE,       NONE         > ; 66h
-        INSTRUC             <   NONE,        TYPE_ADDR_OVR,   NONE,       NONE         > ; 67h
-        INSTRUC_UNK     08h
-                  ; 70h     71h  72h    73h   74h   75h    76h      77h   78h    79h   7Ah    7Bh   7Ch    7Dh    7Eh     7Fh
-    IRP     MNEM, <JO, JNO, JB, JNB, JZ, JNZ, JBE, JNBE, JS, JNS, JP, JNP, JL, JNL, JLE, JNLE>
-        INSTRUC             <   _&MNEM,           TYPE_JCC_BTC,    REL8,       NONE         >
-    ENDM
-                  ; 80h     81h  72h    83h   84h   85h    86h      87h   88h    89h   8Ah    8Bh   8Ch    8Dh    8Eh     8Fh
-    IRP     MNEM, <JO, JNO, JB, JNB, JZ, JNZ, JBE, JNBE, JS, JNS, JP, JNP, JL, JNL, JLE, JNLE>
-        INSTRUC             <   _&MNEM,           TYPE_JCC_BTC,    REL16,       NONE         >
-    ENDM
-        INSTRUC_UNK     2Ah
-        INSTRUC             <   _BTC,          TYPE_JCC_BTC,    REGMEM16,   IMM8         > ; BAh
-        INSTRUC             <   _BTC,          TYPE_JCC_BTC,    REGMEM16,   REG16        > ; BBh 
-        INSTRUC_UNK     19h
-        INSTRUC             <   _AAD,          TYPE_AAD,        NONE,       NONE         > ; D5h
-        INSTRUC_UNK     0Dh
-        INSTRUC             <   _JCXZ,         TYPE_JCXZ,       REL8,       NONE         > ; E3h  (JECXZ)
-        INSTRUC_UNK     0Ch
-        INSTRUC             <   _LOCK,         TYPE_PREFIX,     NONE,       NONE         > ; F0h
-        INSTRUC_UNK     0Fh
-
+LABEL INSTRUCTION_SET_ARRAY 
+; INDEXES   00h                0Fh                     26Eh                   2Eh
+            DW 0Fh DUP (UNK),  PREF_0F, 16h DUP (UNK), INS_ES, 07h DUP (UNK), INS_CS
+; INDEXES                      36h                     3Eh                    64h
+            DW 07h DUP (UNK),  INS_SS,  07h DUP (UNK), INS_DS, 25h DUP (UNK), INS_FS
+; INDEXES      65h             66h       67h                      70h    71h     72h 
+            DW INS_GS,         INS_SIZE, INS_ADDR, 08h DUP (UNK), J8_JO, J8_JNO, J8_JB
+; INDEXES      73h     74h    75h     76h     77h      78h    79h     7Ah    7Bh     7Ch
+            DW J8_JNB, J8_JZ, J8_JNZ, J8_JBE, J8_JNBE, J8_JS, J8_JNS, J8_JP, J8_JNP, J8_JL
+; INDEXES      7Dh     7Eh     7F       80h     81h      82h     83h      84h     85h
+            DW J8_JNL, J8_JLE, J8_JNLE, J16_JO, J16_JNO, J16_JB, J16_JNB, J16_JZ, J16_JNZ
+; INDEXES      86h      87h       88h     89h      8Ah     8Bh      8Ch     8Dh      8Eh     
+            DW J16_JBE, J16_JNBE, J16_JS, J16_JNS, J16_JP, J16_JNP, J16_JL, J16_JNL, J16_JLE 
+; INDEXES      8Fh                      BAh     BBh                    D5h
+            DW J16_JNLE, 2Ah DUP (UNK), BTC_BA, BTC_BB, 19h DUP (UNK), INS_AAD, 0Dh DUP (UNK)
+; INDEXES      E3h                      F0h
+            DW INS_JCXZ, 0Ch DUP (UNK), INS_LOCK, 0Fh DUP (UNK)
     DATA_SIZE                   DW ?                            
     DATA_INDEX                  DW ?
     DATA_BUFFER                 DB DATA_BUFFER_CAPACITY DUP (?) 
@@ -151,27 +160,7 @@ LOCALS @@
     DISP32                      DW ?
     DISP                        DW ?
 
-    LABEL CURR_INSTRUC
-        INSTRUC <>
-
-    LABEL PREF_BYTES
-        LABEL ADDR_SIZE WORD 
-            ADDR_OVR            DB ?
-            SIZE_OVR            DB ?
-        LABEL EXT_SEG  WORD 
-            INS_EXT             DB ?
-            SEG_OVR             DB ?
-        LABEL PREF_MODRM WORD 
-            HAS_PREFIX          DB ?
-            IS_MODR_DECODED     DB ?
-        LABEL SIB_BYTE
-            SCALE               DB ?
-            INDEX               DB ?
-            BASE                DB ?
-        LABEL MODR_BYTE
-            MODE                DB ?
-            REG                 DB ?
-            RM                  DB ?
+    CURR_INSTRUC INSTRUC <>
 
 .CODE
 
@@ -221,16 +210,14 @@ DECODE_NEW_INSTRUC:
     INT         21h
     JMP         EXIT
 LOAD_INSTRUC:
-    MOV         AX, SIZE INSTRUC
-    MOV         CX, AX
-    MUL         DL
-    MOV         SI, OFFSET INSTRUC_SET
-    ADD         SI, AX
+    MOV         CX, SIZE INSTRUC
+    SHL         DX, 1
+    MOV         SI, DX
+    MOV         SI, INSTRUCTION_SET_ARRAY[SI]
     MOV         DI, OFFSET CURR_INSTRUC
     REP         MOVSB
-    MOVZX       AX, HAS_PREFIX
-    OR          AX, ADDR_SIZE
-    OR          AX, EXT_SEG
+    MOVZX       EAX, HAS_PREFIX
+    OR          EAX, DWORD PTR [PREF_BYTES]
     JNZ         SHORT CHECK_PREFIX_TYPE
 PRINT_OFFSET:
     MOV         BX, OFFSET IP_BUFFER
@@ -300,9 +287,9 @@ RESET_BUFFER:
     MOV         CX, INS_BUFFER_CAPACITY
     MOV         AL, "$"
     REP STOSB
-    MOV         ADDR_SIZE, 0
-    MOV         EXT_SEG, 0
-    MOV         PREF_MODRM, 0
+    MOV         CX, PREF_BYTES_NUM
+    XOR         AL, AL
+    REP STOSB
     JMP         DECODE_NEW_INSTRUC
 EXIT:
     MOV         AH, 3Eh
@@ -313,7 +300,7 @@ EXIT:
     MOV         AX, 4C00h
     INT         21h
 
-;--------;PROCS--------;
+;--------PROCS--------;
 PUT_BYTE_AL     PROC
     XOR         AH, AH
     MOV         BX, INSTRUC_END_PTR
