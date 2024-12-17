@@ -15,9 +15,9 @@ LOCALS @@
     REG_SHIFT               EQU 16
     EA_REG_SHIFT            EQU REG_SHIFT*2
 
-    DATA_BUFFER_CAPACITY    EQU 512
-    MC_BUFFER_CAPACITY      EQU 45
-    INS_BUFFER_CAPACITY     EQU 55
+    BYTES_IN_BUFFER         EQU 512
+    MACHINE_CODE_CHARS      EQU 45
+    INSTRUCTION_CHARS       EQU 55
     RES_FILE_NAME           EQU "RESULT.ASM"
     COM_FILE_NAME           EQU "COM.COM"
 
@@ -28,8 +28,8 @@ LOCALS @@
     IP_VALUE                DW 0FFh
 
     IP_BUFFER               DB "0000H:  "
-    MC_BUFFER               DB MC_BUFFER_CAPACITY DUP (" ")
-    INS_BUFFER              DB INS_BUFFER_CAPACITY DUP ("$")
+    MC_BUFFER               DB MACHINE_CODE_CHARS DUP (" ")
+    INS_BUFFER              DB INSTRUCTION_CHARS DUP ("$")
         LABEL PREF_BYTES
             ADDR_OVR            DB ?
             SIZE_OVR            DB ?
@@ -134,7 +134,7 @@ LABEL INSTRUCTION_SET_ARRAY
             DW INS_JCXZ, 0Ch DUP (UNK), INS_LOCK, 0Fh DUP (UNK)
     DATA_SIZE                   DW ?                            
     DATA_INDEX                  DW ?
-    DATA_BUFFER                 DB DATA_BUFFER_CAPACITY DUP (?) 
+    DATA_BUFFER                 DB BYTES_IN_BUFFER DUP (?) 
 
     COM_FILE_HANDLE             DW ?
     RES_FILE_HANDLE             DW ?
@@ -259,11 +259,11 @@ PRINT_TO_FILE:
 RESET_BUFFER:
     MOV         DI, OFFSET MC_BUFFER
     MOV         MC_END_PTR, DI
-    MOV         CX, MC_BUFFER_CAPACITY
+    MOV         CX, MACHINE_CODE_CHARS
     MOV         AL, " "
     REP STOSB
     MOV         INSTRUC_END_PTR, DI
-    MOV         CX, INS_BUFFER_CAPACITY
+    MOV         CX, INSTRUCTION_CHARS
     MOV         AL, "$"
     REP STOSB
     MOV         CX, PREF_BYTES_NUM
@@ -368,7 +368,7 @@ READ_BUFFER_BYTE PROC
     JA          SHORT @@CHECK_FILE_END
     MOV         AH, 3Fh
     MOV         BX, COM_FILE_HANDLE 
-    MOV         CX, DATA_BUFFER_CAPACITY
+    MOV         CX, BYTES_IN_BUFFER
     MOV         DX, OFFSET DATA_BUFFER
     INT         21h
     MOV         DATA_SIZE, AX 
