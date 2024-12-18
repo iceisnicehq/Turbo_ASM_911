@@ -30,21 +30,21 @@ LOCALS @@
     IP_BUFFER               DB "0000H:  "
     MC_BUFFER               DB MACHINE_CODE_CHARS DUP (" ")
     INS_BUFFER              DB INSTRUCTION_CHARS DUP ("$")
-        LABEL PREF_BYTES
-            ADDR_OVR            DB ?
-            SIZE_OVR            DB ?
-            INS_EXT             DB ?
-            SEG_OVR             DB ?
-            HAS_PREFIX          DB ?
-            IS_MODRM_DECODED    DB ?
-        LABEL SIB_BYTE
-            SCALE               DB ?
-            INDEX               DB ?
-            BASE                DB ?
-        LABEL MODRM_BYTE
-            MODE                DB ?
-            REG                 DB ?
-            RM                  DB ?
+    LABEL PREF_BYTES
+        ADDR_OVR            DB ?
+        SIZE_OVR            DB ?
+        INS_EXT             DB ?
+        SEG_OVR             DB ?
+        HAS_PREFIX          DB ?
+        IS_MODRM_DECODED    DB ?
+    LABEL SIB_BYTE
+        SCALE               DB ?
+        INDEX               DB ?
+        BASE                DB ?
+    LABEL MODRM_BYTE
+        MODE                DB ?
+        REG                 DB ?
+        RM                  DB ?
     PREF_BYTES_NUM          EQU $ - PREF_BYTES
     INSTRUC_END_PTR         DW INS_BUFFER   
     MC_END_PTR              DW MC_BUFFER
@@ -52,16 +52,16 @@ LOCALS @@
     DWORD_PTR               DB "dword ptr $"
 
 
-    IRP    char, <AX, CX, DX, BX, SP, BP, SI, DI>
-         _E&char DB "E"
-         _&char  DB "&char", "$"
+    IRP    CHAR, <AX, CX, DX, BX, SP, BP, SI, DI>
+         _E&CHAR DB "E"
+         _&CHAR  DB "&CHAR", "$"
     ENDM
     VAL = 2
-    IRP    char, <ES, CS, SS, DS, FS, GS>
-        VAL_&char = VAL
-         _&char  DB "&char", ":$"
+    IRP    CHAR, <ES, CS, SS, DS, FS, GS>
+        VAL_&CHAR = VAL
+         _&CHAR  DB "&CHAR", ":$"
         VAL = VAL + 2
-        INS_&char INSTRUC <VAL_&char, TYPE_SEG_OVR, NONE, NONE>
+        INS_&CHAR INSTRUC <VAL_&CHAR, TYPE_SEG_OVR, NONE, NONE>
     ENDM
 
     BX_SI                   DB "BX+SI$"
@@ -84,12 +84,12 @@ LOCALS @@
 
     INS_OPERANDS ENUM NONE, IMM8, REL8, REL16, REG16, REGMEM16
     
-    IRP    char, <JO, JNO, JB, JNB, JZ, JNZ, JBE, JNBE, JS, JNS, JP, JNP, JL, JNL, JLE, JNLE>
-         _&char  DB "&char"
-         LEN = $ - _&char
+    IRP    CHAR, <JO, JNO, JB, JNB, JZ, JNZ, JBE, JNBE, JS, JNS, JP, JNP, JL, JNL, JLE, JNLE>
+         _&CHAR  DB "&CHAR"
+         LEN = $ - _&CHAR
                 DB 8 - LEN dup (' '), "$"
-        J8_&char    INSTRUC <_&char,TYPE_JCC_BTC, REL8,   NONE>  ; 70h-7fh
-        J16_&char   INSTRUC <_&char,TYPE_JCC_BTC, REL16,  NONE>  ; 80h-8fh
+        J8_&CHAR    INSTRUC <_&CHAR,TYPE_JCC_BTC, REL8,   NONE>  ; 70h-7fh
+        J16_&CHAR   INSTRUC <_&CHAR,TYPE_JCC_BTC, REL16,  NONE>  ; 80h-8fh
     ENDM
 
     _UNK                DB "???$"
@@ -116,7 +116,7 @@ LOCALS @@
     INS_LOCK   INSTRUC <_LOCK,TYPE_PREFIX,  NONE,     NONE> ; F0h
 
 LABEL INSTRUCTION_SET_ARRAY 
-; INDEXES   00h                0Fh                     26Eh                   2Eh
+; INDEXES      00h             0Fh                     26Eh                   2Eh
             DW 0Fh DUP (UNK),  PREF_0F, 16h DUP (UNK), INS_ES, 07h DUP (UNK), INS_CS
 ; INDEXES                      36h                     3Eh                    64h
             DW 07h DUP (UNK),  INS_SS,  07h DUP (UNK), INS_DS, 25h DUP (UNK), INS_FS
