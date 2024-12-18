@@ -227,24 +227,19 @@ CHECK_PREFIX_TYPE:
     CMP         CURR_INSTRUC.I_TYPE, TYPE_UNKNOWN
     JBE         DECODE_NEW_INSTRUC
 ANALYZE_OPERANDS:
-    CMPJNE      CURR_INSTRUC.I_TYPE, TYPE_AAD, READ_OPERANDS
+    CMPJNE      CURR_INSTRUC.I_TYPE, TYPE_AAD, READ_AND_PUT
     CALL        READ_BUFFER_BYTE
     JMP         SHORT PRINT_TO_FILE
-READ_OPERANDS:
+READ_AND_PUT:
     MOV         AL, CURR_INSTRUC.OP1
-    CALL        READ_OPERAND
+    CALL        READ_AND_PUT_OPS
+    ; CALL      INSERT_IN_STRING
     MOV         AL, CURR_INSTRUC.OP2
     OR          AL, AL
-    JE          NO_OP2
-    CALL        READ_OPERAND
-NO_OP2:
-    MOV         AL, CURR_INSTRUC.OP1
-    CALL        INSERT_IN_STRING
-    MOV         AL, CURR_INSTRUC.OP2
-    OR          AL, AL
-    JZ          SHORT PRINT_TO_FILE
+    JE          SHORT PRINT_TO_FILE
     PUT_CHAR    ","
-    CALL        INSERT_IN_STRING
+    CALL        READ_AND_PUT_OPS
+    ; CALL      INSERT_IN_STRING
 PRINT_TO_FILE:
     MOV         BX, INSTRUC_END_PTR
     MOV         WORD PTR [BX], 0A0Dh
@@ -282,21 +277,14 @@ EXIT:
 ;--------PROCS--------;
 PUT_BYTE_AL     PROC
     XOR         AH, AH
-    MOV         BX, INSTRUC_END_PTR
     XOR         DL, DL
     STC
-    CALL        PUT_HEX_TO_STR_BX
-    MOV         INSTRUC_END_PTR, BX
-    RET
-ENDP
-
-PUT_WORD_AX    PROC
+PUT_WORD_AX: 
     MOV         BX, INSTRUC_END_PTR
-    MOV         DL, 1
     CALL        PUT_HEX_TO_STR_BX
     MOV         INSTRUC_END_PTR, BX
     RET
-ENDP
+PUT_BYTE_AL    ENDP
 
 INS_STR PROC ; SI = pointer to ASCII$ string
     MOV         DI, INSTRUC_END_PTR
@@ -398,26 +386,101 @@ READ_BUFFER_BYTE PROC
     POP         AX BX
     RET
 READ_BUFFER_BYTE ENDP
-     
-INSERT_IN_STRING PROC ; DL = Operand
+ 
+DECODE_MODRM_SIB PROC 
+    PUSH        AX DX 
+    CALL        READ_BUFFER_BYTE
+    MOV         BX, OFFSET MODRM_BYTE
+    MOV         IS_MODRM_DECODED, 1    
+    CMPJNE      ADDR_OVR, 2, @@NOT_SIB
+    MOV         BX, OFFSET SIB_BYTE
+@@NOT_SIB:
+    MOV         AL, DL
+    AND         AL, 11000000b
+    SHR         AL, 5
+    MOV         [BX], AL
+    MOV         AL, DL
+    AND         AL, 00111000b
+    SHR         AL, 2
+    MOV         [BX + 1], AL
+    MOV         AL, DL
+    AND         AL, 00000111b
+    SHL         AL, 1
+    MOV         [BX + 2], AL
+    POP         DX AX
+    RET
+DECODE_MODRM_SIB ENDP
+
+READ_AND_PUT_OPS PROC 
+    CMP         AL, REG16
+    JAE         SHORT @@READ_MODRM
+    CALL        READ_BUFFER_BYTE
+    MOVSX       BX, DL
+    CMPJNE      AL, REL16, @@SAVE_IMM
+    CALL        READ_BUFFER_BYTE
+    MOV         BH, DL
+@@SAVE_IMM:
+    MOV         IMM, BX
+    JMP         INSERT
+@@READ_MODRM:
+    CMPJNE      IS_MODRM_DECODED, 0, @@MODRM_DECODED
+    CALL        DECODE_MODRM_SIB ; MODRM
+@@MODRM_DECODED:
+    CMP         AL, REG16
+    JE          INSERT
+    CMPJE       MODE, 110b, INSERT
+    CMPJE       ADDR_OVR, 0, @@MODRM16
+    CMPJNE      RM, 1000b, @@MODRM16
+    INC         ADDR_OVR
+    CALL        DECODE_MODRM_SIB   ; SIB
+    CMPJNE      SCALE, 110b, @@MODRM16
+    MOV         SCALE, 1000b
+@@MODRM16:
+    CMP         MODE, 010b
+    JAE         SHORT @@READ_DISP
+    CMPJE       ADDR_OVR, 0, @@DISP16
+    CMPJE       RM, 1010b, @@READ_DISP
+    CMPJNE      ADDR_OVR, 2, INSERT
+    CMPJE       BASE, 1010b, @@READ_DISP
+    JMP         SHORT INSERT
+@@DISP16:
+    CMPJE       RM, 1100b, @@READ_DISP
+    JMP         SHORT INSERT
+@@READ_DISP:
+    CALL        READ_BUFFER_BYTE
+    MOV         BL, DL
+    CMPJE       MODE, 010b, @@STORE_DISP
+    CALL        READ_BUFFER_BYTE
+    MOV         BH, DL
+    CMPJE       ADDR_OVR, 0, @@STORE_DISP
+    PUSH        BX
+    CALL        READ_BUFFER_BYTE
+    MOV         BL, DL
+    CALL        READ_BUFFER_BYTE
+    MOV         BH, DL
+    MOV         DISP32, BX
+    POP         BX
+@@STORE_DISP:
+    MOV         DISP, BX
+INSERT:
     XOR         BX, BX
     CMP         AL, REL16
-    JBE         @@PRINT_IMM8
+    JBE         PRINT_IMM8
     CMP         AL, REG16 
-    JE          @@PRINT_REG
-    CMPJNE      MODE, 110b, @@EFFECTIVE_ADDRESSING
+    JE          PRINT_REG
+    CMPJNE      MODE, 110b, EFFECTIVE_ADDRESSING
     MOV         BL, RM
-    CMPJE       SIZE_OVR, 0, @@PRINT_MODRM_REG
+    CMPJE       SIZE_OVR, 0, PRINT_MODRM_REG
     ADD         BL, REG_SHIFT
-@@PRINT_MODRM_REG:
+PRINT_MODRM_REG:
     MOV         SI, REGISTERS[BX]
     CALL        INS_STR
     JMP         @@RETURN
-@@EFFECTIVE_ADDRESSING:
+EFFECTIVE_ADDRESSING:
     CMPJE       CURR_INSTRUC.OP2, REG16, @@CHECK_SEG
-    CMPJE       SIZE_OVR, 0, @@EA_START
+    CMPJE       SIZE_OVR, 0, EA_START
     MOVZX       BX, SIZE_OVR
-@@EA_START:
+EA_START:
     MOV         SI, SIZE_OVR_PTRS[BX]
     CALL        INS_STR
 @@CHECK_SEG:
@@ -426,7 +489,7 @@ INSERT_IN_STRING PROC ; DL = Operand
     JNE         SHORT @@PRINT_SEG
     MOV         BL, VAL_DS
     MOV         BH, RM         
-    CMPJE       ADDR_OVR, 0, @@MODRM16
+    CMPJE       ADDR_OVR, 0, @@MODRM_16
     CMPJE       MODE, 000b, @@CHECK_SIB
     CMPJE       BH, 1010b, @@PRINT_SS
 @@CHECK_SIB:
@@ -436,7 +499,7 @@ INSERT_IN_STRING PROC ; DL = Operand
     CMPJNE      MODE, 000b, @@PRINT_SS
     CMPJE       INDEX, 1010b, @@PRINT_SS  
     JMP         SHORT @@PRINT_SEG
-@@MODRM16:
+@@MODRM_16:
     CMPJE       BH, 0100b, @@PRINT_SS
     CMPJE       BH, 0110b, @@PRINT_SS
     CMPJE       MODE, 000b, @@PRINT_SEG
@@ -451,10 +514,10 @@ INSERT_IN_STRING PROC ; DL = Operand
     CMPJNE      MODE, 000b, @@EA_NORMAL
     CMPJE       ADDR_OVR, 1, @@MODRM32
     CMPJNE      RM, 1100b, @@EA_NORMAL
-    JMP         @@PRINT_DISP
+    JMP         PRINT_DISP
 @@MODRM32:
     CMP         RM, 1010b
-    JE          @@PRINT_DISP       
+    JE          PRINT_DISP       
 @@EA_NORMAL:
     CMPJNE      ADDR_OVR, 2, @@NO_SIB
     CMPJNE      BASE, 1010b, @@NO_EBP_BASE
@@ -483,28 +546,30 @@ INSERT_IN_STRING PROC ; DL = Operand
     JMP         @@EA_END
 @@NO_SIB:
     MOVZX       BX, RM
-    CMPJE       ADDR_OVR, 0, @@EA16
+    CMPJE       ADDR_OVR, 0, EA16
     ADD         BL, EA_REG_SHIFT
-@@EA16:
+EA16:
     MOV         SI, EA_ADDRESS[BX]
     CALL        INS_STR
 @@CHECK_MODE:
     CMPJE       MODE, 000b, @@EA_END
 @@SIB_DISP:
     PUT_CHAR    "+"
-@@PRINT_DISP:
+PRINT_DISP:
     MOV         AX, DISP
     CMPJE       MODE, 010b, @@PRINT_BYTE_DISP
     CMP         ADDR_OVR, 0
     STC
-    JE          SHORT @@DISP16
+    JE          SHORT @@DISP_16
     PUSH        AX
     MOV         AX, DISP32
     STC 
+    MOV         DL, 1
     CALL        PUT_WORD_AX
     POP         AX
     CLC
-@@DISP16:
+@@DISP_16:
+    MOV         DL, 1
     CALL         PUT_WORD_AX
     PUT_CHAR    "H"
     JMP         SHORT @@EA_END
@@ -519,108 +584,30 @@ INSERT_IN_STRING PROC ; DL = Operand
 @@EA_END:
     PUT_CHAR    "]"
     JMP         SHORT @@RETURN
-@@PRINT_IMM8:
+PRINT_IMM8:
     CMP         AL, REL8
     MOV         AX, IMM
-    JAE         SHORT @@PRINT_REL
+    JAE         SHORT PRINT_REL
     CALL        PUT_BYTE_AL
     PUT_CHAR    "H"
     JMP         SHORT @@RETURN
-@@PRINT_REL:
+PRINT_REL:
     ADD         AX, IP_VALUE
     INC         AX
     STC
+    MOV         DL, 1
     CALL        PUT_WORD_AX
     PUT_CHAR    "H"
     JMP         SHORT @@RETURN
-@@PRINT_REG:
+PRINT_REG:
     MOV         BL, REG
-    CMPJE       SIZE_OVR, 0, @@PRINT_REG_NAME
+    CMPJE       SIZE_OVR, 0, PRINT_REG_NAME
     ADD         BL, REG_SHIFT    
-@@PRINT_REG_NAME:
+PRINT_REG_NAME:
     MOV         SI, REGISTERS[BX]
     CALL        INS_STR
 @@RETURN:
     RET
-INSERT_IN_STRING ENDP
- 
-DECODE_MODRM_SIB PROC 
-    PUSH        AX DX 
-    CALL        READ_BUFFER_BYTE
-    MOV         BX, OFFSET MODRM_BYTE
-    MOV         IS_MODRM_DECODED, 1    
-    CMPJNE      ADDR_OVR, 2, @@NOT_SIB
-    MOV         BX, OFFSET SIB_BYTE
-@@NOT_SIB:
-    MOV         AL, DL
-    AND         AL, 11000000b
-    SHR         AL, 5
-    MOV         [BX], AL
-    MOV         AL, DL
-    AND         AL, 00111000b
-    SHR         AL, 2
-    MOV         [BX + 1], AL
-    MOV         AL, DL
-    AND         AL, 00000111b
-    SHL         AL, 1
-    MOV         [BX + 2], AL
-    POP         DX AX
-    RET
-DECODE_MODRM_SIB ENDP
-
-READ_OPERAND PROC 
-    CMP         AL, REG16
-    JAE         SHORT @@READ_MODRM
-    CALL        READ_BUFFER_BYTE
-    MOVSX       BX, DL
-    CMPJNE      AL, REL16, @@SAVE_IMM
-    CALL        READ_BUFFER_BYTE
-    MOV         BH, DL
-@@SAVE_IMM:
-    MOV         IMM, BX
-    JMP         @@RETURN
-@@READ_MODRM:
-    CMPJNE      IS_MODRM_DECODED, 0, @@MODRM_DECODED
-    CALL        DECODE_MODRM_SIB ; MODRM
-@@MODRM_DECODED:
-    CMP         AL, REG16
-    JE          @@RETURN
-    CMPJE       MODE, 110b, @@RETURN
-    CMPJE       ADDR_OVR, 0, @@MODRM16
-    CMPJNE      RM, 1000b, @@MODRM16
-    INC         ADDR_OVR
-    CALL        DECODE_MODRM_SIB   ; SIB
-    CMPJNE      SCALE, 110b, @@MODRM16
-    MOV         SCALE, 1000b
-@@MODRM16:
-    CMP         MODE, 010b
-    JAE         SHORT @@READ_DISP
-    CMPJE       ADDR_OVR, 0, @@DISP16
-    CMPJE       RM, 1010b, @@READ_DISP
-    CMPJNE      ADDR_OVR, 2, @@RETURN
-    CMPJE       BASE, 1010b, @@READ_DISP
-    JMP         SHORT @@RETURN
-@@DISP16:
-    CMPJE       RM, 1100b, @@READ_DISP
-    JMP         SHORT @@RETURN
-@@READ_DISP:
-    CALL        READ_BUFFER_BYTE
-    MOV         BL, DL
-    CMPJE       MODE, 010b, @@STORE_DISP
-    CALL        READ_BUFFER_BYTE
-    MOV         BH, DL
-    CMPJE       ADDR_OVR, 0, @@STORE_DISP
-    PUSH        BX
-    CALL        READ_BUFFER_BYTE
-    MOV         BL, DL
-    CALL        READ_BUFFER_BYTE
-    MOV         BH, DL
-    MOV         DISP32, BX
-    POP         BX
-@@STORE_DISP:
-    MOV         DISP, BX
-@@RETURN:
-    RET
-READ_OPERAND ENDP
+READ_AND_PUT_OPS ENDP
 
     END START
