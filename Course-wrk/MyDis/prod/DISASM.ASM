@@ -235,7 +235,7 @@ ANALYZE_OPERANDS:
     JMP         SHORT PRINT_TO_FILE
 READ_AND_PUT:
     MOV         AL, CURR_INSTRUC.OP1
-    CALL        CURR_INSTRUC METHOD instruc:write_operand
+    CALL        WRITE_BUFFER
     MOV         AL, CURR_INSTRUC.OP2
     OR          AL, AL
     JE          SHORT PRINT_TO_FILE
