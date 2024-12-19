@@ -5,9 +5,7 @@ LOCALS @@
 .STACK 100h
 .DATA
 
-    INSTRUC STRUC METHOD {
-        write_operand:word = write_buffer
-    }
+    INSTRUC STRUC
         MNEM                DW ?
         I_TYPE              DB ?
         OP1                 DB ?
@@ -109,15 +107,15 @@ LOCALS @@
         VAL = VAL + 1
     ENDM
 
-    UNK        INSTRUC <_UNK,  TYPE_UNKNOWN, NONE,  NONE> ; 
-    PREF_0F    INSTRUC <NONE,  TYPE_EXT,     NONE,  NONE> ; 0Fh
-    INS_SIZE   INSTRUC <NONE,  TYPE_SIZE_OVR,NONE,  NONE> ; 66h
-    INS_ADDR   INSTRUC <NONE,  TYPE_ADDR_OVR,NONE,  NONE> ; 67h
-    BTC_BA     INSTRUC <_BTC, TYPE_JCC_BTC, REGMEM16, IMM8> ; BAh
-    BTC_BB     INSTRUC <_BTC, TYPE_JCC_BTC, REGMEM16,REG16> ; BBh 
-    INS_AAD    INSTRUC <_AAD, TYPE_AAD,     NONE,     NONE> ; D5h
-    INS_JCXZ   INSTRUC <_JCXZ,TYPE_JCXZ,    REL8,     NONE> ; E3h  (JECXZ)
-    INS_LOCK   INSTRUC <_LOCK,TYPE_PREFIX,  NONE,     NONE> ; F0h
+    UNK        INSTRUC <_UNK,  TYPE_UNKNOWN, NONE,     NONE> ; 
+    PREF_0F    INSTRUC <NONE,  TYPE_EXT,     NONE,     NONE> ; 0Fh
+    INS_SIZE   INSTRUC <NONE,  TYPE_SIZE_OVR,NONE,     NONE> ; 66h
+    INS_ADDR   INSTRUC <NONE,  TYPE_ADDR_OVR,NONE,     NONE> ; 67h
+    BTC_BA     INSTRUC <_BTC,  TYPE_JCC_BTC, REGMEM16, IMM8> ; BAh
+    BTC_BB     INSTRUC <_BTC,  TYPE_JCC_BTC, REGMEM16,REG16> ; BBh 
+    INS_AAD    INSTRUC <_AAD,  TYPE_AAD,     NONE,     NONE> ; D5h
+    INS_JCXZ   INSTRUC <_JCXZ, TYPE_JCXZ,    REL8,     NONE> ; E3h  (JECXZ)
+    INS_LOCK   INSTRUC <_LOCK, TYPE_PREFIX,  NONE,     NONE> ; F0h
 
 LABEL INSTRUCTION_SET_ARRAY 
 ; INDEXES      00h             0Fh                     26Eh                   2Eh
@@ -229,7 +227,8 @@ CHECK_PREFIX_TYPE:
     MOV         SI, CURR_INSTRUC.MNEM
     CALL        INS_STR
     CMP         CURR_INSTRUC.I_TYPE, TYPE_UNKNOWN
-    JBE         DECODE_NEW_INSTRUC
+    JE          PRINT_TO_FILE 
+    JB          DECODE_NEW_INSTRUC
 ANALYZE_OPERANDS:
     CMPJNE      CURR_INSTRUC.I_TYPE, TYPE_AAD, READ_AND_PUT
     CALL        READ_BUFFER_BYTE
@@ -241,13 +240,11 @@ READ_AND_PUT:
     OR          AL, AL
     JE          SHORT PRINT_TO_FILE
     PUT_CHAR    ","
-    CALL        CURR_INSTRUC METHOD instruc:write_operand
+    CALL        WRITE_BUFFER
 PRINT_TO_FILE:
     MOV         BX, MC_END_PTR
     MOV         WORD PTR [BX-1], 0A0Dh
     INC         BX
-    ; INC         BX
-    ; INC         BX
     MOV         BYTE PTR [BX], "$"
     MOV         CX, BX
     MOV         DX, OFFSET BUFF_START
@@ -416,7 +413,7 @@ DECODE_MODRM_SIB PROC
     RET
 DECODE_MODRM_SIB ENDP
 
-write_buffer PROC 
+WRITE_BUFFER PROC 
     CMP         AL, REG16
     JAE         SHORT @@READ_MODRM
     CALL        READ_BUFFER_BYTE
@@ -613,6 +610,6 @@ PRINT_REG_NAME:
     CALL        INS_STR
 @@RETURN:
     RET
-write_buffer ENDP
+WRITE_BUFFER ENDP
 
     END START
