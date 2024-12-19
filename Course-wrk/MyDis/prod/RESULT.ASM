@@ -1043,21 +1043,21 @@ _160FH:  JNL     _0100H                                              ; 0F 8D ED 
 _1613H:  JLE     _1715H                                              ; 0F 8E FE 00
 _1617H:  JNLE    _0100H                                              ; 0F 8F E5 EA
 _161BH:  JO      _161BH                                              ; 70 FE
-_161DH:  JNO     _1640H                                              ; 71 21
+_161DH:  JNO     _161BH                                              ; 71 FC
 _161FH:  JB      _161BH                                              ; 72 FA
-_1621H:  JNB     _1640H                                              ; 73 1D
+_1621H:  JNB     _161BH                                              ; 73 F8
 _1623H:  JZ      _161BH                                              ; 74 F6
-_1625H:  JNZ     _1640H                                              ; 75 19
+_1625H:  JNZ     _161BH                                              ; 75 F4
 _1627H:  JBE     _161BH                                              ; 76 F2
-_1629H:  JNBE    _1640H                                              ; 77 15
+_1629H:  JNBE    _161BH                                              ; 77 F0
 _162BH:  JS      _161BH                                              ; 78 EE
-_162DH:  JNS     _1640H                                              ; 79 11
+_162DH:  JNS     _161BH                                              ; 79 EC
 _162FH:  JP      _161BH                                              ; 7A EA
-_1631H:  JNP     _1640H                                              ; 7B 0D
+_1631H:  JNP     _161BH                                              ; 7B E8
 _1633H:  JL      _161BH                                              ; 7C E6
-_1635H:  JNL     _1640H                                              ; 7D 09
+_1635H:  JNL     _161BH                                              ; 7D E4
 _1637H:  JLE     _161BH                                              ; 7E E2
-_1639H:  JNLE    _1640H                                              ; 7F 05
+_1639H:  JNLE    _161BH                                              ; 7F E0
 _163BH:  JCXZ    _161BH                                              ; E3 DE
 _163DH:  JECXZ   _1640H                                              ; 67 E3 00
 _1640H:  LOCK BTC     DS:[EAX+EAX+00004321H],AX                      ; F0 67 0F BB 84 00 21 43 00 00

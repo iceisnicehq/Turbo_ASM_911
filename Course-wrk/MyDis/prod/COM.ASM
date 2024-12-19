@@ -1049,23 +1049,23 @@
         JNLE    START 
 JCC_REL8:
         JO      JCC_REL8
-        JNO     SHORT JCC_REL8F
+        JNO     JCC_REL8
         JB      JCC_REL8
-        JNB     SHORT JCC_REL8F
+        JNB     JCC_REL8
         JZ      JCC_REL8
-        JNZ     SHORT JCC_REL8F
+        JNZ     JCC_REL8
         JBE     JCC_REL8
-        JNBE    SHORT JCC_REL8F
+        JNBE    JCC_REL8
         JS      JCC_REL8
-        JNS     SHORT JCC_REL8F
+        JNS     JCC_REL8
         JP      JCC_REL8
-        JNP     SHORT JCC_REL8F
+        JNP     JCC_REL8
         JL      JCC_REL8
-        JNL     SHORT JCC_REL8F
+        JNL     JCC_REL8
         JLE     JCC_REL8
-        JNLE    SHORT JCC_REL8F
+        JNLE    JCC_REL8
         JCXZ    JCC_REL8
-        JECXZ   SHORT JCC_REL8F
+        JECXZ   JCC_REL8F
 JCC_REL8F:
         LOCK BTC     [EAX+EAX+00004321H],AX
         LOCK BTC     [EAX+EAX*2+00004321H],AX
