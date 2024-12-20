@@ -103,9 +103,9 @@ LABEL instruction_set_array
             DW J16_JNLE, 2Ah DUP (unk), btc_ba, btc_bb, 19h DUP (unk), aad_ins, 0Dh DUP (unk)
 ; INDEXES      E3h                      F0h
             DW jcxz_ins, 0Ch DUP (unk), lock_ins, 0Fh DUP (unk)
+
     instruc_buffer          DB INSTRUCTION_CHARS DUP (' '), "; "
     machine_code_buffer     DB MACHINE_CODE_CHARS DUP (' ')
- 
     instruc_end_ptr         DW instruc_buffer   
     mach_code_end_ptr       DW machine_code_buffer
  
@@ -154,7 +154,7 @@ ENDM
 
 NOT_SET   MACRO OP1, OP2, JMP_LABEL
     test        OP1, OP2
-    JZ          SHORT JMP_LABEL
+    jz          SHORT JMP_LABEL
 ENDM
 
 Start:
