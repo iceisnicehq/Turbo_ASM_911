@@ -21,7 +21,7 @@ ENDM
     MASK_AAD                =  0FEh
     MASK_UNKNOWN            =  0FFh
     
-    INS_OPERANDS ENUM       NONE, IMM8, REL8, REL16, REG16, REGM16
+    OPERANDS ENUM       NONE, IMM8, REL8, REL16, REG16, REGM16
 
     REG_SHIFT               EQU 16
     EA_REG_SHIFT            EQU REG_SHIFT*2
