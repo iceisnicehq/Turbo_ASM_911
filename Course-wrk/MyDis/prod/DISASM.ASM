@@ -96,7 +96,7 @@ ENDM
     jcxz_ins   INSTRUC      <_jcxz, MASK_REGULAR, REL8,     NONE> ; E3h  (JECXZ)
     lock_ins   INSTRUC      <_lock, MASK_PREFIX,  NONE,     NONE> ; F0h
 
-LABEL INSTRUCTION_SET_ARRAY 
+LABEL instruction_set_array 
 ; INDEXES      00h             0Fh                     26h                    2Eh
             DW 0Fh DUP (unk),  pref_0f, 16h DUP (unk), INS_ES, 07h DUP (unk), INS_CS
 ; INDEXES                      36h                     3Eh                    64h
@@ -136,28 +136,28 @@ LABEL INSTRUCTION_SET_ARRAY
 
 .CODE
 
-PUT_CHAR        MACRO  CHAR
+PUT_CHAR        MACRO CHAR
     mov         bx, instruc_end_ptr
     mov         BYTE PTR [bx], CHAR
     inc         instruc_end_ptr
 ENDM
 
-CMPJNE          MACRO   OP1, OP2, JMP_LABEL
+CMPJNE    MACRO OP1, OP2, JMP_LABEL
     cmp         OP1, OP2
     jne         SHORT JMP_LABEL
 ENDM
 
-CMPJE           MACRO   OP1, OP2, JMP_LABEL
+CMPJE     MACRO OP1, OP2, JMP_LABEL
     cmp         OP1, OP2
     je          SHORT JMP_LABEL
 ENDM
 
-NOT_SET         MACRO   OP1, OP2, JMP_LABEL
+NOT_SET   MACRO OP1, OP2, JMP_LABEL
     test        OP1, OP2
     jnz         SHORT JMP_LABEL
 ENDM
 
-IF_SET          MACRO   OP1, OP2, JMP_LABEL
+IF_SET    MACRO OP1, OP2, JMP_LABEL
     test        OP1, OP2
     JZ          SHORT JMP_LABEL
 ENDM
@@ -277,7 +277,7 @@ exit:
     int         21h
 
 ;--------PROCS--------;
-put_byte_al     PROC
+put_byte_al PROC
     xor         ah, ah
     xor         dl, dl
     stc
@@ -286,7 +286,7 @@ put_word_ax:
     call        put_hex_to_str_bx
     mov         instruc_end_ptr, bx
     ret
-put_byte_al    ENDP
+put_byte_al ENDP
 
 ins_str PROC ; si = pointer to ASCII$ string
     mov         di, instruc_end_ptr
