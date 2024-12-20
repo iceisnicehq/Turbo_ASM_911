@@ -53,9 +53,9 @@ ENDM
 
 VAL = 2 ;       2   4   6   8   10  12
 IRP      CHAR, <ES, CS, SS, DS, FS, GS>
-    VAL_&CHAR               = VAL
+    VAL_&CHAR               =  VAL
     _&CHAR                  DB "&CHAR", ":$"
-    VAL                     = VAL + 2
+    VAL                     =  VAL + 2
     INS_&CHAR INSTRUC       <VAL_&CHAR, MASK_SEG_OVER, NONE, NONE>
 ENDM
 
@@ -140,27 +140,27 @@ PUT_CHAR        MACRO  CHAR
     mov         bx, instruc_end_ptr
     mov         BYTE PTR [bx], CHAR
     inc         instruc_end_ptr
-PUT_CHAR        ENDM
+ENDM
 
 CMPJNE          MACRO   OP1, OP2, JMP_LABEL
     cmp         OP1, OP2
     jne         SHORT JMP_LABEL
-CMPJNE          ENDM
+ENDM
 
 CMPJE           MACRO   OP1, OP2, JMP_LABEL
     cmp         OP1, OP2
     je          SHORT JMP_LABEL
-CMPJE           ENDM
+ENDM
 
 NOT_SET         MACRO   OP1, OP2, JMP_LABEL
     test        OP1, OP2
     jnz         SHORT JMP_LABEL
-NOT_SET         ENDM
+ENDM
 
 IF_SET          MACRO   OP1, OP2, JMP_LABEL
     test        OP1, OP2
     JZ          SHORT JMP_LABEL
-IF_SET          ENDM
+ENDM
 
 Start:
     mov         ax, @DATA
