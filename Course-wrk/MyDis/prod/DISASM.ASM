@@ -34,7 +34,7 @@ ENDM
     res_file                DB RES_FILE_NAME, 0
     com_file                DB COM_FILE_NAME, 0
     error                   DB 'Error occurred. Make sure COM file is "', COM_FILE_NAME, '". Res_file will be "', RES_FILE_NAME, '"$'
-    result                  DB 'Result of the disassembly: ', RES_FILE_NAME, '$'
+    result                  DB 'Result file is: ', RES_FILE_NAME, '$'
 
     instruc_buffer          DB INSTRUCTION_CHARS DUP (' '), "; "
     machine_code_buffer     DB MACHINE_CODE_CHARS DUP (' ')
