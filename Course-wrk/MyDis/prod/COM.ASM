@@ -3,21 +3,21 @@
     .CODE 
         ORG 100H        
     START:
-        BTC     [EAX*4], EAX
-        BTC     [EBX*4], AX
-        BTC     [EBP*4], AX
-        BTC     [EBP*4+01H], EBP
-        BTC     [EBP*4+100H], EBP
-        BTC     word ptr [EAX+EBP], 0FFH
-        BTC     dword ptr [EAX+EBP*8], 0FFH
-        BTC     word ptr [EBP+EAX], 0FFH
-        BTC     dword ptr [EBP+EAX*8], 0FFH
-        BTC     word ptr [ESP+EAX], 0FFH
-        BTC     dword ptr [ESP+EAX*8], 0FFH
-        BTC     word ptr [ESP+EBP], 0FFH
-        BTC     dword ptr [ESP+EBP*8], 0FFH
-        BTC     word ptr [EBP], 0FFH
-        BTC     dword ptr [ESP], 0FFH
+        BTC     [EAX*4],EAX
+        BTC     [EBX*4],AX
+        BTC     [EBP*4],AX
+        BTC     [EBP*4+01H],EBP
+        BTC     [EBP*4+100H],EBP
+        BTC     word ptr [EAX+EBP],0FFH
+        BTC     dword ptr [EAX+EBP*8],0FFH
+        BTC     word ptr [EBP+EAX],0FFH
+        BTC     dword ptr [EBP+EAX*8],0FFH
+        BTC     word ptr [ESP+EAX],0FFH
+        BTC     dword ptr [ESP+EAX*8],0FFH
+        BTC     word ptr [ESP+EBP],0FFH
+        BTC     dword ptr [ESP+EBP*8],0FFH
+        BTC     word ptr [EBP],0FFH
+        BTC     dword ptr [ESP],0FFH
         BTC     [BX+SI],AX
         BTC     [BX+DI],AX
         BTC     [BP+SI],AX
@@ -1081,13 +1081,13 @@ JCC_REL8F:
         LOCK BTC     [ESI+00004321H],AX
         LOCK BTC     [EDI+00004321H],AX
         LOCK BTC     dword ptr SS:[EBX+EAX*8+12345678H],9AH
-        LOCK BTC	[EBX + EBP*8 + 4321H], AX
-        LOCK BTC	[EBP + 4321H], AX
-        LOCK BTC	[ECX*4 + 4321H], AX
-        LOCK BTC	[EBP*8+0B0H], AX
-        LOCK BTC	[ESI*4 + 4321H], AX
-        LOCK BTC	[EDI*2 + 87654321H], AX
-        LOCK BTC	DWORD PTR SS:[EBP + EBX*4 + 12345678H], 9AH
+        LOCK BTC	 [EBX + EBP*8 + 4321H], AX
+        LOCK BTC	 [EBP + 4321H], AX
+        LOCK BTC	 [ECX*4 + 4321H], AX
+        LOCK BTC	 [EBP*8+0B0H], AX
+        LOCK BTC	 [ESI*4 + 4321H], AX
+        LOCK BTC	 [EDI*2 + 87654321H], AX
+        LOCK BTC	 DWORD PTR SS:[EBP + EBX*4 + 12345678H], 9AH
 JCC_REL16:
         AAD
     END     START
