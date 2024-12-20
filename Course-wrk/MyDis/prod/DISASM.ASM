@@ -36,9 +36,8 @@ ENDM
     error                   DB 'Error occurred. Make sure COM file is "', COM_FILE_NAME, '". Res_file will be "', RES_FILE_NAME, '"$'
     success                 DB 'Result successfully written to file: ', RES_FILE_NAME, '$'
 
-    instruc_buffer          DB instruction_chars DUP (" ")
-                            DB "; "
-    machine_code_buffer     DB machine_code_chars DUP (" ")
+    instruc_buffer          DB instruction_chars DUP (' '), "; "
+    machine_code_buffer     DB machine_code_chars DUP (' ')
 
     instruc_end_ptr         DW instruc_buffer   
     mach_code_end_ptr       DW machine_code_buffer
@@ -119,8 +118,8 @@ LABEL instruction_set_array
         mode               DB ?
         reg                DB ?
         rm                 DB ?
-    read_data              DW ?                            
-    read_index             DW ?
+    read_bytes             DW ?                            
+    scanned_byte_count     DW ?
     com_buffer             DB BYTES_IN_BUFFER DUP (?) 
     com_file_handle        DW ?
     res_file_handle        DW ?
@@ -170,7 +169,7 @@ Start:
     mov         com_file_handle, ax
     mov         ah, 3Ch
     xor         cx, cx
-    mov         dx, OFFSET RES_FILE
+    mov         dx, OFFSET res_file
     int         21h
     jc          SHORT error_exit
     mov         res_file_handle, ax
@@ -341,16 +340,16 @@ put_hex_to_str_bx ENDP
 
 read_buffer_byte PROC
     push        bx ax
-    mov         ax, read_data
-    cmp         ax, read_index
+    mov         ax, read_bytes
+    cmp         ax, scanned_byte_count
     ja          SHORT @@check_file_end
     mov         ah, 3Fh
     mov         bx, com_file_handle 
     mov         cx, BYTES_IN_BUFFER
     mov         dx, OFFSET com_buffer
     int         21h
-    mov         read_data, ax 
-    mov         read_index, 0
+    mov         read_bytes, ax 
+    mov         scanned_byte_count, 0
 @@check_file_end:
     or          ax, ax
     jne         SHORT @@read_byte
@@ -359,9 +358,9 @@ read_buffer_byte PROC
 @@read_byte:
     xor         dh, dh
     mov         bx, OFFSET com_buffer
-    add         bx, read_index
+    add         bx, scanned_byte_count
     mov         dl, [bx]
-    inc         read_index
+    inc         scanned_byte_count
     push        dx
     movzx       ax, dl
     mov         bx, mach_code_end_ptr
