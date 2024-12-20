@@ -5,6 +5,8 @@ BTC     word ptr SS:[EBP],0FFH                              ; 67 0F BA 7D 00 FF
 BTC     dword ptr SS:[ESP],0FFH                             ; 66 67 0F BA 3C 24 FF
 BTC     SS:[EBP*4+00000001H],EBP                            ; 66 67 0F BB 2C AD 01 00 00 00
 BTC     SS:[EBP*4+00000100H],EBP                            ; 66 67 0F BB 2C AD 00 01 00 00
+BTC     DS:[BX+0FEDCH],AX                                   ; 0F BB 87 DC FE
+BTC     word ptr CS:[EBX+EBP+0FFEEDDCCH],0A0H               ; 2E 67 0F BA BC 2B CC DD EE FF A0
 BTC     word ptr SS:[EBP+EAX],0FFH                          ; 67 0F BA 7C 05 00 FF
 BTC     dword ptr SS:[EBP+EAX*8],0FFH                       ; 66 67 0F BA 7C C5 00 FF
 BTC     word ptr SS:[ESP+EAX],0FFH                          ; 67 0F BA 3C 04 FF
@@ -18,7 +20,6 @@ BTC     SS:[BP+DI],AX                                       ; 0F BB 03
 BTC     SS:[BP],AX                                          ; 0F BB 46 00
 BTC     DS:[SI],AX                                          ; 0F BB 04
 BTC     DS:[DI],AX                                          ; 0F BB 05
-BTC     DS:[BX+0FEDCH],AX                                   ; 0F BB 87 DC FE
 BTC     ES:[1234H],AX                                       ; 26 0F BB 06 34 12
 BTC     SS:[12345678H],AX                                   ; 36 67 0F BB 05 78 56 34 12
 BTC     dword ptr FS:[0123H],01H                            ; 66 64 0F BA 3E 23 01 01
@@ -1040,21 +1041,21 @@ LOCK BTC     SS:[EBP*8+000000B0H],AX                        ; F0 67 0F BB 04 ED 
 LOCK BTC     DS:[ESI*4+00004321H],AX                        ; F0 67 0F BB 04 B5 21 43 00 00
 LOCK BTC     DS:[EDI*2+87654321H],AX                        ; F0 67 0F BB 04 7D 21 43 65 87
 JO      $+00C5H                                             ; 0F 80 C1 00
-JNO     $-1554H                                             ; 0F 81 A8 EA
+JNO     $-155FH                                             ; 0F 81 9D EA
 JB      $+00BDH                                             ; 0F 82 B9 00
-JNB     $-155CH                                             ; 0F 83 A0 EA
+JNB     $-1567H                                             ; 0F 83 95 EA
 JZ      $+00B5H                                             ; 0F 84 B1 00
-JNZ     $-1564H                                             ; 0F 85 98 EA
+JNZ     $-156FH                                             ; 0F 85 8D EA
 JBE     $+00ADH                                             ; 0F 86 A9 00
-JNBE    $-156CH                                             ; 0F 87 90 EA
+JNBE    $-1577H                                             ; 0F 87 85 EA
 JS      $+00A5H                                             ; 0F 88 A1 00
-JNS     $-1574H                                             ; 0F 89 88 EA
+JNS     $-157FH                                             ; 0F 89 7D EA
 JP      $+009DH                                             ; 0F 8A 99 00
-JNP     $-157CH                                             ; 0F 8B 80 EA
+JNP     $-1587H                                             ; 0F 8B 75 EA
 JL      $+0095H                                             ; 0F 8C 91 00
-JNL     $-1584H                                             ; 0F 8D 78 EA
+JNL     $-158FH                                             ; 0F 8D 6D EA
 JLE     $+008DH                                             ; 0F 8E 89 00
-JNLE    $-158CH                                             ; 0F 8F 70 EA
+JNLE    $-1597H                                             ; 0F 8F 65 EA
 JO      $                                                   ; 70 FE
 JNO     $-0002H                                             ; 71 FC
 JB      $-0004H                                             ; 72 FA

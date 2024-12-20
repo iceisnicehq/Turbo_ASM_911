@@ -10,6 +10,8 @@ START:
         BTC     dword ptr SS:[ESP],0FFH 
         BTC     SS:[EBP*4+00000001H],EBP
         BTC     SS:[EBP*4+00000100H],EBP
+        BTC     DS:[BX+0FEDCH],AX  
+        BTC     word ptr CS:[EBX+EBP+0FFEEDDCCH],0A0H 
         BTC     word ptr SS:[EBP+EAX],0FFH
         BTC     dword ptr SS:[EBP+EAX*8],0FFH
         BTC     word ptr SS:[ESP+EAX],0FFH
@@ -23,7 +25,6 @@ START:
         BTC     SS:[BP],AX    
         BTC     DS:[SI],AX    
         BTC     DS:[DI],AX    
-        BTC     DS:[BX+0FEDCH],AX  
         BTC     ES:[1234H],AX 
         BTC     SS:[12345678H],AX  
         BTC     dword ptr FS:[0123H],01H
