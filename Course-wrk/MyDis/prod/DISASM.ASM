@@ -121,7 +121,7 @@ LABEL instruction_set_array
         rm                 DB ?
     read_data              DW ?                            
     read_index             DW ?
-    com_buffer            DB BYTES_IN_BUFFER DUP (?) 
+    com_buffer             DB BYTES_IN_BUFFER DUP (?) 
     com_file_handle        DW ?
     res_file_handle        DW ?
     imm                    DW ?
@@ -198,15 +198,6 @@ load_instruction:
     mov         si, instruction_set_array[si]
     mov         di, OFFSET curr_instruc
     rep         movsb
-    ; or          [info_bytes], 0
-;     jnz         SHORT check_prefix_type
-; print_offset:
-;     mov         bx, OFFSET ip_buffer
-;     mov         ax, ip_value
-;     mov         dl, 1
-;     clc 
-;     call        put_hex_to_str_bx
-; check_prefix_type: 
     CMPJNE      curr_instruc.maska, MASK_SEG_OVER, @@not_seg_ovr
     mov         ax, curr_instruc.mnem
     mov         seg_ovr, al
@@ -371,7 +362,6 @@ read_buffer_byte PROC
     add         bx, read_index
     mov         dl, [bx]
     inc         read_index
-    ; inc         ip_value
     push        dx
     movzx       ax, dl
     mov         bx, mach_code_end_ptr
