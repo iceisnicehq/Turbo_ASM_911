@@ -55,10 +55,10 @@ IRP      CHAR, <ES, CS, SS, DS, FS, GS>
     INS_&CHAR INSTRUC       <VAL_&CHAR, MASK_SEG_OVER, NONE, NONE>
 ENDM
 
-    bx_si                   DB "BX+SI", 0
-    bx_di                   DB "BX+DI", 0
-    bp_si                   DB "BP+SI", 0
-    bp_di                   DB "BP+DI", 0
+    BX_SI                   DB "BX+SI", 0
+    BX_DI                   DB "BX+DI", 0
+    BP_SI                   DB "BP+SI", 0
+    BP_DI                   DB "BP+DI", 0
     dword_ptr               DB "dword ptr ", 0
 
     ea_mnem                 DW BX_SI, BX_DI, BP_SI, BP_DI, _SI, _DI, _BP, _BX
