@@ -3,8 +3,8 @@ BTC     DS:[EBX*4],AX                                       ; 67 0F BB 04 9D 00 
 BTC     SS:[EBP*4],AX                                       ; 67 0F BB 04 AD 00 00 00 00
 BTC     SS:[EBP*4+00000001H],EBP                            ; 66 67 0F BB 2C AD 01 00 00 00
 BTC     SS:[EBP*4+00000100H],EBP                            ; 66 67 0F BB 2C AD 00 01 00 00
-BTC     word ptr DS:[EAX+EBP],0FFH                          ; 67 0F BA 3C 28 FF
-BTC     dword ptr DS:[EAX+EBP*8],0FFH                       ; 66 67 0F BA 3C E8 FF
+BTC     word ptr SS:[EAX+EBP],0FFH                          ; 67 0F BA 3C 28 FF
+BTC     dword ptr SS:[EAX+EBP*8],0FFH                       ; 66 67 0F BA 3C E8 FF
 BTC     word ptr SS:[EBP+EAX],0FFH                          ; 67 0F BA 7C 05 00 FF
 BTC     dword ptr SS:[EBP+EAX*8],0FFH                       ; 66 67 0F BA 7C C5 00 FF
 BTC     word ptr SS:[ESP+EAX],0FFH                          ; 67 0F BA 3C 04 FF
@@ -22,7 +22,7 @@ BTC     DS:[SI],AX                                          ; 0F BB 04
 BTC     DS:[DI],AX                                          ; 0F BB 05
 BTC     DS:[BX+0FEDCH],AX                                   ; 0F BB 87 DC FE
 LOCK BTC     dword ptr DS:[EAX+EBX*8+0A7654321H],0FFH       ; F0 66 67 0F BA BC D8 21 43 65 A7 FF
-LOCK BTC     word ptr DS:[EAX+EBP*8+87654321H],0FFH         ; F0 67 0F BA BC E8 21 43 65 87 FF
+LOCK BTC     word ptr SS:[EAX+EBP*8+87654321H],0FFH         ; F0 67 0F BA BC E8 21 43 65 87 FF
 LOCK BTC     CS:[EAX+EBX*8+0B7654321H],EAX                  ; F0 66 2E 67 0F BB 84 D8 21 43 65 B7
 LOCK BTC     DS:[EAX+EBP*8+87654321H],AX                    ; F0 3E 67 0F BB 84 E8 21 43 65 87
 BTC     ES:[1234H],AX                                       ; 26 0F BB 06 34 12
@@ -1074,7 +1074,7 @@ LOCK BTC     DS:[EAX+EAX*8+00004321H],AX                    ; F0 67 0F BB 84 C0 
 LOCK BTC     DS:[ESI+00004321H],AX                          ; F0 67 0F BB 86 21 43 00 00
 LOCK BTC     DS:[EDI+00004321H],AX                          ; F0 67 0F BB 87 21 43 00 00
 LOCK BTC     dword ptr SS:[EBX+EAX*8+12345678H],9AH         ; F0 66 36 67 0F BA BC C3 78 56 34 12 9A
-LOCK BTC     DS:[EBX+EBP*8+00004321H],AX                    ; F0 67 0F BB 84 EB 21 43 00 00
+LOCK BTC     SS:[EBX+EBP*8+00004321H],AX                    ; F0 67 0F BB 84 EB 21 43 00 00
 LOCK BTC     SS:[EBP+00004321H],AX                          ; F0 67 0F BB 85 21 43 00 00
 LOCK BTC     DS:[ECX*4+00004321H],AX                        ; F0 67 0F BB 04 8D 21 43 00 00
 LOCK BTC     SS:[EBP*8+000000B0H],AX                        ; F0 67 0F BB 04 ED B0 00 00 00
