@@ -6,18 +6,16 @@ START:
         BTC     DS:[EAX*4],EAX
         BTC     DS:[EBX*4],AX 
         BTC     SS:[EBP*4],AX 
+        BTC     word ptr SS:[EBP],0FFH  
+        BTC     dword ptr SS:[ESP],0FFH 
         BTC     SS:[EBP*4+00000001H],EBP
         BTC     SS:[EBP*4+00000100H],EBP
-        BTC     word ptr SS:[EAX+EBP],0FFH
-        BTC     dword ptr SS:[EAX+EBP*8],0FFH
         BTC     word ptr SS:[EBP+EAX],0FFH
         BTC     dword ptr SS:[EBP+EAX*8],0FFH
         BTC     word ptr SS:[ESP+EAX],0FFH
         BTC     dword ptr SS:[ESP+EAX*8],0FFH
         BTC     word ptr SS:[ESP+EBP],0FFH
         BTC     dword ptr SS:[ESP+EBP*8],0FFH
-        BTC     word ptr SS:[EBP],0FFH  
-        BTC     dword ptr SS:[ESP],0FFH 
         BTC     DS:[BX+SI],AX 
         BTC     DS:[BX+DI],AX 
         BTC     SS:[BP+SI],AX 
@@ -26,10 +24,6 @@ START:
         BTC     DS:[SI],AX    
         BTC     DS:[DI],AX    
         BTC     DS:[BX+0FEDCH],AX  
-        LOCK BTC     dword ptr DS:[EAX+EBX*8+0A7654321H],0FFH  
-        LOCK BTC     word ptr SS:[EAX+EBP*8+87654321H],0FFH
-        LOCK BTC     CS:[EAX+EBX*8+0B7654321H],EAX
-        LOCK BTC     DS:[EAX+EBP*8+87654321H],AX  
         BTC     ES:[1234H],AX 
         BTC     SS:[12345678H],AX  
         BTC     dword ptr FS:[0123H],01H
@@ -65,13 +59,6 @@ START:
         BTC     DS:[ECX+EDX*4+00000100H],AX  
         BTC     DS:[EAX+EAX*8+0A0B0C0D0H],AX 
         BTC     SS:[EBP+EBP+10203040H],AX 
-        LOCK BTC     DS:[BX+SI+1234H],AX
-        LOCK BTC     DS:[BX+DI+1234H],AX
-        LOCK BTC     SS:[BP+SI+1234H],AX
-        LOCK BTC     SS:[BP+DI+1234H],AX
-        LOCK BTC     SS:[BP+1234H],AX   
-        LOCK BTC     DS:[SI+1234H],AX   
-        LOCK BTC     DS:[DI+1234H],AX   
         BTC     DS:[EAX+EAX*2+00000100H],CX  
         BTC     DS:[EBX+EBP*4+12345678H],CX  
         BTC     SS:[EBP+EBP],CX
@@ -81,20 +68,6 @@ START:
         BTC     DS:[ECX+EDX*4+00000100H],CX  
         BTC     DS:[EAX+EAX*8+0A0B0C0D0H],CX 
         BTC     SS:[EBP+EBP+10203040H],CX 
-        LOCK BTC     DS:[BX+SI],CX 
-        LOCK BTC     DS:[BX+DI],CX 
-        LOCK BTC     SS:[BP+SI],CX 
-        LOCK BTC     SS:[BP+DI],CX 
-        LOCK BTC     SS:[BP],CX
-        LOCK BTC     DS:[SI],CX
-        LOCK BTC     DS:[DI],CX
-        LOCK BTC     DS:[BX+SI+1234H],CX
-        LOCK BTC     DS:[BX+DI+1234H],CX
-        LOCK BTC     SS:[BP+SI+1234H],CX
-        LOCK BTC     SS:[BP+DI+1234H],CX
-        LOCK BTC     SS:[BP+1234H],CX   
-        LOCK BTC     DS:[SI+1234H],CX   
-        LOCK BTC     DS:[DI+1234H],CX   
         BTC     DS:[EAX+EAX*2+00000100H],DX  
         BTC     DS:[EBX+EBP*4+12345678H],DX  
         BTC     SS:[EBP+EBP],DX
@@ -104,20 +77,6 @@ START:
         BTC     DS:[ECX+EDX*4+00000100H],DX  
         BTC     DS:[EAX+EAX*8+0A0B0C0D0H],DX 
         BTC     SS:[EBP+EBP+10203040H],DX 
-        LOCK BTC     DS:[BX+SI],DX 
-        LOCK BTC     DS:[BX+DI],DX 
-        LOCK BTC     SS:[BP+SI],DX 
-        LOCK BTC     SS:[BP+DI],DX 
-        LOCK BTC     SS:[BP],DX
-        LOCK BTC     DS:[SI],DX
-        LOCK BTC     DS:[DI],DX
-        LOCK BTC     DS:[BX+SI+1234H],DX
-        LOCK BTC     DS:[BX+DI+1234H],DX
-        LOCK BTC     SS:[BP+SI+1234H],DX
-        LOCK BTC     SS:[BP+DI+1234H],DX
-        LOCK BTC     SS:[BP+1234H],DX   
-        LOCK BTC     DS:[SI+1234H],DX   
-        LOCK BTC     DS:[DI+1234H],DX   
         BTC     DS:[EAX+EAX*2+00000100H],BX  
         BTC     DS:[EBX+EBP*4+12345678H],BX  
         BTC     SS:[EBP+EBP],BX
@@ -127,20 +86,6 @@ START:
         BTC     DS:[ECX+EDX*4+00000100H],BX  
         BTC     DS:[EAX+EAX*8+0A0B0C0D0H],BX 
         BTC     SS:[EBP+EBP+10203040H],BX 
-        LOCK BTC     DS:[BX+SI],BX 
-        LOCK BTC     DS:[BX+DI],BX 
-        LOCK BTC     SS:[BP+SI],BX 
-        LOCK BTC     SS:[BP+DI],BX 
-        LOCK BTC     SS:[BP],BX
-        LOCK BTC     DS:[SI],BX
-        LOCK BTC     DS:[DI],BX
-        LOCK BTC     DS:[BX+SI+1234H],BX
-        LOCK BTC     DS:[BX+DI+1234H],BX
-        LOCK BTC     SS:[BP+SI+1234H],BX
-        LOCK BTC     SS:[BP+DI+1234H],BX
-        LOCK BTC     SS:[BP+1234H],BX   
-        LOCK BTC     DS:[SI+1234H],BX   
-        LOCK BTC     DS:[DI+1234H],BX   
         BTC     DS:[EAX+EAX*2+00000100H],SP  
         BTC     DS:[EBX+EBP*4+12345678H],SP  
         BTC     SS:[EBP+EBP],SP
@@ -150,20 +95,6 @@ START:
         BTC     DS:[ECX+EDX*4+00000100H],SP  
         BTC     DS:[EAX+EAX*8+0A0B0C0D0H],SP 
         BTC     SS:[EBP+EBP+10203040H],SP 
-        LOCK BTC     DS:[BX+SI],SP 
-        LOCK BTC     DS:[BX+DI],SP 
-        LOCK BTC     SS:[BP+SI],SP 
-        LOCK BTC     SS:[BP+DI],SP 
-        LOCK BTC     SS:[BP],SP
-        LOCK BTC     DS:[SI],SP
-        LOCK BTC     DS:[DI],SP
-        LOCK BTC     DS:[BX+SI+1234H],SP
-        LOCK BTC     DS:[BX+DI+1234H],SP
-        LOCK BTC     SS:[BP+SI+1234H],SP
-        LOCK BTC     SS:[BP+DI+1234H],SP
-        LOCK BTC     SS:[BP+1234H],SP   
-        LOCK BTC     DS:[SI+1234H],SP   
-        LOCK BTC     DS:[DI+1234H],SP   
         BTC     DS:[EAX+EAX*2+00000100H],BP  
         BTC     DS:[EBX+EBP*4+12345678H],BP  
         BTC     SS:[EBP+EBP],BP
@@ -173,20 +104,6 @@ START:
         BTC     DS:[ECX+EDX*4+00000100H],BP  
         BTC     DS:[EAX+EAX*8+0A0B0C0D0H],BP 
         BTC     SS:[EBP+EBP+10203040H],BP 
-        LOCK BTC     DS:[BX+SI],BP 
-        LOCK BTC     DS:[BX+DI],BP 
-        LOCK BTC     SS:[BP+SI],BP 
-        LOCK BTC     SS:[BP+DI],BP 
-        LOCK BTC     SS:[BP],BP
-        LOCK BTC     DS:[SI],BP
-        LOCK BTC     DS:[DI],BP
-        LOCK BTC     DS:[BX+SI+1234H],BP
-        LOCK BTC     DS:[BX+DI+1234H],BP
-        LOCK BTC     SS:[BP+SI+1234H],BP
-        LOCK BTC     SS:[BP+DI+1234H],BP
-        LOCK BTC     SS:[BP+1234H],BP   
-        LOCK BTC     DS:[SI+1234H],BP   
-        LOCK BTC     DS:[DI+1234H],BP   
         BTC     DS:[EAX+EAX*2+00000100H],SI  
         BTC     DS:[EBX+EBP*4+12345678H],SI  
         BTC     SS:[EBP+EBP],SI
@@ -196,20 +113,6 @@ START:
         BTC     DS:[ECX+EDX*4+00000100H],SI  
         BTC     DS:[EAX+EAX*8+0A0B0C0D0H],SI 
         BTC     SS:[EBP+EBP+10203040H],SI 
-        LOCK BTC     DS:[BX+SI],SI 
-        LOCK BTC     DS:[BX+DI],SI 
-        LOCK BTC     SS:[BP+SI],SI 
-        LOCK BTC     SS:[BP+DI],SI 
-        LOCK BTC     SS:[BP],SI
-        LOCK BTC     DS:[SI],SI
-        LOCK BTC     DS:[DI],SI
-        LOCK BTC     DS:[BX+SI+1234H],SI
-        LOCK BTC     DS:[BX+DI+1234H],SI
-        LOCK BTC     SS:[BP+SI+1234H],SI
-        LOCK BTC     SS:[BP+DI+1234H],SI
-        LOCK BTC     SS:[BP+1234H],SI   
-        LOCK BTC     DS:[SI+1234H],SI   
-        LOCK BTC     DS:[DI+1234H],SI   
         BTC     DS:[EAX+EAX*2+00000100H],DI  
         BTC     DS:[EBX+EBP*4+12345678H],DI  
         BTC     SS:[EBP+EBP],DI
@@ -219,20 +122,6 @@ START:
         BTC     DS:[ECX+EDX*4+00000100H],DI  
         BTC     DS:[EAX+EAX*8+0A0B0C0D0H],DI 
         BTC     SS:[EBP+EBP+10203040H],DI 
-        LOCK BTC     DS:[BX+SI],DI 
-        LOCK BTC     DS:[BX+DI],DI 
-        LOCK BTC     SS:[BP+SI],DI 
-        LOCK BTC     SS:[BP+DI],DI 
-        LOCK BTC     SS:[BP],DI
-        LOCK BTC     DS:[SI],DI
-        LOCK BTC     DS:[DI],DI
-        LOCK BTC     DS:[BX+SI+1234H],DI
-        LOCK BTC     DS:[BX+DI+1234H],DI
-        LOCK BTC     SS:[BP+SI+1234H],DI
-        LOCK BTC     SS:[BP+DI+1234H],DI
-        LOCK BTC     SS:[BP+1234H],DI   
-        LOCK BTC     DS:[SI+1234H],DI   
-        LOCK BTC     DS:[DI+1234H],DI   
         BTC     EAX,EAX  
         BTC     ECX,EAX  
         BTC     EDX,EAX  
@@ -258,20 +147,6 @@ START:
         BTC     DS:[ECX+EDX*4+00000100H],EAX 
         BTC     DS:[EAX+EAX*8+0A0B0C0D0H],EAX
         BTC     SS:[EBP+EBP+10203040H],EAX
-        LOCK BTC     DS:[BX+SI],EAX
-        LOCK BTC     DS:[BX+DI],EAX
-        LOCK BTC     SS:[BP+SI],EAX
-        LOCK BTC     SS:[BP+DI],EAX
-        LOCK BTC     SS:[BP],EAX
-        LOCK BTC     DS:[SI],EAX
-        LOCK BTC     DS:[DI],EAX
-        LOCK BTC     DS:[BX+SI+1234H],EAX 
-        LOCK BTC     DS:[BX+DI+1234H],EAX 
-        LOCK BTC     SS:[BP+SI+1234H],EAX 
-        LOCK BTC     SS:[BP+DI+1234H],EAX 
-        LOCK BTC     SS:[BP+1234H],EAX  
-        LOCK BTC     DS:[SI+1234H],EAX  
-        LOCK BTC     DS:[DI+1234H],EAX  
         BTC     EAX,01H  
         BTC     EAX,ECX  
         BTC     ECX,ECX  
@@ -298,20 +173,6 @@ START:
         BTC     DS:[ECX+EDX*4+00000100H],ECX 
         BTC     DS:[EAX+EAX*8+0A0B0C0D0H],ECX
         BTC     SS:[EBP+EBP+10203040H],ECX
-        LOCK BTC     DS:[BX+SI],ECX
-        LOCK BTC     DS:[BX+DI],ECX
-        LOCK BTC     SS:[BP+SI],ECX
-        LOCK BTC     SS:[BP+DI],ECX
-        LOCK BTC     SS:[BP],ECX
-        LOCK BTC     DS:[SI],ECX
-        LOCK BTC     DS:[DI],ECX
-        LOCK BTC     DS:[BX+SI+1234H],ECX 
-        LOCK BTC     DS:[BX+DI+1234H],ECX 
-        LOCK BTC     SS:[BP+SI+1234H],ECX 
-        LOCK BTC     SS:[BP+DI+1234H],ECX 
-        LOCK BTC     SS:[BP+1234H],ECX  
-        LOCK BTC     DS:[SI+1234H],ECX  
-        LOCK BTC     DS:[DI+1234H],ECX  
         BTC     ECX,01H  
         BTC     EAX,EDX  
         BTC     ECX,EDX  
@@ -338,20 +199,6 @@ START:
         BTC     DS:[ECX+EDX*4+00000100H],EDX 
         BTC     DS:[EAX+EAX*8+0A0B0C0D0H],EDX
         BTC     SS:[EBP+EBP+10203040H],EDX
-        LOCK BTC     DS:[BX+SI],EDX
-        LOCK BTC     DS:[BX+DI],EDX
-        LOCK BTC     SS:[BP+SI],EDX
-        LOCK BTC     SS:[BP+DI],EDX
-        LOCK BTC     SS:[BP],EDX
-        LOCK BTC     DS:[SI],EDX
-        LOCK BTC     DS:[DI],EDX
-        LOCK BTC     DS:[BX+SI+1234H],EDX 
-        LOCK BTC     DS:[BX+DI+1234H],EDX 
-        LOCK BTC     SS:[BP+SI+1234H],EDX 
-        LOCK BTC     SS:[BP+DI+1234H],EDX 
-        LOCK BTC     SS:[BP+1234H],EDX  
-        LOCK BTC     DS:[SI+1234H],EDX  
-        LOCK BTC     DS:[DI+1234H],EDX  
         BTC     EDX,01H  
         BTC     EAX,EBX  
         BTC     ECX,EBX  
@@ -378,20 +225,6 @@ START:
         BTC     DS:[ECX+EDX*4+00000100H],EBX 
         BTC     DS:[EAX+EAX*8+0A0B0C0D0H],EBX
         BTC     SS:[EBP+EBP+10203040H],EBX
-        LOCK BTC     DS:[BX+SI],EBX
-        LOCK BTC     DS:[BX+DI],EBX
-        LOCK BTC     SS:[BP+SI],EBX
-        LOCK BTC     SS:[BP+DI],EBX
-        LOCK BTC     SS:[BP],EBX
-        LOCK BTC     DS:[SI],EBX
-        LOCK BTC     DS:[DI],EBX
-        LOCK BTC     DS:[BX+SI+1234H],EBX 
-        LOCK BTC     DS:[BX+DI+1234H],EBX 
-        LOCK BTC     SS:[BP+SI+1234H],EBX 
-        LOCK BTC     SS:[BP+DI+1234H],EBX 
-        LOCK BTC     SS:[BP+1234H],EBX  
-        LOCK BTC     DS:[SI+1234H],EBX  
-        LOCK BTC     DS:[DI+1234H],EBX  
         BTC     EBX,01H  
         BTC     EAX,ESP  
         BTC     ECX,ESP  
@@ -415,20 +248,6 @@ START:
         BTC     DS:[ECX+EDX*4+00000100H],ESP 
         BTC     DS:[EAX+EAX*8+0A0B0C0D0H],ESP
         BTC     SS:[EBP+EBP+10203040H],ESP
-        LOCK BTC     DS:[BX+SI],ESP
-        LOCK BTC     DS:[BX+DI],ESP
-        LOCK BTC     SS:[BP+SI],ESP
-        LOCK BTC     SS:[BP+DI],ESP
-        LOCK BTC     SS:[BP],ESP
-        LOCK BTC     DS:[SI],ESP
-        LOCK BTC     DS:[DI],ESP
-        LOCK BTC     DS:[BX+SI+1234H],ESP 
-        LOCK BTC     DS:[BX+DI+1234H],ESP 
-        LOCK BTC     SS:[BP+SI+1234H],ESP 
-        LOCK BTC     SS:[BP+DI+1234H],ESP 
-        LOCK BTC     SS:[BP+1234H],ESP  
-        LOCK BTC     DS:[SI+1234H],ESP  
-        LOCK BTC     DS:[DI+1234H],ESP  
         BTC     ESP,01H  
         BTC     EAX,EBP  
         BTC     ECX,EBP  
@@ -455,20 +274,6 @@ START:
         BTC     DS:[ECX+EDX*4+00000100H],EBP 
         BTC     DS:[EAX+EAX*8+0A0B0C0D0H],EBP
         BTC     SS:[EBP+EBP+10203040H],EBP
-        LOCK BTC     DS:[BX+SI],EBP
-        LOCK BTC     DS:[BX+DI],EBP
-        LOCK BTC     SS:[BP+SI],EBP
-        LOCK BTC     SS:[BP+DI],EBP
-        LOCK BTC     SS:[BP],EBP
-        LOCK BTC     DS:[SI],EBP
-        LOCK BTC     DS:[DI],EBP
-        LOCK BTC     DS:[BX+SI+1234H],EBP 
-        LOCK BTC     DS:[BX+DI+1234H],EBP 
-        LOCK BTC     SS:[BP+SI+1234H],EBP 
-        LOCK BTC     SS:[BP+DI+1234H],EBP 
-        LOCK BTC     SS:[BP+1234H],EBP  
-        LOCK BTC     DS:[SI+1234H],EBP  
-        LOCK BTC     DS:[DI+1234H],EBP  
         BTC     EBP,01H  
         BTC     EAX,ESI  
         BTC     ECX,ESI  
@@ -495,20 +300,6 @@ START:
         BTC     DS:[ECX+EDX*4+00000100H],ESI 
         BTC     DS:[EAX+EAX*8+0A0B0C0D0H],ESI
         BTC     SS:[EBP+EBP+10203040H],ESI
-        LOCK BTC     DS:[BX+SI],ESI
-        LOCK BTC     DS:[BX+DI],ESI
-        LOCK BTC     SS:[BP+SI],ESI
-        LOCK BTC     SS:[BP+DI],ESI
-        LOCK BTC     SS:[BP],ESI
-        LOCK BTC     DS:[SI],ESI
-        LOCK BTC     DS:[DI],ESI
-        LOCK BTC     DS:[BX+SI+1234H],ESI 
-        LOCK BTC     DS:[BX+DI+1234H],ESI 
-        LOCK BTC     SS:[BP+SI+1234H],ESI 
-        LOCK BTC     SS:[BP+DI+1234H],ESI 
-        LOCK BTC     SS:[BP+1234H],ESI  
-        LOCK BTC     DS:[SI+1234H],ESI  
-        LOCK BTC     DS:[DI+1234H],ESI  
         BTC     ESI,01H  
         BTC     EAX,EDI  
         BTC     ECX,EDI  
@@ -535,21 +326,8 @@ START:
         BTC     DS:[ECX+EDX*4+00000100H],EDI 
         BTC     DS:[EAX+EAX*8+0A0B0C0D0H],EDI
         BTC     SS:[EBP+EBP+10203040H],EDI
-        LOCK BTC     word ptr FS:[EBX+EBP+0FFEEDDCCH],0A0H 
-        LOCK BTC     DS:[BX+SI],EDI
-        LOCK BTC     DS:[BX+DI],EDI
-        LOCK BTC     SS:[BP+SI],EDI
-        LOCK BTC     SS:[BP+DI],EDI
-        LOCK BTC     SS:[BP],EDI
-        LOCK BTC     DS:[SI],EDI
-        LOCK BTC     DS:[DI],EDI
-        LOCK BTC     DS:[BX+SI+1234H],EDI 
-        LOCK BTC     DS:[BX+DI+1234H],EDI 
-        LOCK BTC     SS:[BP+SI+1234H],EDI 
-        LOCK BTC     SS:[BP+DI+1234H],EDI 
-        LOCK BTC     SS:[BP+1234H],EDI  
-        LOCK BTC     DS:[SI+1234H],EDI  
-        LOCK BTC     DS:[DI+1234H],EDI  
+        BTC     word ptr SS:[EAX+EBP],0FFH
+        BTC     dword ptr SS:[EAX+EBP*8],0FFH
         BTC     EDI,01H  
         BTC     AX,AX
         BTC     CX,AX
@@ -1031,6 +809,241 @@ START:
         BTC     EBP,0FFH 
         BTC     ESI,0FFH 
         BTC     EDI,0FFH 
+        LOCK BTC     DS:[BX+SI+1234H],AX
+        LOCK BTC     DS:[BX+DI+1234H],AX
+        LOCK BTC     SS:[BP+SI+1234H],AX
+        LOCK BTC     SS:[BP+DI+1234H],AX
+        LOCK BTC     SS:[BP+1234H],AX   
+        LOCK BTC     DS:[SI+1234H],AX   
+        LOCK BTC     DS:[DI+1234H],AX   
+        LOCK BTC     DS:[BX+SI],CX 
+        LOCK BTC     DS:[BX+DI],CX 
+        LOCK BTC     SS:[BP+SI],CX 
+        LOCK BTC     SS:[BP+DI],CX 
+        LOCK BTC     SS:[BP],CX
+        LOCK BTC     DS:[SI],CX
+        LOCK BTC     DS:[DI],CX
+        LOCK BTC     DS:[BX+SI+1234H],CX
+        LOCK BTC     DS:[BX+DI+1234H],CX
+        LOCK BTC     SS:[BP+SI+1234H],CX
+        LOCK BTC     SS:[BP+DI+1234H],CX
+        LOCK BTC     SS:[BP+1234H],CX   
+        LOCK BTC     DS:[SI+1234H],CX   
+        LOCK BTC     DS:[DI+1234H],CX   
+        LOCK BTC     DS:[BX+SI],DX 
+        LOCK BTC     DS:[BX+DI],DX 
+        LOCK BTC     SS:[BP+SI],DX 
+        LOCK BTC     SS:[BP+DI],DX 
+        LOCK BTC     SS:[BP],DX
+        LOCK BTC     DS:[SI],DX
+        LOCK BTC     DS:[DI],DX
+        LOCK BTC     DS:[BX+SI+1234H],DX
+        LOCK BTC     DS:[BX+DI+1234H],DX
+        LOCK BTC     SS:[BP+SI+1234H],DX
+        LOCK BTC     SS:[BP+DI+1234H],DX
+        LOCK BTC     SS:[BP+1234H],DX   
+        LOCK BTC     DS:[SI+1234H],DX   
+        LOCK BTC     DS:[DI+1234H],DX   
+        LOCK BTC     DS:[BX+SI],BX 
+        LOCK BTC     DS:[BX+DI],BX 
+        LOCK BTC     SS:[BP+SI],BX 
+        LOCK BTC     SS:[BP+DI],BX 
+        LOCK BTC     SS:[BP],BX
+        LOCK BTC     DS:[SI],BX
+        LOCK BTC     DS:[DI],BX
+        LOCK BTC     DS:[BX+SI+1234H],BX
+        LOCK BTC     DS:[BX+DI+1234H],BX
+        LOCK BTC     SS:[BP+SI+1234H],BX
+        LOCK BTC     SS:[BP+DI+1234H],BX
+        LOCK BTC     SS:[BP+1234H],BX   
+        LOCK BTC     DS:[SI+1234H],BX   
+        LOCK BTC     DS:[DI+1234H],BX   
+        LOCK BTC     DS:[BX+SI],SP 
+        LOCK BTC     DS:[BX+DI],SP 
+        LOCK BTC     SS:[BP+SI],SP 
+        LOCK BTC     SS:[BP+DI],SP 
+        LOCK BTC     SS:[BP],SP
+        LOCK BTC     DS:[SI],SP
+        LOCK BTC     DS:[DI],SP
+        LOCK BTC     DS:[BX+SI+1234H],SP
+        LOCK BTC     DS:[BX+DI+1234H],SP
+        LOCK BTC     SS:[BP+SI+1234H],SP
+        LOCK BTC     SS:[BP+DI+1234H],SP
+        LOCK BTC     SS:[BP+1234H],SP   
+        LOCK BTC     DS:[SI+1234H],SP   
+        LOCK BTC     DS:[DI+1234H],SP   
+        LOCK BTC     DS:[BX+SI],BP 
+        LOCK BTC     DS:[BX+DI],BP 
+        LOCK BTC     SS:[BP+SI],BP 
+        LOCK BTC     SS:[BP+DI],BP 
+        LOCK BTC     SS:[BP],BP
+        LOCK BTC     DS:[SI],BP
+        LOCK BTC     DS:[DI],BP
+        LOCK BTC     DS:[BX+SI+1234H],BP
+        LOCK BTC     DS:[BX+DI+1234H],BP
+        LOCK BTC     SS:[BP+SI+1234H],BP
+        LOCK BTC     SS:[BP+DI+1234H],BP
+        LOCK BTC     SS:[BP+1234H],BP   
+        LOCK BTC     DS:[SI+1234H],BP   
+        LOCK BTC     DS:[DI+1234H],BP   
+        LOCK BTC     DS:[BX+SI],SI 
+        LOCK BTC     DS:[BX+DI],SI 
+        LOCK BTC     SS:[BP+SI],SI 
+        LOCK BTC     SS:[BP+DI],SI 
+        LOCK BTC     SS:[BP],SI
+        LOCK BTC     DS:[SI],SI
+        LOCK BTC     DS:[DI],SI
+        LOCK BTC     DS:[BX+SI+1234H],SI
+        LOCK BTC     DS:[BX+DI+1234H],SI
+        LOCK BTC     SS:[BP+SI+1234H],SI
+        LOCK BTC     SS:[BP+DI+1234H],SI
+        LOCK BTC     SS:[BP+1234H],SI   
+        LOCK BTC     DS:[SI+1234H],SI   
+        LOCK BTC     DS:[DI+1234H],SI   
+        LOCK BTC     DS:[BX+SI],DI 
+        LOCK BTC     DS:[BX+DI],DI 
+        LOCK BTC     SS:[BP+SI],DI 
+        LOCK BTC     SS:[BP+DI],DI 
+        LOCK BTC     SS:[BP],DI
+        LOCK BTC     DS:[SI],DI
+        LOCK BTC     DS:[DI],DI
+        LOCK BTC     DS:[BX+SI+1234H],DI
+        LOCK BTC     DS:[BX+DI+1234H],DI
+        LOCK BTC     SS:[BP+SI+1234H],DI
+        LOCK BTC     SS:[BP+DI+1234H],DI
+        LOCK BTC     SS:[BP+1234H],DI   
+        LOCK BTC     DS:[SI+1234H],DI   
+        LOCK BTC     DS:[DI+1234H],DI   
+        LOCK BTC     DS:[BX+SI],EAX
+        LOCK BTC     DS:[BX+DI],EAX
+        LOCK BTC     SS:[BP+SI],EAX
+        LOCK BTC     SS:[BP+DI],EAX
+        LOCK BTC     SS:[BP],EAX
+        LOCK BTC     DS:[SI],EAX
+        LOCK BTC     DS:[DI],EAX
+        LOCK BTC     DS:[BX+SI+1234H],EAX 
+        LOCK BTC     DS:[BX+DI+1234H],EAX 
+        LOCK BTC     SS:[BP+SI+1234H],EAX 
+        LOCK BTC     SS:[BP+DI+1234H],EAX 
+        LOCK BTC     SS:[BP+1234H],EAX  
+        LOCK BTC     DS:[SI+1234H],EAX  
+        LOCK BTC     DS:[DI+1234H],EAX  
+        LOCK BTC     DS:[BX+SI],ECX
+        LOCK BTC     DS:[BX+DI],ECX
+        LOCK BTC     SS:[BP+SI],ECX
+        LOCK BTC     SS:[BP+DI],ECX
+        LOCK BTC     SS:[BP],ECX
+        LOCK BTC     DS:[SI],ECX
+        LOCK BTC     DS:[DI],ECX
+        LOCK BTC     DS:[BX+SI+1234H],ECX 
+        LOCK BTC     DS:[BX+DI+1234H],ECX 
+        LOCK BTC     SS:[BP+SI+1234H],ECX 
+        LOCK BTC     SS:[BP+DI+1234H],ECX 
+        LOCK BTC     SS:[BP+1234H],ECX  
+        LOCK BTC     DS:[SI+1234H],ECX  
+        LOCK BTC     DS:[DI+1234H],ECX  
+        LOCK BTC     DS:[BX+SI],EDX
+        LOCK BTC     DS:[BX+DI],EDX
+        LOCK BTC     SS:[BP+SI],EDX
+        LOCK BTC     SS:[BP+DI],EDX
+        LOCK BTC     SS:[BP],EDX
+        LOCK BTC     DS:[SI],EDX
+        LOCK BTC     DS:[DI],EDX
+        LOCK BTC     DS:[BX+SI+1234H],EDX 
+        LOCK BTC     DS:[BX+DI+1234H],EDX 
+        LOCK BTC     SS:[BP+SI+1234H],EDX 
+        LOCK BTC     SS:[BP+DI+1234H],EDX 
+        LOCK BTC     SS:[BP+1234H],EDX  
+        LOCK BTC     DS:[SI+1234H],EDX  
+        LOCK BTC     DS:[DI+1234H],EDX  
+        LOCK BTC     DS:[BX+SI],EBX
+        LOCK BTC     DS:[BX+DI],EBX
+        LOCK BTC     SS:[BP+SI],EBX
+        LOCK BTC     SS:[BP+DI],EBX
+        LOCK BTC     SS:[BP],EBX
+        LOCK BTC     DS:[SI],EBX
+        LOCK BTC     DS:[DI],EBX
+        LOCK BTC     DS:[BX+SI+1234H],EBX 
+        LOCK BTC     DS:[BX+DI+1234H],EBX 
+        LOCK BTC     SS:[BP+SI+1234H],EBX 
+        LOCK BTC     SS:[BP+DI+1234H],EBX 
+        LOCK BTC     SS:[BP+1234H],EBX  
+        LOCK BTC     DS:[SI+1234H],EBX  
+        LOCK BTC     DS:[DI+1234H],EBX  
+        LOCK BTC     DS:[BX+SI],ESP
+        LOCK BTC     DS:[BX+DI],ESP
+        LOCK BTC     SS:[BP+SI],ESP
+        LOCK BTC     SS:[BP+DI],ESP
+        LOCK BTC     SS:[BP],ESP
+        LOCK BTC     DS:[SI],ESP
+        LOCK BTC     DS:[DI],ESP
+        LOCK BTC     DS:[BX+SI+1234H],ESP 
+        LOCK BTC     DS:[BX+DI+1234H],ESP 
+        LOCK BTC     SS:[BP+SI+1234H],ESP 
+        LOCK BTC     SS:[BP+DI+1234H],ESP 
+        LOCK BTC     SS:[BP+1234H],ESP  
+        LOCK BTC     DS:[SI+1234H],ESP  
+        LOCK BTC     DS:[DI+1234H],ESP  
+        LOCK BTC     DS:[BX+SI],EBP
+        LOCK BTC     DS:[BX+DI],EBP
+        LOCK BTC     SS:[BP+SI],EBP
+        LOCK BTC     SS:[BP+DI],EBP
+        LOCK BTC     SS:[BP],EBP
+        LOCK BTC     DS:[SI],EBP
+        LOCK BTC     DS:[DI],EBP
+        LOCK BTC     DS:[BX+SI+1234H],EBP 
+        LOCK BTC     DS:[BX+DI+1234H],EBP 
+        LOCK BTC     SS:[BP+SI+1234H],EBP 
+        LOCK BTC     SS:[BP+DI+1234H],EBP 
+        LOCK BTC     SS:[BP+1234H],EBP  
+        LOCK BTC     DS:[SI+1234H],EBP  
+        LOCK BTC     DS:[DI+1234H],EBP  
+        LOCK BTC     DS:[BX+SI],ESI
+        LOCK BTC     DS:[BX+DI],ESI
+        LOCK BTC     SS:[BP+SI],ESI
+        LOCK BTC     SS:[BP+DI],ESI
+        LOCK BTC     SS:[BP],ESI
+        LOCK BTC     DS:[SI],ESI
+        LOCK BTC     DS:[DI],ESI
+        LOCK BTC     DS:[BX+SI+1234H],ESI 
+        LOCK BTC     DS:[BX+DI+1234H],ESI 
+        LOCK BTC     SS:[BP+SI+1234H],ESI 
+        LOCK BTC     SS:[BP+DI+1234H],ESI 
+        LOCK BTC     SS:[BP+1234H],ESI  
+        LOCK BTC     DS:[SI+1234H],ESI  
+        LOCK BTC     DS:[DI+1234H],ESI  
+        LOCK BTC     DS:[BX+SI],EDI
+        LOCK BTC     DS:[BX+DI],EDI
+        LOCK BTC     SS:[BP+SI],EDI
+        LOCK BTC     SS:[BP+DI],EDI
+        LOCK BTC     SS:[BP],EDI
+        LOCK BTC     DS:[SI],EDI
+        LOCK BTC     DS:[DI],EDI
+        LOCK BTC     DS:[BX+SI+1234H],EDI 
+        LOCK BTC     DS:[BX+DI+1234H],EDI 
+        LOCK BTC     SS:[BP+SI+1234H],EDI 
+        LOCK BTC     SS:[BP+DI+1234H],EDI 
+        LOCK BTC     SS:[BP+1234H],EDI  
+        LOCK BTC     DS:[SI+1234H],EDI  
+        LOCK BTC     DS:[DI+1234H],EDI  
+        LOCK BTC     DS:[EAX+EAX+00004321H],AX    
+        LOCK BTC     DS:[EAX+EAX*2+00004321H],AX  
+        LOCK BTC     DS:[EAX+EAX*4+00004321H],AX  
+        LOCK BTC     DS:[EAX+EAX*8+00004321H],AX  
+        LOCK BTC     DS:[ESI+00004321H],AX
+        LOCK BTC     DS:[EDI+00004321H],AX
+        LOCK BTC     DS:[EAX+EAX+00004321H],AX    
+        LOCK BTC     DS:[EAX+EAX*2+00004321H],AX  
+        LOCK BTC     DS:[EAX+EAX*4+00004321H],AX  
+        LOCK BTC     DS:[EAX+EAX*8+00004321H],AX  
+        LOCK BTC     DS:[ESI+00004321H],AX
+        LOCK BTC     DS:[EDI+00004321H],AX
+        LOCK BTC     SS:[EBX+EBP*8+00004321H],AX  
+        LOCK BTC     SS:[EBP+00004321H],AX
+        LOCK BTC     DS:[ECX*4+00004321H],AX 
+        LOCK BTC     SS:[EBP*8+000000B0H],AX 
+        LOCK BTC     DS:[ESI*4+00004321H],AX
+        LOCK BTC     DS:[EDI*2+87654321H],AX 
         JO      JCC_REL16
         JNO     START
         JB      JCC_REL16
@@ -1066,27 +1079,14 @@ START:
         JNLE    JCC_REL8
         JCXZ    JCC_REL8
         JECXZ   JCC_REL8
-        LOCK BTC     DS:[EAX+EAX+00004321H],AX    
-        LOCK BTC     DS:[EAX+EAX*2+00004321H],AX  
-        LOCK BTC     DS:[EAX+EAX*4+00004321H],AX  
-        LOCK BTC     DS:[EAX+EAX*8+00004321H],AX  
-        LOCK BTC     DS:[ESI+00004321H],AX
-        LOCK BTC     DS:[EDI+00004321H],AX
-        LOCK BTC     dword ptr SS:[EBX+EAX*8+12345678H],9AH
-        LOCK BTC     DS:[EAX+EAX+00004321H],AX    
-        LOCK BTC     DS:[EAX+EAX*2+00004321H],AX  
-        LOCK BTC     DS:[EAX+EAX*4+00004321H],AX  
-        LOCK BTC     DS:[EAX+EAX*8+00004321H],AX  
-        LOCK BTC     DS:[ESI+00004321H],AX
-        LOCK BTC     DS:[EDI+00004321H],AX
-        LOCK BTC     dword ptr SS:[EBX+EAX*8+12345678H],9AH
-        LOCK BTC     SS:[EBX+EBP*8+00004321H],AX  
-        LOCK BTC     SS:[EBP+00004321H],AX
-        LOCK BTC     DS:[ECX*4+00004321H],AX 
-        LOCK BTC     SS:[EBP*8+000000B0H],AX 
-        LOCK BTC     DS:[ESI*4+00004321H],AX
-        LOCK BTC     DS:[EDI*2+87654321H],AX 
+        LOCK BTC     dword ptr DS:[EAX+EBX*8+0A7654321H],0FFH  
+        LOCK BTC     word ptr SS:[EAX+EBP*8+87654321H],0FFH
+        LOCK BTC     CS:[EAX+EBX*8+0B7654321H],EAX
+        LOCK BTC     DS:[EAX+EBP*8+87654321H],AX 
         LOCK BTC     dword ptr SS:[EBP+EBX*4+12345678H],9AH
+        LOCK BTC     dword ptr SS:[EBX+EAX*8+12345678H],9AH
+        LOCK BTC     dword ptr SS:[EBX+EAX*8+12345678H],9AH
+        LOCK BTC     word ptr FS:[EBX+EBP+0FFEEDDCCH],0A0H 
 JCC_REL16:
         AAD
 END     START
