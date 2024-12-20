@@ -149,12 +149,12 @@ CMPJE     MACRO OP1, OP2, JMP_LABEL
     je          SHORT JMP_LABEL
 ENDM
 
-NOT_SET   MACRO OP1, OP2, JMP_LABEL
+IS_SET    MACRO OP1, OP2, JMP_LABEL
     test        OP1, OP2
     jnz         SHORT JMP_LABEL
 ENDM
 
-IF_SET    MACRO OP1, OP2, JMP_LABEL
+NOT_SET   MACRO OP1, OP2, JMP_LABEL
     test        OP1, OP2
     JZ          SHORT JMP_LABEL
 ENDM
@@ -213,7 +213,7 @@ load_instruction:
     jmp         decode_ne_instruc
 @@regular_instruction:
     CMPJNE      curr_instruc.mnem, <OFFSET _JCXZ>, @@not_jecxz
-    IF_SET      [info_bytes], MASK_ADDR67, @@not_jecxz
+    NOT_SET     [info_bytes], MASK_ADDR67, @@not_jecxz
     mov         curr_instruc.mnem, OFFSET _JECXZ
 @@not_jecxz:
     mov         si, curr_instruc.mnem
@@ -381,7 +381,7 @@ decode_modrm_sib PROC
     call        read_buffer_byte
     mov         bx, OFFSET modrm_byte
     or          [info_bytes], MASK_MODRM
-    IF_SET      [info_bytes], MASK_SIB, @@not_sib
+    NOT_SET     [info_bytes], MASK_SIB, @@not_sib
     mov         bx, OFFSET sib_byte
 @@not_sib:
     mov         al, dl
@@ -412,24 +412,24 @@ write_buffer PROC
     mov         imm, bx
     jmp         insert
 @@READ_MODRM:
-    NOT_SET     [info_bytes], MASK_MODRM, @@modrm_decoded
+    IS_SET     [info_bytes], MASK_MODRM, @@modrm_decoded
     call        decode_modrm_sib ; MODRM
 @@modrm_decoded:
     cmp         al, REG16
     je          insert
     CMPJE       mode, 110b, insert
-    IF_SET      [info_bytes], MASK_ADDR67, @@modrm16
-    CMPJNE      rm, 1000b, @@modrm16
+    NOT_SET     [info_bytes], MASK_ADDR67, @@no_addr_ovr
+    CMPJNE      rm, 1000b, @@no_addr_ovr
     or          [info_bytes], MASK_SIB
     call        decode_modrm_sib   ; SIB
-    CMPJNE      scale, 110b, @@modrm16
+    CMPJNE      scale, 110b, @@no_addr_ovr
     mov         scale, 1000b
-@@modrm16:
+@@no_addr_ovr:
     cmp         mode, 010b
     jae         SHORT @@read_disp
-    IF_SET      [info_bytes], MASK_ADDR67, @@disp16
+    NOT_SET     [info_bytes], MASK_ADDR67, @@disp16
     CMPJE       rm, 1010b, @@read_disp
-    IF_SET      [info_bytes], MASK_SIB, insert
+    NOT_SET     [info_bytes], MASK_SIB, insert
     CMPJE       base, 1010b, @@read_disp
     jmp         SHORT insert
 @@disp16:
@@ -441,7 +441,7 @@ write_buffer PROC
     CMPJE       mode, 010b, @@store_disp
     call        read_buffer_byte
     mov         bh, dl
-    IF_SET      [info_bytes], MASK_ADDR67, @@store_disp
+    NOT_SET     [info_bytes], MASK_ADDR67, @@store_disp
     push        bx
     call        read_buffer_byte
     mov         bl, dl
@@ -459,7 +459,7 @@ insert:
     je          print_reg
     CMPJNE      mode, 110b, eff_addressing
     mov         bl, rm
-    IF_SET      [info_bytes], MASK_SIZE66, print_modrm_reg
+    NOT_SET     [info_bytes], MASK_SIZE66, print_modrm_reg
     add         bl, REG_SHIFT
 print_modrm_reg:
     mov         si, reg_mnem[bx]
@@ -467,7 +467,7 @@ print_modrm_reg:
     jmp         @@return
 eff_addressing:
     CMPJE       curr_instruc.OP2, REG16, @@check_seg
-    IF_SET      [info_bytes], MASK_SIZE66, ea_start
+    NOT_SET     [info_bytes], MASK_SIZE66, ea_start
     mov         bx, 2
 ea_start:
     mov         si, ovr_ptr_mnem[bx]
@@ -478,16 +478,16 @@ ea_start:
     jne         SHORT @@print_seg
     mov         bl, VAL_DS
     mov         bh, rm         
-    IF_SET      [info_bytes], MASK_ADDR67, @@modrm_16
+    NOT_SET     [info_bytes], MASK_ADDR67, @@modrm_16
     CMPJE       mode, 000b, @@check_sib
     CMPJE       bh, 1010b, @@print_ss
 @@check_sib:
     CMPJNE      bh, 1000b, @@print_seg
+    CMPJE       index, 1010b, @@print_ss
     CMPJE       base, 1000b, @@print_ss
     CMPJNE      base, 1010b, @@print_seg
-    CMPJNE      mode, 000b, @@print_ss
-    CMPJE       index, 1010b, @@print_ss  
-    jmp         SHORT @@print_seg
+    CMPJE       mode, 000b, @@print_seg      
+    jmp         SHORT @@print_ss 
 @@modrm_16:
     CMPJE       bh, 0100b, @@print_ss
     CMPJE       bh, 0110b, @@print_ss
@@ -501,14 +501,14 @@ ea_start:
     call        ins_str
     PUT_CHAR    "["
     CMPJNE      mode, 000b, @@ea_with_disp
-    NOT_SET     [info_bytes], MASK_ADDR67, @@modrm32
+    IS_SET     [info_bytes], MASK_ADDR67, @@modrm32
     CMPJNE      rm, 1100b, @@ea_with_disp
     jmp         print_disp
 @@modrm32:
     cmp         rm, 1010b
     je          print_disp       
 @@ea_with_disp:
-    IF_SET      [info_bytes], MASK_SIB, @@no_sib
+    NOT_SET     [info_bytes], MASK_SIB, @@no_sib
     CMPJNE      base, 1010b, @@no_ebp_base
     CMPJE       mode, 000b, @@no_base
 @@no_ebp_base:
@@ -535,7 +535,7 @@ ea_start:
     jmp         @@ea_end
 @@no_sib:
     movzx       bx, rm
-    IF_SET      [info_bytes], MASK_ADDR67, ea16
+    NOT_SET     [info_bytes], MASK_ADDR67, ea16
     add         bl, EA_REG_SHIFT
 ea16:
     mov         si, ea_mnem[bx]
@@ -606,7 +606,7 @@ two_byte_jcc:
     jmp         SHORT @@return
 print_reg:
     mov         bl, reg
-    IF_SET      [info_bytes], MASK_SIZE66, print_reg_name
+    NOT_SET     [info_bytes], MASK_SIZE66, print_reg_name
     add         bl, REG_SHIFT    
 print_reg_name:
     mov         si, reg_mnem[bx]
