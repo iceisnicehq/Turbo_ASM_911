@@ -35,10 +35,7 @@ ENDM
     com_file                DB COM_FILE_NAME, 0
     error                   DB 'Error occurred. Make sure COM file is "', COM_FILE_NAME, '". Res_file will be "', RES_FILE_NAME, '"$'
     success                 DB 'Result successfully written to file: ', RES_FILE_NAME, '$'
-    ; ip_value                DW 0FFh
 
-    ; buff_start              DB "_"
-    ; ip_buffer               DB "0000H:  "
     instruc_buffer          DB instruction_chars DUP (" ")
                             DB "; "
     machine_code_buffer     DB machine_code_chars DUP (" ")
@@ -122,9 +119,9 @@ LABEL instruction_set_array
         mode               DB ?
         reg                DB ?
         rm                 DB ?
-    data_size              DW ?                            
-    data_index             DW ?
-    data_buffer            DB BYTES_IN_BUFFER DUP (?) 
+    read_data              DW ?                            
+    read_index             DW ?
+    com_buffer            DB BYTES_IN_BUFFER DUP (?) 
     com_file_handle        DW ?
     res_file_handle        DW ?
     imm                    DW ?
@@ -353,16 +350,16 @@ put_hex_to_str_bx ENDP
 
 read_buffer_byte PROC
     push        bx ax
-    mov         ax, data_size
-    cmp         ax, data_index
+    mov         ax, read_data
+    cmp         ax, read_index
     ja          SHORT @@check_file_end
     mov         ah, 3Fh
     mov         bx, com_file_handle 
     mov         cx, BYTES_IN_BUFFER
-    mov         dx, OFFSET data_buffer
+    mov         dx, OFFSET com_buffer
     int         21h
-    mov         data_size, ax 
-    mov         data_index, 0
+    mov         read_data, ax 
+    mov         read_index, 0
 @@check_file_end:
     or          ax, ax
     jne         SHORT @@read_byte
@@ -370,10 +367,10 @@ read_buffer_byte PROC
     jmp         SHORT @@return
 @@read_byte:
     xor         dh, dh
-    mov         bx, OFFSET data_buffer
-    add         bx, data_index
+    mov         bx, OFFSET com_buffer
+    add         bx, read_index
     mov         dl, [bx]
-    inc         data_index
+    inc         read_index
     ; inc         ip_value
     push        dx
     movzx       ax, dl
@@ -598,6 +595,9 @@ print_rel:
     jna         SHORT two_byte_jcc
     shl         bx, 1
 two_byte_jcc:
+    CMPJNE      curr_instruc.mnem, <OFFSET _JECXZ>, @@not_jecxz
+    inc         bx
+@@not_jecxz:
     add         ax, bx
     jnz         SHORT @@non_zero_rel
     dec         instruc_end_ptr

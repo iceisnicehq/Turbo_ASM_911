@@ -1065,8 +1065,7 @@ JCC_REL8:
         JLE     JCC_REL8
         JNLE    JCC_REL8
         JCXZ    JCC_REL8
-        JECXZ   JCC_REL8F
-JCC_REL8F:
+        JECXZ   JCC_REL8
         LOCK BTC     [EAX+EAX+00004321H],AX
         LOCK BTC     [EAX+EAX*2+00004321H],AX
         LOCK BTC     [EAX+EAX*4+00004321H],AX

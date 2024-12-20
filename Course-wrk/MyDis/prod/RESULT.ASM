@@ -1059,7 +1059,7 @@ JNL     $-001AH                                             ; 7D E4
 JLE     $-001CH                                             ; 7E E2
 JNLE    $-001EH                                             ; 7F E0
 JCXZ    $-0020H                                             ; E3 DE
-JECXZ   $+0001H                                             ; 67 E3 FF
+JECXZ   $-0022H                                             ; 67 E3 DB
 LOCK BTC     DS:[EAX+EAX+00004321H],AX                      ; F0 67 0F BB 84 00 21 43 00 00
 LOCK BTC     DS:[EAX+EAX*2+00004321H],AX                    ; F0 67 0F BB 84 40 21 43 00 00
 LOCK BTC     DS:[EAX+EAX*4+00004321H],AX                    ; F0 67 0F BB 84 80 21 43 00 00
