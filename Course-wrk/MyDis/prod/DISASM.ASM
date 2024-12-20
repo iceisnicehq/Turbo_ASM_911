@@ -172,7 +172,7 @@ Start:
     int         21h
     jc          SHORT error_exit
     mov         res_file_handle, ax
-    jmp         SHORT decode_ne_instruc
+    jmp         SHORT decode_new_instruc
 error_exit:
     mov         dx, OFFSET error
     mov         ah, 09h
@@ -181,7 +181,7 @@ error_exit:
 decode_with_prefix:
     mov         si, curr_instruc.mnem
     call        ins_str
-decode_ne_instruc:    
+decode_new_instruc:    
     call        read_buffer_byte
     or          dh, dh
     je          SHORT load_instruction
@@ -200,7 +200,7 @@ load_instruction:
     mov         ax, curr_instruc.mnem
     mov         seg_ovr, al
     or          [info_bytes], MASK_SEG_OVER
-    jmp         decode_ne_instruc
+    jmp         decode_new_instruc
 @@not_seg_ovr:
     cmp         curr_instruc.maska, MASK_REGULAR 
     jae         @@regular_instruction
@@ -208,7 +208,7 @@ load_instruction:
     or          [info_bytes], al
     or          al, al
     js          decode_with_prefix
-    jmp         decode_ne_instruc
+    jmp         decode_new_instruc
 @@regular_instruction:
     CMPJNE      curr_instruc.mnem, <OFFSET _JCXZ>, @@not_jecxz
     NOT_SET     [info_bytes], MASK_ADDR67, @@not_jecxz
@@ -252,7 +252,7 @@ reset_buffer:
     mov         al, " "
     rep         stosb
     mov         WORD PTR seg_ovr, 0    
-    jmp         decode_ne_instruc
+    jmp         decode_new_instruc
 exit:
     mov         ah, 3Eh
     mov         bx, com_file_handle
