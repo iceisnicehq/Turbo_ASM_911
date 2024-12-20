@@ -7,7 +7,7 @@ LOCALS @@
 
     INSTRUC STRUC
         MNEM                DW ?
-        I_TYPE              DB ?
+        MASKA               DB ?
         OP1                 DB ?
         OP2                 DB ?
     ENDS
@@ -32,25 +32,23 @@ LOCALS @@
     INS_BUFFER              DB INSTRUCTION_CHARS DUP (" ")
                             DB "; "
     MC_BUFFER               DB MACHINE_CODE_CHARS DUP (" ")
-    LABEL PREF_BYTES
-        ADDR_OVR            DB ?
-        SIZE_OVR            DB ?
-        INS_EXT             DB ?
-        SEG_OVR             DB ?
-        HAS_PREFIX          DB ?
-        IS_MODRM_DECODED    DB ?
-    LABEL SIB_BYTE
-        SCALE               DB ?
-        INDEX               DB ?
-        BASE                DB ?
-    LABEL MODRM_BYTE
-        MODE                DB ?
-        REG                 DB ?
-        RM                  DB ?
-    PREF_BYTES_NUM          EQU $ - PREF_BYTES
+
     INSTRUC_END_PTR         DW INS_BUFFER   
     MC_END_PTR              DW MC_BUFFER
+
+    PREFIXES   RECORD      prefix:1, sib:1, modrm:1, ext:1, size66:1, addr67:1, seg_over:1, xxx:1 ; PSME SASxb
     
+    mask_prefix             =  MASK prefix  ; 1000 0000b
+    mask_sib                =  MASK sib     ; 0100 0000b
+    mask_modrm              =  MASK modrm   ; 0010 0000b
+    mask_ext                =  MASK ext     ; 0001 0000b   
+    mask_size               =  MASK size66  ; 0000 1000b
+    mask_addr               =  MASK addr67  ; 0000 0100b
+    mask_segovr             =  MASK seg_over; 0000 0010b
+    mask_regular            =  0FDh 
+    mask_aad                =  0FEh
+    mask_unknown            =  0FFh
+
     DWORD_PTR               DB "dword ptr $"
 
 
@@ -63,7 +61,7 @@ LOCALS @@
         VAL_&CHAR = VAL
          _&CHAR  DB "&CHAR", ":$"
         VAL = VAL + 2
-        INS_&CHAR INSTRUC <VAL_&CHAR, TYPE_SEG_OVR, NONE, NONE>
+        INS_&CHAR INSTRUC <VAL_&CHAR, mask_segovr, NONE, NONE>
     ENDM
 
     BX_SI                   DB "BX+SI$"
@@ -71,51 +69,40 @@ LOCALS @@
     BP_SI                   DB "BP+SI$"
     BP_DI                   DB "BP+DI$"
 
-    LABEL EA_ADDRESS
-                            DW BX_SI, BX_DI, BP_SI, BP_DI, _SI, _DI, _BP, _BX
-        
-    LABEL REGISTERS
-                            DW _AX, _CX, _DX, _BX, _SP, _BP, _SI, _DI
+    EA_ADDRESS              DW BX_SI, BX_DI, BP_SI, BP_DI, _SI, _DI, _BP, _BX
+    REGISTERS               DW _AX, _CX, _DX, _BX, _SP, _BP, _SI, _DI
                             DW _EAX, _ECX, _EDX, _EBX, _ESP, _EBP, _ESI, _EDI
+    SEG_REGS                DW _ES, _CS, _SS, _DS, _FS, _GS
+    SIZE_OVR_PTRS           DW DWORD_PTR+1, DWORD_PTR
 
-    LABEL SEG_REGS
-                            DW _ES, _CS, _SS, _DS, _FS, _GS
+    INS_OPERANDS ENUM NONE, IMM8, REL8, REL16, REG16, REGM16
 
-    LABEL SIZE_OVR_PTRS
-                            DW DWORD_PTR+1, DWORD_PTR
-
-    INS_OPERANDS ENUM NONE, IMM8, REL8, REL16, REG16, REGMEM16
-    
+    INS_TYPE     ENUM TYPE_UNKNOWN, TYPE_SEG_OVR, TYPE_JCC_BTC, TYPE_JCXZ, TYPE_AAD
     IRP    CHAR, <JO, JNO, JB, JNB, JZ, JNZ, JBE, JNBE, JS, JNS, JP, JNP, JL, JNL, JLE, JNLE>
          _&CHAR  DB "&CHAR"
          LEN = $ - _&CHAR
                 DB 8 - LEN dup (' '), "_$"
-        J8_&CHAR    INSTRUC <_&CHAR,TYPE_JCC_BTC, REL8,   NONE>  ; 70h-7fh
-        J16_&CHAR   INSTRUC <_&CHAR,TYPE_JCC_BTC, REL16,  NONE>  ; 80h-8fh
+        J8_&CHAR    INSTRUC <_&CHAR, mask_regular, REL8,   NONE>  ; 70h-7fh
+        J16_&CHAR   INSTRUC <_&CHAR, mask_regular, REL16,  NONE>  ; 80h-8fh
     ENDM
 
-    _UNK                DB "???$"
-    _AAD                DB "AAD$"
-    _LOCK               DB "LOCK $"
-    _BTC                DB "BTC     $"
-    _JCXZ               DB "JCXZ    _$"
-    _JECXZ              DB "JECXZ   _$"
+    _UNK                    DB "???$"
+    _AAD                    DB "AAD$"
+    _LOCK                   DB "LOCK $"
+    _BTC                    DB "BTC     $"
+    _JCXZ                   DB "JCXZ    _$"
+    _JECXZ                  DB "JECXZ   _$"
 
-    VAL = 1
-    IRP  T, <ADDR_OVR, SIZE_OVR, EXT, SEG_OVR, PREFIX, UNKNOWN, JCC_BTC, JCXZ, AAD>
-        TYPE_&T = VAL
-        VAL = VAL + 1
-    ENDM
-
-    UNK        INSTRUC <_UNK,  TYPE_UNKNOWN, NONE,     NONE> ; 
-    PREF_0F    INSTRUC <NONE,  TYPE_EXT,     NONE,     NONE> ; 0Fh
-    INS_SIZE   INSTRUC <NONE,  TYPE_SIZE_OVR,NONE,     NONE> ; 66h
-    INS_ADDR   INSTRUC <NONE,  TYPE_ADDR_OVR,NONE,     NONE> ; 67h
-    BTC_BA     INSTRUC <_BTC,  TYPE_JCC_BTC, REGMEM16, IMM8> ; BAh
-    BTC_BB     INSTRUC <_BTC,  TYPE_JCC_BTC, REGMEM16,REG16> ; BBh 
-    INS_AAD    INSTRUC <_AAD,  TYPE_AAD,     NONE,     NONE> ; D5h
-    INS_JCXZ   INSTRUC <_JCXZ, TYPE_JCXZ,    REL8,     NONE> ; E3h  (JECXZ)
-    INS_LOCK   INSTRUC <_LOCK, TYPE_PREFIX,  NONE,     NONE> ; F0h
+    
+    UNK        INSTRUC <_UNK,  mask_unknown, NONE,     NONE> ; 
+    PREF_0F    INSTRUC <NONE,  mask_ext,     NONE,     NONE> ; 0Fh
+    INS_SIZE   INSTRUC <NONE,  mask_size,    NONE,     NONE> ; 66h
+    INS_ADDR   INSTRUC <NONE,  mask_addr,    NONE,     NONE> ; 67h
+    BTC_BA     INSTRUC <_BTC,  mask_regular, REGM16,   IMM8> ; BAh
+    BTC_BB     INSTRUC <_BTC,  mask_regular, REGM16,  REG16> ; BBh 
+    INS_AAD    INSTRUC <_AAD,  mask_aad,     NONE,     NONE> ; D5h
+    INS_JCXZ   INSTRUC <_JCXZ, mask_regular, REL8,     NONE> ; E3h  (JECXZ)
+    INS_LOCK   INSTRUC <_LOCK, mask_prefix,  NONE,     NONE> ; F0h
 
 LABEL INSTRUCTION_SET_ARRAY 
 ; INDEXES      00h             0Fh                     26Eh                   2Eh
@@ -134,6 +121,16 @@ LABEL INSTRUCTION_SET_ARRAY
             DW J16_JNLE, 2Ah DUP (UNK), BTC_BA, BTC_BB, 19h DUP (UNK), INS_AAD, 0Dh DUP (UNK)
 ; INDEXES      E3h                      F0h
             DW INS_JCXZ, 0Ch DUP (UNK), INS_LOCK, 0Fh DUP (UNK)
+    
+    LABEL SIB_BYTE
+        SCALE                   DB ?
+        INDEX                   DB ?
+        BASE                    DB ?
+    LABEL MODRM_BYTE
+        MODE                    DB ?
+        REG                     DB ?
+        RM                      DB ?
+    
     DATA_SIZE                   DW ?                            
     DATA_INDEX                  DW ?
     DATA_BUFFER                 DB BYTES_IN_BUFFER DUP (?) 
@@ -145,24 +142,36 @@ LABEL INSTRUCTION_SET_ARRAY
     DISP32                      DW ?
     DISP                        DW ?
 
-    CURR_INSTRUC INSTRUC <>
+    CURR_INSTRUC  INSTRUC  <>
+    SEG_OVR                     DB ?
+    INFO_BYTES    PREFIXES <>
 
 .CODE
 
-PUT_CHAR       MACRO  CHAR
+PUT_CHAR        MACRO  CHAR
     MOV         BX, INSTRUC_END_PTR
     MOV         BYTE PTR [BX], CHAR
     INC         INSTRUC_END_PTR
 ENDM
 
-CMPJNE         MACRO   OP1, OP2, JMP_LABEL
+CMPJNE          MACRO   OP1, OP2, JMP_LABEL
     CMP         OP1, OP2
     JNE         SHORT JMP_LABEL
 ENDM
 
-CMPJE          MACRO   OP1, OP2, JMP_LABEL
+CMPJE           MACRO   OP1, OP2, JMP_LABEL
     CMP         OP1, OP2
     JE          SHORT JMP_LABEL
+ENDM
+
+JMP_SET         MACRO   OP1, OP2, JMP_LABEL
+    TEST        OP1, OP2
+    JNZ         SHORT JMP_LABEL
+ENDM
+
+JMP_NOT_SET     MACRO   OP1, OP2, JMP_LABEL
+    TEST        OP1, OP2
+    JZ          SHORT JMP_LABEL
 ENDM
 
 START:
@@ -186,6 +195,9 @@ ERROR_EXIT:
     MOV         AH, 09h
     INT         21h
     JMP         EXIT
+DECODE_WTIH_LOCK:
+    MOV         SI, CURR_INSTRUC.MNEM
+    CALL        INS_STR
 DECODE_NEW_INSTRUC:    
     CALL        READ_BUFFER_BYTE
     OR          DH, DH
@@ -201,8 +213,7 @@ LOAD_INSTRUC:
     MOV         SI, INSTRUCTION_SET_ARRAY[SI]
     MOV         DI, OFFSET CURR_INSTRUC
     REP         MOVSB
-    MOVZX       EAX, HAS_PREFIX
-    OR          EAX, DWORD PTR [PREF_BYTES]
+    OR          [INFO_BYTES], 0
     JNZ         SHORT CHECK_PREFIX_TYPE
 PRINT_OFFSET:
     MOV         BX, OFFSET IP_BUFFER
@@ -211,26 +222,29 @@ PRINT_OFFSET:
     CLC 
     CALL        PUT_HEX_TO_STR_BX
 CHECK_PREFIX_TYPE: 
-    CMPJNE      CURR_INSTRUC.I_TYPE, TYPE_SEG_OVR, @@NOT_SEG_OVR
+    CMPJNE      CURR_INSTRUC.MASKA, mask_segovr, @@NOT_SEG_OVR
     MOV         AX, CURR_INSTRUC.MNEM
     MOV         SEG_OVR, AL
+    OR          [INFO_BYTES], mask_segovr
     JMP         DECODE_NEW_INSTRUC
 @@NOT_SEG_OVR:
-    MOVZX       BX, CURR_INSTRUC.I_TYPE
-    MOV         BYTE PTR PREF_BYTES[BX-1], BL
-    CMP         BL, TYPE_PREFIX
-    JNAE        DECODE_NEW_INSTRUC
-    CMPJNE      CURR_INSTRUC.I_TYPE, TYPE_JCXZ, @@NOT_JECXZ
-    CMPJNE      ADDR_OVR, 1, @@NOT_JECXZ
+    CMP         CURR_INSTRUC.MASKA, mask_regular 
+    JAE         @@REGULAR_INSTRUCTION
+    MOV         AL, CURR_INSTRUC.MASKA
+    OR          [INFO_BYTES], AL
+    OR          AL, AL
+    JS          DECODE_WTIH_LOCK
+    JMP         DECODE_NEW_INSTRUC
+@@REGULAR_INSTRUCTION:
+    CMPJNE      CURR_INSTRUC.MNEM, <OFFSET _JCXZ>, @@NOT_JECXZ
+    JMP_NOT_SET [INFO_BYTES], mask_addr, @@NOT_JECXZ
     MOV         CURR_INSTRUC.MNEM, OFFSET _JECXZ
 @@NOT_JECXZ:
     MOV         SI, CURR_INSTRUC.MNEM
     CALL        INS_STR
-    CMP         CURR_INSTRUC.I_TYPE, TYPE_UNKNOWN
-    JE          PRINT_TO_FILE 
-    JB          DECODE_NEW_INSTRUC
-ANALYZE_OPERANDS:
-    CMPJNE      CURR_INSTRUC.I_TYPE, TYPE_AAD, READ_AND_PUT
+    CMP         CURR_INSTRUC.MASKA, mask_aad
+    JB          SHORT READ_AND_PUT
+    JA          SHORT PRINT_TO_FILE 
     CALL        READ_BUFFER_BYTE
     JMP         SHORT PRINT_TO_FILE
 READ_AND_PUT:
@@ -263,9 +277,7 @@ RESET_BUFFER:
     MOV         CX, MACHINE_CODE_CHARS
     MOV         AL, " "
     REP STOSB
-    MOV         CX, PREF_BYTES_NUM
-    XOR         AL, AL
-    REP STOSB
+    MOV         WORD PTR SEG_OVR, 0    
     JMP         DECODE_NEW_INSTRUC
 EXIT:
     MOV         AH, 3Eh
@@ -393,8 +405,8 @@ DECODE_MODRM_SIB PROC
     PUSH        AX DX 
     CALL        READ_BUFFER_BYTE
     MOV         BX, OFFSET MODRM_BYTE
-    MOV         IS_MODRM_DECODED, 1    
-    CMPJNE      ADDR_OVR, 2, @@NOT_SIB
+    OR          [INFO_BYTES], mask_modrm
+    JMP_NOT_SET [INFO_BYTES], mask_sib, @@NOT_SIB
     MOV         BX, OFFSET SIB_BYTE
 @@NOT_SIB:
     MOV         AL, DL
@@ -425,24 +437,24 @@ WRITE_BUFFER PROC
     MOV         IMM, BX
     JMP         INSERT
 @@READ_MODRM:
-    CMPJNE      IS_MODRM_DECODED, 0, @@MODRM_DECODED
+    JMP_SET     [INFO_BYTES], mask_modrm, @@MODRM_DECODED
     CALL        DECODE_MODRM_SIB ; MODRM
 @@MODRM_DECODED:
     CMP         AL, REG16
     JE          INSERT
     CMPJE       MODE, 110b, INSERT
-    CMPJE       ADDR_OVR, 0, @@MODRM16
+    JMP_NOT_SET [INFO_BYTES], mask_addr, @@MODRM16
     CMPJNE      RM, 1000b, @@MODRM16
-    INC         ADDR_OVR
+    OR          [INFO_BYTES], mask_sib
     CALL        DECODE_MODRM_SIB   ; SIB
     CMPJNE      SCALE, 110b, @@MODRM16
     MOV         SCALE, 1000b
 @@MODRM16:
     CMP         MODE, 010b
     JAE         SHORT @@READ_DISP
-    CMPJE       ADDR_OVR, 0, @@DISP16
+    JMP_NOT_SET [INFO_BYTES], mask_addr, @@DISP16
     CMPJE       RM, 1010b, @@READ_DISP
-    CMPJNE      ADDR_OVR, 2, INSERT
+    JMP_NOT_SET [INFO_BYTES], mask_sib, INSERT
     CMPJE       BASE, 1010b, @@READ_DISP
     JMP         SHORT INSERT
 @@DISP16:
@@ -454,7 +466,7 @@ WRITE_BUFFER PROC
     CMPJE       MODE, 010b, @@STORE_DISP
     CALL        READ_BUFFER_BYTE
     MOV         BH, DL
-    CMPJE       ADDR_OVR, 0, @@STORE_DISP
+    JMP_NOT_SET [INFO_BYTES], mask_addr, @@STORE_DISP
     PUSH        BX
     CALL        READ_BUFFER_BYTE
     MOV         BL, DL
@@ -472,7 +484,7 @@ INSERT:
     JE          PRINT_REG
     CMPJNE      MODE, 110b, EFFECTIVE_ADDRESSING
     MOV         BL, RM
-    CMPJE       SIZE_OVR, 0, PRINT_MODRM_REG
+    JMP_NOT_SET [INFO_BYTES], mask_size, PRINT_MODRM_REG
     ADD         BL, REG_SHIFT
 PRINT_MODRM_REG:
     MOV         SI, REGISTERS[BX]
@@ -480,8 +492,8 @@ PRINT_MODRM_REG:
     JMP         @@RETURN
 EFFECTIVE_ADDRESSING:
     CMPJE       CURR_INSTRUC.OP2, REG16, @@CHECK_SEG
-    CMPJE       SIZE_OVR, 0, EA_START
-    MOVZX       BX, SIZE_OVR
+    JMP_NOT_SET [INFO_BYTES], mask_size, EA_START
+    MOV         BX, 2
 EA_START:
     MOV         SI, SIZE_OVR_PTRS[BX]
     CALL        INS_STR
@@ -491,7 +503,7 @@ EA_START:
     JNE         SHORT @@PRINT_SEG
     MOV         BL, VAL_DS
     MOV         BH, RM         
-    CMPJE       ADDR_OVR, 0, @@MODRM_16
+    JMP_NOT_SET [INFO_BYTES], mask_addr, @@MODRM_16
     CMPJE       MODE, 000b, @@CHECK_SIB
     CMPJE       BH, 1010b, @@PRINT_SS
 @@CHECK_SIB:
@@ -514,14 +526,14 @@ EA_START:
     CALL        INS_STR
     PUT_CHAR    "["
     CMPJNE      MODE, 000b, @@EA_NORMAL
-    CMPJE       ADDR_OVR, 1, @@MODRM32
+    JMP_SET     [INFO_BYTES], mask_addr, @@MODRM32
     CMPJNE      RM, 1100b, @@EA_NORMAL
     JMP         PRINT_DISP
 @@MODRM32:
     CMP         RM, 1010b
     JE          PRINT_DISP       
 @@EA_NORMAL:
-    CMPJNE      ADDR_OVR, 2, @@NO_SIB
+    JMP_NOT_SET [INFO_BYTES], mask_sib, @@NO_SIB
     CMPJNE      BASE, 1010b, @@NO_EBP_BASE
     CMPJE       MODE, 000b, @@NO_BASE
 @@NO_EBP_BASE:
@@ -548,7 +560,7 @@ EA_START:
     JMP         @@EA_END
 @@NO_SIB:
     MOVZX       BX, RM
-    CMPJE       ADDR_OVR, 0, EA16
+    JMP_NOT_SET [INFO_BYTES], mask_addr, EA16
     ADD         BL, EA_REG_SHIFT
 EA16:
     MOV         SI, EA_ADDRESS[BX]
@@ -560,7 +572,7 @@ EA16:
 PRINT_DISP:
     MOV         AX, DISP
     CMPJE       MODE, 010b, @@PRINT_BYTE_DISP
-    CMP         ADDR_OVR, 0
+    TEST        [INFO_BYTES], mask_addr
     STC
     JE          SHORT @@DISP_16
     PUSH        AX
@@ -603,7 +615,7 @@ PRINT_REL:
     JMP         SHORT @@RETURN
 PRINT_REG:
     MOV         BL, REG
-    CMPJE       SIZE_OVR, 0, PRINT_REG_NAME
+    JMP_NOT_SET [INFO_BYTES], mask_size, PRINT_REG_NAME
     ADD         BL, REG_SHIFT    
 PRINT_REG_NAME:
     MOV         SI, REGISTERS[BX]
