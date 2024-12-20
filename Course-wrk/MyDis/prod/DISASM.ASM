@@ -26,8 +26,8 @@ ENDM
     REG_SHIFT               EQU 16
     EA_REG_SHIFT            EQU REG_SHIFT*2
     BYTES_IN_BUFFER         EQU 512
-    machine_code_chars      EQU 50
-    instruction_chars       EQU 60
+    MACHINE_CODE_CHARS      EQU 50
+    INSTRUCTION_CHARS       EQU 60
     RES_FILE_NAME           EQU "RESULT.ASM"
     COM_FILE_NAME           EQU "COM.COM"
 
@@ -36,8 +36,8 @@ ENDM
     error                   DB 'Error occurred. Make sure COM file is "', COM_FILE_NAME, '". Res_file will be "', RES_FILE_NAME, '"$'
     success                 DB 'Result successfully written to file: ', RES_FILE_NAME, '$'
 
-    instruc_buffer          DB instruction_chars DUP (' '), "; "
-    machine_code_buffer     DB machine_code_chars DUP (' ')
+    instruc_buffer          DB INSTRUCTION_CHARS DUP (' '), "; "
+    machine_code_buffer     DB MACHINE_CODE_CHARS DUP (' ')
 
     instruc_end_ptr         DW instruc_buffer   
     mach_code_end_ptr       DW machine_code_buffer
@@ -244,12 +244,12 @@ print_to_file:
 reset_buffer:
     mov         di, OFFSET instruc_buffer
     mov         instruc_end_ptr, di
-    mov         cx, instruction_chars
+    mov         cx, INSTRUCTION_CHARS
     mov         al, " "
     rep         stosb
     mov         di, OFFSET machine_code_buffer
     mov         mach_code_end_ptr, di
-    mov         cx, machine_code_chars
+    mov         cx, MACHINE_CODE_CHARS
     mov         al, " "
     rep         stosb
     mov         WORD PTR seg_ovr, 0    
