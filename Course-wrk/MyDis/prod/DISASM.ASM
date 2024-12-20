@@ -35,10 +35,10 @@ ENDM
     com_file                DB COM_FILE_NAME, 0
     error                   DB 'Error occurred. Make sure COM file is "', COM_FILE_NAME, '". Res_file will be "', RES_FILE_NAME, '"$'
     success                 DB 'Result successfully written to file: ', RES_FILE_NAME, '$'
-    ip_value                DW 0FFh
+    ; ip_value                DW 0FFh
 
-    buff_start              DB "_"
-    ip_buffer               DB "0000H:  "
+    ; buff_start              DB "_"
+    ; ip_buffer               DB "0000H:  "
     instruc_buffer          DB instruction_chars DUP (" ")
                             DB "; "
     machine_code_buffer     DB machine_code_chars DUP (" ")
@@ -48,22 +48,22 @@ ENDM
 
 IRP    CHAR, <AX, CX, DX, BX, SP, BP, SI, DI>
     _e&CHAR                 DB "E"
-    _&CHAR                  DB "&CHAR", "$"
+    _&CHAR                  DB "&CHAR", 0
 ENDM
 
 VAL = 2 ;       2   4   6   8   10  12
 IRP      CHAR, <ES, CS, SS, DS, FS, GS>
     VAL_&CHAR               =  VAL
-    _&CHAR                  DB "&CHAR", ":$"
+    _&CHAR                  DB "&CHAR", ":", 0
     VAL                     =  VAL + 2
     INS_&CHAR INSTRUC       <VAL_&CHAR, MASK_SEG_OVER, NONE, NONE>
 ENDM
 
-    bx_si                   DB "BX+SI$"
-    bx_di                   DB "BX+DI$"
-    bp_si                   DB "BP+SI$"
-    bp_di                   DB "BP+DI$"
-    dword_ptr               DB "dword ptr $"
+    bx_si                   DB "BX+SI", 0
+    bx_di                   DB "BX+DI", 0
+    bp_si                   DB "BP+SI", 0
+    bp_di                   DB "BP+DI", 0
+    dword_ptr               DB "dword ptr ", 0
 
     ea_mnem                 DW BX_SI, BX_DI, BP_SI, BP_DI, _SI, _DI, _BP, _BX
     reg_mnem                DW _AX, _CX, _DX, _BX, _SP, _BP, _SI, _DI
@@ -74,17 +74,17 @@ ENDM
 IRP   CHAR, <JO, JNO, JB, JNB, JZ, JNZ, JBE, JNBE, JS, JNS, JP, JNP, JL, JNL, JLE, JNLE>
     _&CHAR                  DB "&CHAR"
     LEN                     = $ - _&CHAR
-                            DB 8 - LEN dup (' '), "_$"
+                            DB 8 - LEN dup (' '), "$+", 0
     J8_&CHAR  INSTRUC       <_&CHAR, MASK_REGULAR, REL8,    NONE> ; 70h-7fh
     J16_&CHAR INSTRUC       <_&CHAR, MASK_REGULAR, REL16,   NONE> ; 80h-8fh
 ENDM
 
-    _unk                    DB "???$"
-    _aad                    DB "AAD$"
-    _lock                   DB "LOCK $"
-    _btc                    DB "BTC     $"
-    _jcxz                   DB "JCXZ    _$"
-    _jecxz                  DB "JECXZ   _$"
+    _unk                    DB "???", 0
+    _aad                    DB "AAD", 0
+    _lock                   DB "LOCK ", 0
+    _btc                    DB "BTC     ", 0
+    _jcxz                   DB "JCXZ    $+", 0
+    _jecxz                  DB "JECXZ   $+", 0
 
     unk        INSTRUC      <_unk,  MASK_UNKNOWN, NONE,     NONE> ; 
     pref_0f    INSTRUC      <NONE,  MASK_EXT,     NONE,     NONE> ; 0Fh
@@ -201,15 +201,15 @@ load_instruction:
     mov         si, instruction_set_array[si]
     mov         di, OFFSET curr_instruc
     rep         movsb
-    or          [info_bytes], 0
-    jnz         SHORT check_prefix_type
-print_offset:
-    mov         bx, OFFSET ip_buffer
-    mov         ax, ip_value
-    mov         dl, 1
-    clc 
-    call        put_hex_to_str_bx
-check_prefix_type: 
+    ; or          [info_bytes], 0
+;     jnz         SHORT check_prefix_type
+; print_offset:
+;     mov         bx, OFFSET ip_buffer
+;     mov         ax, ip_value
+;     mov         dl, 1
+;     clc 
+;     call        put_hex_to_str_bx
+; check_prefix_type: 
     CMPJNE      curr_instruc.maska, MASK_SEG_OVER, @@not_seg_ovr
     mov         ax, curr_instruc.mnem
     mov         seg_ovr, al
@@ -249,7 +249,7 @@ print_to_file:
     inc         bx
     mov         BYTE PTR [bx], "$"
     mov         cx, bx
-    mov         dx, OFFSET buff_start
+    mov         dx, OFFSET instruc_buffer
     sub         cx, dx
     mov         ah, 40h
     mov         bx, res_file_handle
@@ -291,7 +291,7 @@ put_byte_al ENDP
 ins_str PROC ; si = pointer to ASCII$ string
     mov         di, instruc_end_ptr
 @@moving:
-    cmp        BYTE PTR [si], "$" 
+    or         BYTE PTR [si], 0 
     je         SHORT @@return
     movsb
     jmp         @@moving
@@ -374,7 +374,7 @@ read_buffer_byte PROC
     add         bx, data_index
     mov         dl, [bx]
     inc         data_index
-    inc         ip_value
+    ; inc         ip_value
     push        dx
     movzx       ax, dl
     mov         bx, mach_code_end_ptr
@@ -594,8 +594,21 @@ print_imm8:
     PUT_CHAR    "H"
     jmp         SHORT @@return
 print_rel:
-    add         ax, ip_value
-    inc         ax
+    mov         bx, 2
+    jna         SHORT two_byte_jcc
+    shl         bx, 1
+two_byte_jcc:
+    add         ax, bx
+    jnz         SHORT @@non_zero_rel
+    dec         instruc_end_ptr
+    PUT_CHAR    " "
+    jmp         SHORT @@return
+@@non_zero_rel:
+    jns         SHORT @@pos_rel
+    dec         instruc_end_ptr
+    PUT_CHAR    "-"
+    neg         ax
+@@pos_rel:
     stc
     mov         dl, 1
     call        put_word_ax
