@@ -1,18 +1,16 @@
 BTC     DS:[EAX*4],EAX                                      ; 66 67 0F BB 04 85 00 00 00 00
 BTC     DS:[EBX*4],AX                                       ; 67 0F BB 04 9D 00 00 00 00
 BTC     SS:[EBP*4],AX                                       ; 67 0F BB 04 AD 00 00 00 00
+BTC     word ptr SS:[EBP],0FFH                              ; 67 0F BA 7D 00 FF
+BTC     dword ptr SS:[ESP],0FFH                             ; 66 67 0F BA 3C 24 FF
 BTC     SS:[EBP*4+00000001H],EBP                            ; 66 67 0F BB 2C AD 01 00 00 00
 BTC     SS:[EBP*4+00000100H],EBP                            ; 66 67 0F BB 2C AD 00 01 00 00
-BTC     word ptr SS:[EAX+EBP],0FFH                          ; 67 0F BA 3C 28 FF
-BTC     dword ptr SS:[EAX+EBP*8],0FFH                       ; 66 67 0F BA 3C E8 FF
 BTC     word ptr SS:[EBP+EAX],0FFH                          ; 67 0F BA 7C 05 00 FF
 BTC     dword ptr SS:[EBP+EAX*8],0FFH                       ; 66 67 0F BA 7C C5 00 FF
 BTC     word ptr SS:[ESP+EAX],0FFH                          ; 67 0F BA 3C 04 FF
 BTC     dword ptr SS:[ESP+EAX*8],0FFH                       ; 66 67 0F BA 3C C4 FF
 BTC     word ptr SS:[ESP+EBP],0FFH                          ; 67 0F BA 3C 2C FF
 BTC     dword ptr SS:[ESP+EBP*8],0FFH                       ; 66 67 0F BA 3C EC FF
-BTC     word ptr SS:[EBP],0FFH                              ; 67 0F BA 7D 00 FF
-BTC     dword ptr SS:[ESP],0FFH                             ; 66 67 0F BA 3C 24 FF
 BTC     DS:[BX+SI],AX                                       ; 0F BB 00
 BTC     DS:[BX+DI],AX                                       ; 0F BB 01
 BTC     SS:[BP+SI],AX                                       ; 0F BB 02
@@ -323,6 +321,8 @@ BTC     DS:[EBX+ECX*2+01H],EDI                              ; 66 67 0F BB 7C 4B 
 BTC     DS:[ECX+EDX*4+00000100H],EDI                        ; 66 67 0F BB BC 91 00 01 00 00
 BTC     DS:[EAX+EAX*8+0A0B0C0D0H],EDI                       ; 66 67 0F BB BC C0 D0 C0 B0 A0
 BTC     SS:[EBP+EBP+10203040H],EDI                          ; 66 67 0F BB BC 2D 40 30 20 10
+BTC     word ptr SS:[EAX+EBP],0FFH                          ; 67 0F BA 3C 28 FF
+BTC     dword ptr SS:[EAX+EBP*8],0FFH                       ; 66 67 0F BA 3C E8 FF
 BTC     EDI,01H                                             ; 66 0F BA FF 01
 BTC     AX,AX                                               ; 0F BB C0
 BTC     CX,AX                                               ; 0F BB C1
