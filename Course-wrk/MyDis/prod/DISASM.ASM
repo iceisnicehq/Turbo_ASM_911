@@ -1,623 +1,614 @@
 LOCALS @@
 
-.MODEL SMALL
+.MODEL small
 .386
 .STACK 100h
 .DATA
 
     INSTRUC STRUC
-        MNEM                DW ?
-        MASKA               DB ?
-        OP1                 DB ?
-        OP2                 DB ?
+        mnem                DW ?
+        maska               DB ?
+        op1                 DB ?
+        op2                 DB ?
     ENDS
+
+    PREFIXES RECORD          prefix:1, sib:1, modrm:1, ext:1, size66:1, addr67:1, seg_over:1, xxx:1 ; PSME SASxb
+    ;Mask bit                -128-  -64-   -32-     -16-   -8-       -4-       -2-
+IRP       MASKING,          <prefix,   sib,   modrm,   ext,   size66,   addr67,   seg_over>
+    MASK_&MASKING           = MASK &MASKING
+ENDM
+    MASK_REGULAR            =  0FDh 
+    MASK_AAD                =  0FEh
+    MASK_UNKNOWN            =  0FFh
+    
+    INS_OPERANDS ENUM       NONE, IMM8, REL8, REL16, REG16, REGM16
 
     REG_SHIFT               EQU 16
     EA_REG_SHIFT            EQU REG_SHIFT*2
-
     BYTES_IN_BUFFER         EQU 512
-    MACHINE_CODE_CHARS      EQU 50
-    INSTRUCTION_CHARS       EQU 60
+    machine_code_chars      EQU 50
+    instruction_chars       EQU 60
     RES_FILE_NAME           EQU "RESULT.ASM"
     COM_FILE_NAME           EQU "COM.COM"
 
-    RES_FILE                DB RES_FILE_NAME, 0
-    COM_FILE                DB COM_FILE_NAME, 0
-    ERR_MSG                 DB 'Error occurred. Make sure COM file is "', COM_FILE_NAME, '". Res_file will be "', RES_FILE_NAME, '"$'
-    SUCCESS_DIS             DB 'Result successfully written to file: ', RES_FILE_NAME, '$'
-    IP_VALUE                DW 0FFh
+    res_file                DB RES_FILE_NAME, 0
+    com_file                DB COM_FILE_NAME, 0
+    error                   DB 'Error occurred. Make sure COM file is "', COM_FILE_NAME, '". Res_file will be "', RES_FILE_NAME, '"$'
+    success                 DB 'Result successfully written to file: ', RES_FILE_NAME, '$'
+    ip_value                DW 0FFh
 
-    BUFF_START              DB "_"
-    IP_BUFFER               DB "0000H:  "
-    INS_BUFFER              DB INSTRUCTION_CHARS DUP (" ")
+    buff_start              DB "_"
+    ip_buffer               DB "0000H:  "
+    instruc_buffer          DB instruction_chars DUP (" ")
                             DB "; "
-    MC_BUFFER               DB MACHINE_CODE_CHARS DUP (" ")
+    machine_code_buffer     DB machine_code_chars DUP (" ")
 
-    INSTRUC_END_PTR         DW INS_BUFFER   
-    MC_END_PTR              DW MC_BUFFER
+    instruc_end_ptr         DW instruc_buffer   
+    mach_code_end_ptr       DW machine_code_buffer
 
-    PREFIXES   RECORD      prefix:1, sib:1, modrm:1, ext:1, size66:1, addr67:1, seg_over:1, xxx:1 ; PSME SASxb
-    ;Mask bit          -128-    -64- -32-   -16- -8-     -4-     -2-
-    IRP       MASKING, <prefix, sib, modrm, ext, size66, addr67, seg_over>
-        mask_&MASKING = MASK &MASKING
-    ENDM
+IRP    CHAR, <AX, CX, DX, BX, SP, BP, SI, DI>
+    _e&CHAR                 DB "E"
+    _&CHAR                  DB "&CHAR", "$"
+ENDM
 
-    mask_regular            =  0FDh 
-    mask_aad                =  0FEh
-    mask_unknown            =  0FFh
+VAL = 2 ;       2   4   6   8   10  12
+IRP      CHAR, <ES, CS, SS, DS, FS, GS>
+    VAL_&CHAR               = VAL
+    _&CHAR                  DB "&CHAR", ":$"
+    VAL                     = VAL + 2
+    INS_&CHAR INSTRUC       <VAL_&CHAR, MASK_SEG_OVER, NONE, NONE>
+ENDM
 
-    DWORD_PTR               DB "dword ptr $"
+    bx_si                   DB "BX+SI$"
+    bx_di                   DB "BX+DI$"
+    bp_si                   DB "BP+SI$"
+    bp_di                   DB "BP+DI$"
+    dword_ptr               DB "dword ptr $"
 
-
-    IRP    CHAR, <AX, CX, DX, BX, SP, BP, SI, DI>
-         _E&CHAR DB "E"
-         _&CHAR  DB "&CHAR", "$"
-    ENDM
-    VAL = 2     ; 2   4   6   8   10  12
-    IRP    CHAR, <ES, CS, SS, DS, FS, GS>
-        VAL_&CHAR = VAL
-         _&CHAR  DB "&CHAR", ":$"
-        VAL = VAL + 2
-        INS_&CHAR INSTRUC <VAL_&CHAR, mask_seg_over, NONE, NONE>
-    ENDM
-
-    BX_SI                   DB "BX+SI$"
-    BX_DI                   DB "BX+DI$"
-    BP_SI                   DB "BP+SI$"
-    BP_DI                   DB "BP+DI$"
-
-    EA_ADDRESS              DW BX_SI, BX_DI, BP_SI, BP_DI, _SI, _DI, _BP, _BX
-    REGISTERS               DW _AX, _CX, _DX, _BX, _SP, _BP, _SI, _DI
+    ea_mnem                 DW BX_SI, BX_DI, BP_SI, BP_DI, _SI, _DI, _BP, _BX
+    reg_mnem                DW _AX, _CX, _DX, _BX, _SP, _BP, _SI, _DI
                             DW _EAX, _ECX, _EDX, _EBX, _ESP, _EBP, _ESI, _EDI
-    SEG_REGS                DW _ES, _CS, _SS, _DS, _FS, _GS
-    SIZE_OVR_PTRS           DW DWORD_PTR+1, DWORD_PTR
+    seg_mnem                DW _ES, _CS, _SS, _DS, _FS, _GS
+    ovr_ptr_mnem            DW dword_ptr+1, dword_ptr
 
-    INS_OPERANDS ENUM NONE, IMM8, REL8, REL16, REG16, REGM16
+IRP   CHAR, <JO, JNO, JB, JNB, JZ, JNZ, JBE, JNBE, JS, JNS, JP, JNP, JL, JNL, JLE, JNLE>
+    _&CHAR                  DB "&CHAR"
+    LEN                     = $ - _&CHAR
+                            DB 8 - LEN dup (' '), "_$"
+    J8_&CHAR  INSTRUC       <_&CHAR, MASK_REGULAR, REL8,    NONE> ; 70h-7fh
+    J16_&CHAR INSTRUC       <_&CHAR, MASK_REGULAR, REL16,   NONE> ; 80h-8fh
+ENDM
 
-    IRP    CHAR, <JO, JNO, JB, JNB, JZ, JNZ, JBE, JNBE, JS, JNS, JP, JNP, JL, JNL, JLE, JNLE>
-         _&CHAR  DB "&CHAR"
-         LEN = $ - _&CHAR
-                DB 8 - LEN dup (' '), "_$"
-        J8_&CHAR    INSTRUC <_&CHAR, mask_regular, REL8,   NONE>  ; 70h-7fh
-        J16_&CHAR   INSTRUC <_&CHAR, mask_regular, REL16,  NONE>  ; 80h-8fh
-    ENDM
+    _unk                    DB "???$"
+    _aad                    DB "AAD$"
+    _lock                   DB "LOCK $"
+    _btc                    DB "BTC     $"
+    _jcxz                   DB "JCXZ    _$"
+    _jecxz                  DB "JECXZ   _$"
 
-    _UNK                    DB "???$"
-    _AAD                    DB "AAD$"
-    _LOCK                   DB "LOCK $"
-    _BTC                    DB "BTC     $"
-    _JCXZ                   DB "JCXZ    _$"
-    _JECXZ                  DB "JECXZ   _$"
-
-    
-    UNK        INSTRUC <_UNK,  mask_unknown, NONE,     NONE> ; 
-    PREF_0F    INSTRUC <NONE,  mask_ext,     NONE,     NONE> ; 0Fh
-    INS_SIZE   INSTRUC <NONE,  mask_size66,  NONE,     NONE> ; 66h
-    INS_ADDR   INSTRUC <NONE,  mask_addr67,  NONE,     NONE> ; 67h
-    BTC_BA     INSTRUC <_BTC,  mask_regular, REGM16,   IMM8> ; BAh
-    BTC_BB     INSTRUC <_BTC,  mask_regular, REGM16,  REG16> ; BBh 
-    INS_AAD    INSTRUC <_AAD,  mask_aad,     NONE,     NONE> ; D5h
-    INS_JCXZ   INSTRUC <_JCXZ, mask_regular, REL8,     NONE> ; E3h  (JECXZ)
-    INS_LOCK   INSTRUC <_LOCK, mask_prefix,  NONE,     NONE> ; F0h
+    unk        INSTRUC      <_unk,  MASK_UNKNOWN, NONE,     NONE> ; 
+    pref_0f    INSTRUC      <NONE,  MASK_EXT,     NONE,     NONE> ; 0Fh
+    size_ins   INSTRUC      <NONE,  MASK_SIZE66,  NONE,     NONE> ; 66h
+    addr_ins   INSTRUC      <NONE,  MASK_ADDR67,  NONE,     NONE> ; 67h
+    btc_ba     INSTRUC      <_btc,  MASK_REGULAR, REGM16,   IMM8> ; BAh
+    btc_bb     INSTRUC      <_btc,  MASK_REGULAR, REGM16,  REG16> ; BBh 
+    aad_ins    INSTRUC      <_aad,  MASK_AAD,     NONE,     NONE> ; D5h
+    jcxz_ins   INSTRUC      <_jcxz, MASK_REGULAR, REL8,     NONE> ; E3h  (JECXZ)
+    lock_ins   INSTRUC      <_lock, MASK_PREFIX,  NONE,     NONE> ; F0h
 
 LABEL INSTRUCTION_SET_ARRAY 
 ; INDEXES      00h             0Fh                     26h                    2Eh
-            DW 0Fh DUP (UNK),  PREF_0F, 16h DUP (UNK), INS_ES, 07h DUP (UNK), INS_CS
+            DW 0Fh DUP (unk),  pref_0f, 16h DUP (unk), INS_ES, 07h DUP (unk), INS_CS
 ; INDEXES                      36h                     3Eh                    64h
-            DW 07h DUP (UNK),  INS_SS,  07h DUP (UNK), INS_DS, 25h DUP (UNK), INS_FS
+            DW 07h DUP (unk),  INS_SS,  07h DUP (unk), INS_DS, 25h DUP (unk), INS_FS
 ; INDEXES      65h             66h       67h                      70h    71h     72h 
-            DW INS_GS,         INS_SIZE, INS_ADDR, 08h DUP (UNK), J8_JO, J8_JNO, J8_JB
-; INDEXES      73h     74h    75h     76h     77h      78h    79h     7Ah    7Bh     7Ch
-            DW J8_JNB, J8_JZ, J8_JNZ, J8_JBE, J8_JNBE, J8_JS, J8_JNS, J8_JP, J8_JNP, J8_JL
+            DW INS_GS,         size_ins, addr_ins, 08h DUP (unk), J8_JO, J8_JNO, J8_JB
+; INDEXES      73h     74h     75h     76h     77h      78h    79h     7Ah    7Bh     7Ch
+            DW J8_JNB, J8_JZ,  J8_JNZ, J8_JBE, J8_JNBE, J8_JS, J8_JNS, J8_JP, J8_JNP, J8_JL
 ; INDEXES      7Dh     7Eh     7F       80h     81h      82h     83h      84h     85h
             DW J8_JNL, J8_JLE, J8_JNLE, J16_JO, J16_JNO, J16_JB, J16_JNB, J16_JZ, J16_JNZ
 ; INDEXES      86h      87h       88h     89h      8Ah     8Bh      8Ch     8Dh      8Eh     
             DW J16_JBE, J16_JNBE, J16_JS, J16_JNS, J16_JP, J16_JNP, J16_JL, J16_JNL, J16_JLE 
 ; INDEXES      8Fh                      BAh     BBh                    D5h
-            DW J16_JNLE, 2Ah DUP (UNK), BTC_BA, BTC_BB, 19h DUP (UNK), INS_AAD, 0Dh DUP (UNK)
+            DW J16_JNLE, 2Ah DUP (unk), btc_ba, btc_bb, 19h DUP (unk), aad_ins, 0Dh DUP (unk)
 ; INDEXES      E3h                      F0h
-            DW INS_JCXZ, 0Ch DUP (UNK), INS_LOCK, 0Fh DUP (UNK)
-    
-    LABEL SIB_BYTE
-        SCALE                   DB ?
-        INDEX                   DB ?
-        BASE                    DB ?
-    LABEL MODRM_BYTE
-        MODE                    DB ?
-        REG                     DB ?
-        RM                      DB ?
-    
-    DATA_SIZE                   DW ?                            
-    DATA_INDEX                  DW ?
-    DATA_BUFFER                 DB BYTES_IN_BUFFER DUP (?) 
+            DW jcxz_ins, 0Ch DUP (unk), lock_ins, 0Fh DUP (unk)
 
-    COM_FILE_HANDLE             DW ?
-    RES_FILE_HANDLE             DW ?
-
-    IMM                         DW ?
-    DISP32                      DW ?
-    DISP                        DW ?
-
-    CURR_INSTRUC  INSTRUC  <>
-    SEG_OVR                     DB ?
-    INFO_BYTES    PREFIXES <>
+    LABEL sib_byte
+        scale              DB ?
+        index              DB ?
+        base               DB ?
+    LABEL modrm_byte
+        mode               DB ?
+        reg                DB ?
+        rm                 DB ?
+    data_size              DW ?                            
+    data_index             DW ?
+    data_buffer            DB BYTES_IN_BUFFER DUP (?) 
+    com_file_handle        DW ?
+    res_file_handle        DW ?
+    imm                    DW ?
+    disp                   DW ?
+    disp32                 DW ?
+    curr_instruc  INSTRUC  <>
+    seg_ovr                DB ?
+    info_bytes    PREFIXES <>
 
 .CODE
 
 PUT_CHAR        MACRO  CHAR
-    MOV         BX, INSTRUC_END_PTR
-    MOV         BYTE PTR [BX], CHAR
-    INC         INSTRUC_END_PTR
-ENDM
+    mov         bx, instruc_end_ptr
+    mov         BYTE PTR [bx], CHAR
+    inc         instruc_end_ptr
+PUT_CHAR        ENDM
 
 CMPJNE          MACRO   OP1, OP2, JMP_LABEL
-    CMP         OP1, OP2
-    JNE         SHORT JMP_LABEL
-ENDM
+    cmp         OP1, OP2
+    jne         SHORT JMP_LABEL
+CMPJNE          ENDM
 
 CMPJE           MACRO   OP1, OP2, JMP_LABEL
-    CMP         OP1, OP2
-    JE          SHORT JMP_LABEL
-ENDM
+    cmp         OP1, OP2
+    je          SHORT JMP_LABEL
+CMPJE           ENDM
 
 NOT_SET         MACRO   OP1, OP2, JMP_LABEL
-    TEST        OP1, OP2
-    JNZ         SHORT JMP_LABEL
-ENDM
+    test        OP1, OP2
+    jnz         SHORT JMP_LABEL
+NOT_SET         ENDM
 
 IF_SET          MACRO   OP1, OP2, JMP_LABEL
-    TEST        OP1, OP2
+    test        OP1, OP2
     JZ          SHORT JMP_LABEL
-ENDM
+IF_SET          ENDM
 
-START:
-    MOV         AX, @DATA
-    MOV         DS, AX
-    MOV         ES, AX
-    MOV         AX, 3D00h          
-    MOV         DX, OFFSET COM_FILE
-    INT         21h
-    JC          SHORT ERROR_EXIT
-    MOV         COM_FILE_HANDLE, AX
-    MOV         AH, 3Ch
-    XOR         CX, CX
-    MOV         DX, OFFSET RES_FILE
-    INT         21h
-    JC          SHORT ERROR_EXIT
-    MOV         RES_FILE_HANDLE, AX
-    JMP         SHORT DECODE_NEW_INSTRUC
-ERROR_EXIT:
-    MOV         DX, OFFSET ERR_MSG
-    MOV         AH, 09h
-    INT         21h
-    JMP         EXIT
-DECODE_WTIH_LOCK:
-    MOV         SI, CURR_INSTRUC.MNEM
-    CALL        INS_STR
-DECODE_NEW_INSTRUC:    
-    CALL        READ_BUFFER_BYTE
-    OR          DH, DH
-    JE          SHORT LOAD_INSTRUC
-    MOV         DX, OFFSET SUCCESS_DIS
-    MOV         AH, 09h
-    INT         21h
-    JMP         EXIT
-LOAD_INSTRUC:
-    MOV         CX, SIZE INSTRUC
-    SHL         DX, 1
-    MOV         SI, DX
-    MOV         SI, INSTRUCTION_SET_ARRAY[SI]
-    MOV         DI, OFFSET CURR_INSTRUC
-    REP         MOVSB
-    OR          [INFO_BYTES], 0
-    JNZ         SHORT CHECK_PREFIX_TYPE
-PRINT_OFFSET:
-    MOV         BX, OFFSET IP_BUFFER
-    MOV         AX, IP_VALUE
-    MOV         DL, 1
-    CLC 
-    CALL        PUT_HEX_TO_STR_BX
-CHECK_PREFIX_TYPE: 
-    CMPJNE      CURR_INSTRUC.MASKA, mask_seg_over, @@NOT_SEG_OVR
-    MOV         AX, CURR_INSTRUC.MNEM
-    MOV         SEG_OVR, AL
-    OR          [INFO_BYTES], mask_seg_over
-    JMP         DECODE_NEW_INSTRUC
-@@NOT_SEG_OVR:
-    CMP         CURR_INSTRUC.MASKA, mask_regular 
-    JAE         @@REGULAR_INSTRUCTION
-    MOV         AL, CURR_INSTRUC.MASKA
-    OR          [INFO_BYTES], AL
-    OR          AL, AL
-    JS          DECODE_WTIH_LOCK
-    JMP         DECODE_NEW_INSTRUC
-@@REGULAR_INSTRUCTION:
-    CMPJNE      CURR_INSTRUC.MNEM, <OFFSET _JCXZ>, @@NOT_JECXZ
-    IF_SET      [INFO_BYTES], mask_addr67, @@NOT_JECXZ
-    MOV         CURR_INSTRUC.MNEM, OFFSET _JECXZ
-@@NOT_JECXZ:
-    MOV         SI, CURR_INSTRUC.MNEM
-    CALL        INS_STR
-    CMP         CURR_INSTRUC.MASKA, mask_aad
-    JB          SHORT READ_AND_PUT
-    JA          SHORT PRINT_TO_FILE 
-    CALL        READ_BUFFER_BYTE
-    JMP         SHORT PRINT_TO_FILE
-READ_AND_PUT:
-    MOV         AL, CURR_INSTRUC.OP1
-    CALL        WRITE_BUFFER
-    MOV         AL, CURR_INSTRUC.OP2
-    OR          AL, AL
-    JE          SHORT PRINT_TO_FILE
+Start:
+    mov         ax, @DATA
+    mov         ds, ax
+    mov         es, ax
+    mov         ax, 3D00h          
+    mov         dx, OFFSET com_file
+    int         21h
+    jc          SHORT error_exit
+    mov         com_file_handle, ax
+    mov         ah, 3Ch
+    xor         cx, cx
+    mov         dx, OFFSET RES_FILE
+    int         21h
+    jc          SHORT error_exit
+    mov         res_file_handle, ax
+    jmp         SHORT decode_ne_instruc
+error_exit:
+    mov         dx, OFFSET error
+    mov         ah, 09h
+    int         21h
+    jmp         exit
+decode_with_prefix:
+    mov         si, curr_instruc.mnem
+    call        ins_str
+decode_ne_instruc:    
+    call        read_buffer_byte
+    or          dh, dh
+    je          SHORT load_instruction
+    mov         dx, OFFSET success
+    mov         ah, 09h
+    int         21h
+    jmp         exit
+load_instruction:
+    mov         cx, SIZE instruc
+    shl         dx, 1
+    mov         si, dx
+    mov         si, instruction_set_array[si]
+    mov         di, OFFSET curr_instruc
+    rep         movsb
+    or          [info_bytes], 0
+    jnz         SHORT check_prefix_type
+print_offset:
+    mov         bx, OFFSET ip_buffer
+    mov         ax, ip_value
+    mov         dl, 1
+    clc 
+    call        put_hex_to_str_bx
+check_prefix_type: 
+    CMPJNE      curr_instruc.maska, MASK_SEG_OVER, @@not_seg_ovr
+    mov         ax, curr_instruc.mnem
+    mov         seg_ovr, al
+    or          [info_bytes], MASK_SEG_OVER
+    jmp         decode_ne_instruc
+@@not_seg_ovr:
+    cmp         curr_instruc.maska, MASK_REGULAR 
+    jae         @@regular_instruction
+    mov         al, curr_instruc.maska
+    or          [info_bytes], al
+    or          al, al
+    js          decode_with_prefix
+    jmp         decode_ne_instruc
+@@regular_instruction:
+    CMPJNE      curr_instruc.mnem, <OFFSET _JCXZ>, @@not_jecxz
+    IF_SET      [info_bytes], MASK_ADDR67, @@not_jecxz
+    mov         curr_instruc.mnem, OFFSET _JECXZ
+@@not_jecxz:
+    mov         si, curr_instruc.mnem
+    call        ins_str
+    cmp         curr_instruc.maska, MASK_AAD
+    jb          SHORT read_and_put
+    ja          SHORT print_to_file 
+    call        read_buffer_byte
+    jmp         SHORT print_to_file
+read_and_put:
+    mov         al, curr_instruc.OP1
+    call        write_buffer
+    mov         al, curr_instruc.OP2
+    or          al, al
+    je          SHORT print_to_file
     PUT_CHAR    ","
-    CALL        WRITE_BUFFER
-PRINT_TO_FILE:
-    MOV         BX, MC_END_PTR
-    MOV         WORD PTR [BX-1], 0A0Dh
-    INC         BX
-    MOV         BYTE PTR [BX], "$"
-    MOV         CX, BX
-    MOV         DX, OFFSET BUFF_START
-    SUB         CX, DX
-    MOV         AH, 40h
-    MOV         BX, RES_FILE_HANDLE
-    INT         21h
-RESET_BUFFER:
-    MOV         DI, OFFSET INS_BUFFER
-    MOV         INSTRUC_END_PTR, DI
-    MOV         CX, INSTRUCTION_CHARS
-    MOV         AL, " "
-    REP STOSB
-    MOV         DI, OFFSET MC_BUFFER
-    MOV         MC_END_PTR, DI
-    MOV         CX, MACHINE_CODE_CHARS
-    MOV         AL, " "
-    REP STOSB
-    MOV         WORD PTR SEG_OVR, 0    
-    JMP         DECODE_NEW_INSTRUC
-EXIT:
-    MOV         AH, 3Eh
-    MOV         BX, COM_FILE_HANDLE
-    INT         21h  
-    MOV         BX, RES_FILE_HANDLE
-    INT         21h 
-    MOV         AX, 4C00h
-    INT         21h
+    call        write_buffer
+print_to_file:
+    mov         bx, mach_code_end_ptr
+    mov         WORD PTR [bx-1], 0A0Dh
+    inc         bx
+    mov         BYTE PTR [bx], "$"
+    mov         cx, bx
+    mov         dx, OFFSET buff_start
+    sub         cx, dx
+    mov         ah, 40h
+    mov         bx, res_file_handle
+    int         21h
+reset_buffer:
+    mov         di, OFFSET instruc_buffer
+    mov         instruc_end_ptr, di
+    mov         cx, instruction_chars
+    mov         al, " "
+    rep         stosb
+    mov         di, OFFSET machine_code_buffer
+    mov         mach_code_end_ptr, di
+    mov         cx, machine_code_chars
+    mov         al, " "
+    rep         stosb
+    mov         WORD PTR seg_ovr, 0    
+    jmp         decode_ne_instruc
+exit:
+    mov         ah, 3Eh
+    mov         bx, com_file_handle
+    int         21h  
+    mov         bx, res_file_handle
+    int         21h 
+    mov         ax, 4C00h
+    int         21h
 
 ;--------PROCS--------;
-PUT_BYTE_AL     PROC
-    XOR         AH, AH
-    XOR         DL, DL
-    STC
-PUT_WORD_AX: 
-    MOV         BX, INSTRUC_END_PTR
-    CALL        PUT_HEX_TO_STR_BX
-    MOV         INSTRUC_END_PTR, BX
-    RET
-PUT_BYTE_AL    ENDP
+put_byte_al     PROC
+    xor         ah, ah
+    xor         dl, dl
+    stc
+put_word_ax: 
+    mov         bx, instruc_end_ptr
+    call        put_hex_to_str_bx
+    mov         instruc_end_ptr, bx
+    ret
+put_byte_al    ENDP
 
-INS_STR PROC ; SI = pointer to ASCII$ string
-    MOV         DI, INSTRUC_END_PTR
-@@FIND_END:
-    CMP        BYTE PTR [SI], "$" 
-    JE         SHORT @@RETURN
-    MOVSB
-    JMP         @@FIND_END
-@@RETURN:
-    MOV         INSTRUC_END_PTR, DI
-    RET
-INS_STR ENDP     
+ins_str PROC ; si = pointer to ASCII$ string
+    mov         di, instruc_end_ptr
+@@moving:
+    cmp        BYTE PTR [si], "$" 
+    je         SHORT @@return
+    movsb
+    jmp         @@moving
+@@return:
+    mov         instruc_end_ptr, di
+    ret
+ins_str ENDP     
 
-PUT_HEX_TO_STR_BX PROC ; IN (AX - hex_num; BX - str_ptr; DL=1 if word), OUT BX - end_str_ptr
-    PUSHF   
-    MOV         CX, 10h
-    MOV         SI, 2
-    OR          DL, DL
-    JZ          SHORT @@NOT_WORD
-    SHL         SI, 1
-@@NOT_WORD:
-    PUSH        SI
-@@DIVISION:
-    DEC         SI
-    XOR         DX, DX
-    DIV         CX
-    CMP         DL, 9
-    JBE         SHORT @@HEX_DIGIT
-@@HEX_LETTER:
-    ADD         DL, 37h
-    JMP         SHORT @@PUT_TO_STR
-@@HEX_DIGIT:
-    ADD         DL, 30h
-@@PUT_TO_STR:
-    MOV         [BX + SI], DL
-    OR          AX, AX
-    JNE         @@DIVISION
-    OR          SI, SI
-    JE          SHORT @@CHECK_LEADING_ZERO
-@@LEADING_ZEROS:
-    DEC         SI
-    MOV         BYTE PTR [BX + SI], "0"
-    OR          SI, SI
-    JNE         @@LEADING_ZEROS
-@@CHECK_LEADING_ZERO:
-    POP         CX
-    POPF
-    JNC         SHORT @@RETURN
-    MOV         SI, CX
-    CMP         BYTE PTR [BX], "A"
-    JB          SHORT @@RETURN
-@@ADD_ZERO_SHIFT:
-    DEC         SI
-    MOV         AL, [BX + SI]
-    MOV         [BX + SI + 1], AL
-    OR          SI, SI
-    JNE         @@ADD_ZERO_SHIFT
-    MOV         BYTE PTR [BX], "0"
-    INC         CX
-@@RETURN:
-    ADD         BX, CX
-    RET
-PUT_HEX_TO_STR_BX ENDP
+put_hex_to_str_bx PROC ; IN (ax - hex_num; bx - str_ptr; dl=1 if word), OUT bx - end_str_ptr
+    pushf   
+    mov         cx, 10h
+    mov         si, 2
+    or          dl, dl
+    JZ          SHORT @@not_word_size
+    shl         si, 1
+@@not_word_size:
+    push        si
+@@division:
+    dec         si
+    xor         dx, dx
+    div         cx
+    cmp         dl, 9
+    jbe         SHORT @@hex_digit
+@@hex_letter:
+    add         dl, 37h
+    jmp         SHORT @@put_char_to_str
+@@hex_digit:
+    add         dl, 30h
+@@put_char_to_str:
+    mov         [bx + si], dl
+    or          ax, ax
+    jne         @@division
+    or          si, si
+    je          SHORT @@if_leading_zero
+@@adding_zeros:
+    dec         si
+    mov         BYTE PTR [bx + si], "0"
+    or          si, si
+    jne         @@adding_zeros
+@@if_leading_zero:
+    pop         cx
+    popf
+    jnc         SHORT @@return
+    mov         si, cx
+    cmp         BYTE PTR [bx], "A"
+    jb          SHORT @@return
+@@add_zero_shift:
+    dec         si
+    mov         al, [bx + si]
+    mov         [bx + si + 1], al
+    or          si, si
+    jne         @@add_zero_shift
+    mov         BYTE PTR [bx], "0"
+    inc         cx
+@@return:
+    add         bx, cx
+    ret
+put_hex_to_str_bx ENDP
 
-READ_BUFFER_BYTE PROC
-    PUSH        BX AX
-    MOV         AX, DATA_SIZE
-    CMP         AX, DATA_INDEX
-    JA          SHORT @@CHECK_FILE_END
-    MOV         AH, 3Fh
-    MOV         BX, COM_FILE_HANDLE 
-    MOV         CX, BYTES_IN_BUFFER
-    MOV         DX, OFFSET DATA_BUFFER
-    INT         21h
-    MOV         DATA_SIZE, AX 
-    MOV         DATA_INDEX, 0
-@@CHECK_FILE_END:
-    OR          AX, AX
-    JNE         SHORT @@GET_BYTE
-    MOV         DH, 1
-    JMP         SHORT @@RETURN
-@@GET_BYTE:
-    XOR         DH, DH
-    MOV         BX, OFFSET DATA_BUFFER
-    ADD         BX, DATA_INDEX
-    MOV         DL, [BX]
-    INC         DATA_INDEX
-    INC         IP_VALUE
-    PUSH        DX
-    MOVZX       AX, DL
-    MOV         BX, MC_END_PTR
-    XOR         DL, DL
-    CLC
-    CALL        PUT_HEX_TO_STR_BX
-    INC         BX
-    MOV         MC_END_PTR, BX
-    POP         DX
-@@RETURN:
-    POP         AX BX
-    RET
-READ_BUFFER_BYTE ENDP
+read_buffer_byte PROC
+    push        bx ax
+    mov         ax, data_size
+    cmp         ax, data_index
+    ja          SHORT @@check_file_end
+    mov         ah, 3Fh
+    mov         bx, com_file_handle 
+    mov         cx, BYTES_IN_BUFFER
+    mov         dx, OFFSET data_buffer
+    int         21h
+    mov         data_size, ax 
+    mov         data_index, 0
+@@check_file_end:
+    or          ax, ax
+    jne         SHORT @@read_byte
+    mov         dh, 1
+    jmp         SHORT @@return
+@@read_byte:
+    xor         dh, dh
+    mov         bx, OFFSET data_buffer
+    add         bx, data_index
+    mov         dl, [bx]
+    inc         data_index
+    inc         ip_value
+    push        dx
+    movzx       ax, dl
+    mov         bx, mach_code_end_ptr
+    xor         dl, dl
+    clc
+    call        put_hex_to_str_bx
+    inc         bx
+    mov         mach_code_end_ptr, bx
+    pop         dx
+@@return:
+    pop         ax bx
+    ret
+read_buffer_byte ENDP
  
-DECODE_MODRM_SIB PROC 
-    PUSH        AX DX 
-    CALL        READ_BUFFER_BYTE
-    MOV         BX, OFFSET MODRM_BYTE
-    OR          [INFO_BYTES], mask_modrm
-    IF_SET      [INFO_BYTES], mask_sib, @@NOT_SIB
-    MOV         BX, OFFSET SIB_BYTE
-@@NOT_SIB:
-    MOV         AL, DL
-    AND         AL, 11000000b
-    SHR         AL, 5
-    MOV         [BX], AL
-    MOV         AL, DL
-    AND         AL, 00111000b
-    SHR         AL, 2
-    MOV         [BX + 1], AL
-    MOV         AL, DL
-    AND         AL, 00000111b
-    SHL         AL, 1
-    MOV         [BX + 2], AL
-    POP         DX AX
-    RET
-DECODE_MODRM_SIB ENDP
+decode_modrm_sib PROC 
+    push        ax dx 
+    call        read_buffer_byte
+    mov         bx, OFFSET modrm_byte
+    or          [info_bytes], MASK_MODRM
+    IF_SET      [info_bytes], MASK_SIB, @@not_sib
+    mov         bx, OFFSET sib_byte
+@@not_sib:
+    mov         al, dl
+    and         al, 11000000b
+    SHR         al, 5
+    mov         [bx], al
+    mov         al, dl
+    and         al, 00111000b
+    SHR         al, 2
+    mov         [bx + 1], al
+    mov         al, dl
+    and         al, 00000111b
+    shl         al, 1
+    mov         [bx + 2], al
+    pop         dx ax
+    ret
+decode_modrm_sib ENDP
 
-WRITE_BUFFER PROC 
-    CMP         AL, REG16
-    JAE         SHORT @@READ_MODRM
-    CALL        READ_BUFFER_BYTE
-    MOVSX       BX, DL
-    CMPJNE      AL, REL16, @@SAVE_IMM
-    CALL        READ_BUFFER_BYTE
-    MOV         BH, DL
+write_buffer PROC 
+    cmp         al, REG16
+    jae         SHORT @@READ_MODRM
+    call        read_buffer_byte
+    movsx       bx, dl
+    CMPJNE      al, REL16, @@SAVE_IMM
+    call        read_buffer_byte
+    mov         bh, dl
 @@SAVE_IMM:
-    MOV         IMM, BX
-    JMP         INSERT
+    mov         imm, bx
+    jmp         insert
 @@READ_MODRM:
-    NOT_SET     [INFO_BYTES], mask_modrm, @@MODRM_DECODED
-    CALL        DECODE_MODRM_SIB ; MODRM
-@@MODRM_DECODED:
-    CMP         AL, REG16
-    JE          INSERT
-    CMPJE       MODE, 110b, INSERT
-    IF_SET      [INFO_BYTES], mask_addr67, @@MODRM16
-    CMPJNE      RM, 1000b, @@MODRM16
-    OR          [INFO_BYTES], mask_sib
-    CALL        DECODE_MODRM_SIB   ; SIB
-    CMPJNE      SCALE, 110b, @@MODRM16
-    MOV         SCALE, 1000b
-@@MODRM16:
-    CMP         MODE, 010b
-    JAE         SHORT @@READ_DISP
-    IF_SET      [INFO_BYTES], mask_addr67, @@DISP16
-    CMPJE       RM, 1010b, @@READ_DISP
-    IF_SET      [INFO_BYTES], mask_sib, INSERT
-    CMPJE       BASE, 1010b, @@READ_DISP
-    JMP         SHORT INSERT
-@@DISP16:
-    CMPJE       RM, 1100b, @@READ_DISP
-    JMP         SHORT INSERT
-@@READ_DISP:
-    CALL        READ_BUFFER_BYTE
-    MOV         BL, DL
-    CMPJE       MODE, 010b, @@STORE_DISP
-    CALL        READ_BUFFER_BYTE
-    MOV         BH, DL
-    IF_SET      [INFO_BYTES], mask_addr67, @@STORE_DISP
-    PUSH        BX
-    CALL        READ_BUFFER_BYTE
-    MOV         BL, DL
-    CALL        READ_BUFFER_BYTE
-    MOV         BH, DL
-    MOV         DISP32, BX
-    POP         BX
-@@STORE_DISP:
-    MOV         DISP, BX
-INSERT:
-    XOR         BX, BX
-    CMP         AL, REL16
-    JBE         PRINT_IMM8
-    CMP         AL, REG16 
-    JE          PRINT_REG
-    CMPJNE      MODE, 110b, EFFECTIVE_ADDRESSING
-    MOV         BL, RM
-    IF_SET      [INFO_BYTES], mask_size66, PRINT_MODRM_REG
-    ADD         BL, REG_SHIFT
-PRINT_MODRM_REG:
-    MOV         SI, REGISTERS[BX]
-    CALL        INS_STR
-    JMP         @@RETURN
-EFFECTIVE_ADDRESSING:
-    CMPJE       CURR_INSTRUC.OP2, REG16, @@CHECK_SEG
-    IF_SET      [INFO_BYTES], mask_size66, EA_START
-    MOV         BX, 2
-EA_START:
-    MOV         SI, SIZE_OVR_PTRS[BX]
-    CALL        INS_STR
-@@CHECK_SEG:
-    MOV         BL, SEG_OVR
-    OR          BL, BL
-    JNE         SHORT @@PRINT_SEG
-    MOV         BL, VAL_DS
-    MOV         BH, RM         
-    IF_SET      [INFO_BYTES], mask_addr67, @@MODRM_16
-    CMPJE       MODE, 000b, @@CHECK_SIB
-    CMPJE       BH, 1010b, @@PRINT_SS
-@@CHECK_SIB:
-    CMPJNE      BH, 1000b, @@PRINT_SEG
-    CMPJE       BASE, 1000b, @@PRINT_SS
-    CMPJNE      BASE, 1010b, @@PRINT_SEG
-    CMPJNE      MODE, 000b, @@PRINT_SS
-    CMPJE       INDEX, 1010b, @@PRINT_SS  
-    JMP         SHORT @@PRINT_SEG
-@@MODRM_16:
-    CMPJE       BH, 0100b, @@PRINT_SS
-    CMPJE       BH, 0110b, @@PRINT_SS
-    CMPJE       MODE, 000b, @@PRINT_SEG
-    CMPJNE      BH, 1100b, @@PRINT_SEG
-@@PRINT_SS:
-    MOV         BL, VAL_SS
-@@PRINT_SEG:
-    XOR         BH, BH
-    MOV         SI, SEG_REGS[BX-2]
-    CALL        INS_STR
+    NOT_SET     [info_bytes], MASK_MODRM, @@modrm_decoded
+    call        decode_modrm_sib ; MODRM
+@@modrm_decoded:
+    cmp         al, REG16
+    je          insert
+    CMPJE       mode, 110b, insert
+    IF_SET      [info_bytes], MASK_ADDR67, @@modrm16
+    CMPJNE      rm, 1000b, @@modrm16
+    or          [info_bytes], MASK_SIB
+    call        decode_modrm_sib   ; SIB
+    CMPJNE      scale, 110b, @@modrm16
+    mov         scale, 1000b
+@@modrm16:
+    cmp         mode, 010b
+    jae         SHORT @@read_disp
+    IF_SET      [info_bytes], MASK_ADDR67, @@disp16
+    CMPJE       rm, 1010b, @@read_disp
+    IF_SET      [info_bytes], MASK_SIB, insert
+    CMPJE       base, 1010b, @@read_disp
+    jmp         SHORT insert
+@@disp16:
+    CMPJE       rm, 1100b, @@read_disp
+    jmp         SHORT insert
+@@read_disp:
+    call        read_buffer_byte
+    mov         bl, dl
+    CMPJE       mode, 010b, @@store_disp
+    call        read_buffer_byte
+    mov         bh, dl
+    IF_SET      [info_bytes], MASK_ADDR67, @@store_disp
+    push        bx
+    call        read_buffer_byte
+    mov         bl, dl
+    call        read_buffer_byte
+    mov         bh, dl
+    mov         disp32, bx
+    pop         bx
+@@store_disp:
+    mov         disp, bx
+insert:
+    xor         bx, bx
+    cmp         al, REL16
+    jbe         print_imm8
+    cmp         al, REG16 
+    je          print_reg
+    CMPJNE      mode, 110b, eff_addressing
+    mov         bl, rm
+    IF_SET      [info_bytes], MASK_SIZE66, print_modrm_reg
+    add         bl, REG_SHIFT
+print_modrm_reg:
+    mov         si, reg_mnem[bx]
+    call        ins_str
+    jmp         @@return
+eff_addressing:
+    CMPJE       curr_instruc.OP2, REG16, @@check_seg
+    IF_SET      [info_bytes], MASK_SIZE66, ea_start
+    mov         bx, 2
+ea_start:
+    mov         si, ovr_ptr_mnem[bx]
+    call        ins_str
+@@check_seg:
+    mov         bl, seg_ovr
+    or          bl, bl
+    jne         SHORT @@print_seg
+    mov         bl, VAL_DS
+    mov         bh, rm         
+    IF_SET      [info_bytes], MASK_ADDR67, @@modrm_16
+    CMPJE       mode, 000b, @@check_sib
+    CMPJE       bh, 1010b, @@print_ss
+@@check_sib:
+    CMPJNE      bh, 1000b, @@print_seg
+    CMPJE       base, 1000b, @@print_ss
+    CMPJNE      base, 1010b, @@print_seg
+    CMPJNE      mode, 000b, @@print_ss
+    CMPJE       index, 1010b, @@print_ss  
+    jmp         SHORT @@print_seg
+@@modrm_16:
+    CMPJE       bh, 0100b, @@print_ss
+    CMPJE       bh, 0110b, @@print_ss
+    CMPJE       mode, 000b, @@print_seg
+    CMPJNE      bh, 1100b, @@print_seg
+@@print_ss:
+    mov         bl, VAL_SS
+@@print_seg:
+    xor         bh, bh
+    mov         si, seg_mnem[bx-2]
+    call        ins_str
     PUT_CHAR    "["
-    CMPJNE      MODE, 000b, @@EA_NORMAL
-    NOT_SET     [INFO_BYTES], mask_addr67, @@MODRM32
-    CMPJNE      RM, 1100b, @@EA_NORMAL
-    JMP         PRINT_DISP
-@@MODRM32:
-    CMP         RM, 1010b
-    JE          PRINT_DISP       
-@@EA_NORMAL:
-    IF_SET      [INFO_BYTES], mask_sib, @@NO_SIB
-    CMPJNE      BASE, 1010b, @@NO_EBP_BASE
-    CMPJE       MODE, 000b, @@NO_BASE
-@@NO_EBP_BASE:
-    MOVZX       BX, BASE
-    ADD         BL, REG_SHIFT
-    MOV         SI, REGISTERS[BX]
-    CALL        INS_STR
-    CMPJE       INDEX, 1000b, @@SIB_INDEX_NONE
+    CMPJNE      mode, 000b, @@ea_with_disp
+    NOT_SET     [info_bytes], MASK_ADDR67, @@modrm32
+    CMPJNE      rm, 1100b, @@ea_with_disp
+    jmp         print_disp
+@@modrm32:
+    cmp         rm, 1010b
+    je          print_disp       
+@@ea_with_disp:
+    IF_SET      [info_bytes], MASK_SIB, @@no_sib
+    CMPJNE      base, 1010b, @@no_ebp_base
+    CMPJE       mode, 000b, @@no_base
+@@no_ebp_base:
+    movzx       bx, base
+    add         bl, REG_SHIFT
+    mov         si, reg_mnem[bx]
+    call        ins_str
+    CMPJE       index, 1000b, @@SIB_INDEX_NONE
     PUT_CHAR    "+"
-@@NO_BASE:
-    MOVZX       BX, INDEX
-    ADD         BL, REG_SHIFT
-    MOV         SI, REGISTERS[BX]
-    CALL        INS_STR
-    CMPJE       SCALE, 000b, @@CHECK_MODE
+@@no_base:
+    movzx       bx, index
+    add         bl, REG_SHIFT
+    mov         si, reg_mnem[bx]
+    call        ins_str
+    CMPJE       scale, 000b, @@check_mode
     PUT_CHAR    "*"
-    MOV         DL, "0"
-    ADD         DL, SCALE
-    PUT_CHAR    DL
+    mov         dl, "0"
+    add         dl, scale
+    PUT_CHAR    dl
 @@SIB_INDEX_NONE:
-    CMPJNE      BASE, 1010b, @@CHECK_MODE
-    OR          DWORD PTR [DISP32], 0
-    JNZ         SHORT @@SIB_DISP
-    JMP         @@EA_END
-@@NO_SIB:
-    MOVZX       BX, RM
-    IF_SET      [INFO_BYTES], mask_addr67, EA16
-    ADD         BL, EA_REG_SHIFT
-EA16:
-    MOV         SI, EA_ADDRESS[BX]
-    CALL        INS_STR
-@@CHECK_MODE:
-    CMPJE       MODE, 000b, @@EA_END
-@@SIB_DISP:
+    CMPJNE      base, 1010b, @@check_mode
+    or          DWORD PTR [disp], 0
+    jnz         SHORT @@sib_disp
+    jmp         @@ea_end
+@@no_sib:
+    movzx       bx, rm
+    IF_SET      [info_bytes], MASK_ADDR67, ea16
+    add         bl, EA_REG_SHIFT
+ea16:
+    mov         si, ea_mnem[bx]
+    call        ins_str
+@@check_mode:
+    CMPJE       mode, 000b, @@ea_end
+@@sib_disp:
     PUT_CHAR    "+"
-PRINT_DISP:
-    MOV         AX, DISP
-    CMPJE       MODE, 010b, @@PRINT_BYTE_DISP
-    TEST        [INFO_BYTES], mask_addr67
-    STC
-    JE          SHORT @@DISP_16
-    PUSH        AX
-    MOV         AX, DISP32
-    STC 
-    MOV         DL, 1
-    CALL        PUT_WORD_AX
-    POP         AX
-    CLC
-@@DISP_16:
-    MOV         DL, 1
-    CALL         PUT_WORD_AX
+print_disp:
+    mov         ax, disp
+    CMPJE       mode, 010b, @@print_byte_disp
+    test        [info_bytes], MASK_ADDR67
+    stc
+    je          SHORT @@disp_16
+    push        ax
+    mov         ax, disp32
+    stc 
+    mov         dl, 1
+    call        put_word_ax
+    pop         ax
+    clc
+@@disp_16:
+    mov         dl, 1
+    call         put_word_ax
     PUT_CHAR    "H"
-    JMP         SHORT @@EA_END
-@@PRINT_BYTE_DISP:
-    OR          AL, AL
-    JNZ         SHORT @@NON_ZERO_BYTE_DISP
-    DEC         INSTRUC_END_PTR
-    JMP         SHORT @@EA_END
-@@NON_ZERO_BYTE_DISP:
-    CALL        PUT_BYTE_AL
+    jmp         SHORT @@ea_end
+@@print_byte_disp:
+    or          al, al
+    jnz         SHORT @@non_zero_byte_disp
+    dec         instruc_end_ptr
+    jmp         SHORT @@ea_end
+@@non_zero_byte_disp:
+    call        put_byte_al
     PUT_CHAR    "H"
-@@EA_END:
+@@ea_end:
     PUT_CHAR    "]"
-    JMP         SHORT @@RETURN
-PRINT_IMM8:
-    CMP         AL, REL8
-    MOV         AX, IMM
-    JAE         SHORT PRINT_REL
-    CALL        PUT_BYTE_AL
+    jmp         SHORT @@return
+print_imm8:
+    cmp         al, REL8
+    mov         ax, imm
+    jae         SHORT print_rel
+    call        put_byte_al
     PUT_CHAR    "H"
-    JMP         SHORT @@RETURN
-PRINT_REL:
-    ADD         AX, IP_VALUE
-    INC         AX
-    STC
-    MOV         DL, 1
-    CALL        PUT_WORD_AX
+    jmp         SHORT @@return
+print_rel:
+    add         ax, ip_value
+    inc         ax
+    stc
+    mov         dl, 1
+    call        put_word_ax
     PUT_CHAR    "H"
-    JMP         SHORT @@RETURN
-PRINT_REG:
-    MOV         BL, REG
-    IF_SET      [INFO_BYTES], mask_size66, PRINT_REG_NAME
-    ADD         BL, REG_SHIFT    
-PRINT_REG_NAME:
-    MOV         SI, REGISTERS[BX]
-    CALL        INS_STR
-@@RETURN:
-    RET
-WRITE_BUFFER ENDP
-
-    END START
+    jmp         SHORT @@return
+print_reg:
+    mov         bl, reg
+    IF_SET      [info_bytes], MASK_SIZE66, print_reg_name
+    add         bl, REG_SHIFT    
+print_reg_name:
+    mov         si, reg_mnem[bx]
+    call        ins_str
+@@return:
+    ret
+write_buffer ENDP
+    END Start
