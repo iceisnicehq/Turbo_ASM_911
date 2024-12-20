@@ -36,12 +36,6 @@ ENDM
     error                   DB 'Error occurred. Make sure COM file is "', COM_FILE_NAME, '". Res_file will be "', RES_FILE_NAME, '"$'
     result                  DB 'Result file is: ', RES_FILE_NAME, '$'
 
-    instruc_buffer          DB INSTRUCTION_CHARS DUP (' '), "; "
-    machine_code_buffer     DB MACHINE_CODE_CHARS DUP (' ')
-
-    instruc_end_ptr         DW instruc_buffer   
-    mach_code_end_ptr       DW machine_code_buffer
-
 IRP    CHAR, <AX, CX, DX, BX, SP, BP, SI, DI>
     _e&CHAR                 DB "E"
     _&CHAR                  DB "&CHAR", 0
@@ -109,26 +103,31 @@ LABEL instruction_set_array
             DW J16_JNLE, 2Ah DUP (unk), btc_ba, btc_bb, 19h DUP (unk), aad_ins, 0Dh DUP (unk)
 ; INDEXES      E3h                      F0h
             DW jcxz_ins, 0Ch DUP (unk), lock_ins, 0Fh DUP (unk)
-
-    LABEL sib_byte
-        scale              DB ?
-        index              DB ?
-        base               DB ?
-    LABEL modrm_byte
-        mode               DB ?
-        reg                DB ?
-        rm                 DB ?
-    read_bytes             DW ?                            
-    scanned_byte_count     DW ?
-    com_buffer             DB BYTES_IN_BUFFER DUP (?) 
-    com_file_handle        DW ?
-    res_file_handle        DW ?
-    imm                    DW ?
-    disp                   DW ?
-    disp32                 DW ?
-    curr_instruc  INSTRUC  <>
-    seg_ovr                DB ?
-    info_bytes    PREFIXES <>
+    instruc_buffer          DB INSTRUCTION_CHARS DUP (' '), "; "
+    machine_code_buffer     DB MACHINE_CODE_CHARS DUP (' ')
+ 
+    instruc_end_ptr         DW instruc_buffer   
+    mach_code_end_ptr       DW machine_code_buffer
+ 
+    LABEL modrm_byte 
+        mode                DB ?
+        reg                 DB ?
+        rm                  DB ?
+    LABEL sib_byte 
+        scale               DB ?
+        index               DB ?
+        base                DB ?
+    read_bytes              DW ?                            
+    scanned_byte_count      DW ?
+    com_buffer              DB BYTES_IN_BUFFER DUP (?) 
+    com_file_handle         DW ?
+    res_file_handle         DW ?
+    imm                     DW ?
+    disp                    DW ?
+    disp32                  DW ?
+    curr_instruc  INSTRUC   <>
+    seg_ovr                 DB ?
+    info_bytes    PREFIXES  <>
 
 .CODE
 
