@@ -13,7 +13,7 @@ LOCALS @@
     ENDS
 
     PREFIXES RECORD          prefix:1, sib:1, modrm:1, ext:1, size66:1, addr67:1, seg_over:1, xxx:1 ; PSME SASxb
-    ;Mask bit                -128-  -64-   -32-     -16-   -8-       -4-       -2-
+    ;Mask bit                -128-     -64-   -32-     -16-   -8-       -4-       -2-
 IRP       MASKING,          <prefix,   sib,   modrm,   ext,   size66,   addr67,   seg_over>
     MASK_&MASKING           = MASK &MASKING
 ENDM
