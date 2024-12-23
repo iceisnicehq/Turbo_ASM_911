@@ -1,1079 +1,1093 @@
-    .MODEL TINY
-    .486
-    .CODE 
-        ORG 100H        
-    START:
-        LOCK BTC     dword ptr ES:[EAX+EBP*8+87654321h], 0FFh
-        LOCK BTC     dword ptr ES:[EAX+EBP*8+87654321h], 0FFh
-        BTC     word ptr DS:[1234h], ax
-        btc     word ptr CS:[12345678h], ax
-        btc     dword ptr ES:[123h], 01h
-        btc     dword ptr SS:[12345678h], 10h
-        LOCK BTC     dword ptr ES:[EAX+EBP*8+87654321h],0FFh
-        BTC     DS:[1234h],AX
-        BTC     DS:[12345678h],AX
-        LOCK BTC     dword ptr ES:[EAX+EBP*8+87654321h],0FFh
-        LOCK BTC     dword ptr ES:[EAX+EBP*8+87654321h],0FFh
-        BTC     dword ptr ES:[0123h],01h
-        BTC     dword ptr SS:[12345678h],10h
-        LOCK BTC     dword ptr ES:[EAX+EBP*8+87654321h],0FFh
-        BTC     ES:[1234h],AX
-        BTC     CS:[12345678h],AX
-        BTC     dword ptr ES:[0123h],01h
-        BTC     dword ptr SS:[12345678h],10h
-        BTC     word ptr [BX+SI],0A0h
-        BTC     dword ptr [BX+SI],0B0h
-        BTC     word ptr [BX+DI],0A0h
-        BTC     dword ptr [BX+DI],0B0h
-        BTC     word ptr [BP+SI],0A0h
-        BTC     dword ptr [BP+SI],0B0h
-        BTC     word ptr [BP+DI],0A0h
-        BTC     dword ptr [BP+DI],0B0h
-        BTC     word ptr [BP],0A0h
-        BTC     dword ptr [BP],0B0h
-        BTC     word ptr [DI],0A0h
-        BTC     dword ptr [DI],0B0h
-        BTC     word ptr [SI],0A0h
-        BTC     dword ptr [SI],0B0h
-        BTC     [EAX+EAX*2+00000100h],AX
-        BTC     DS:[EBX+EBP*4+12345678h],AX
-        BTC     [EBP+EBP],AX
-        BTC     [ESP+EBP],AX
-        BTC     [EDX+EBX*8],AX
-        BTC     [EBX+ECX*2+01h],AX
-        BTC     [ECX+EDX*4+00000100h],AX
-        BTC     [EAX+EAX*8+0A0B0C0D0h],AX
-        BTC     [EBP+EBP+10203040h],AX
-        LOCK BTC     [BX+SI],AX
-        LOCK BTC     [BX+DI],AX
-        LOCK BTC     [BP+SI],AX
-        LOCK BTC     [BP+DI],AX
-        LOCK BTC     [BP],AX
-        LOCK BTC     [SI],AX
-        LOCK BTC     [DI],AX
-        LOCK BTC     [BX+SI+1234h],AX
-        LOCK BTC     [BX+DI+1234h],AX
-        LOCK BTC     [BP+SI+1234h],AX
-        LOCK BTC     [BP+DI+1234h],AX
-        LOCK BTC     [BP+1234h],AX
-        LOCK BTC     [SI+1234h],AX
-        LOCK BTC     [DI+1234h],AX
-        BTC     [EAX+EAX*2+00000100h],CX
-        BTC     DS:[EBX+EBP*4+12345678h],CX
-        BTC     [EBP+EBP],CX
-        BTC     [ESP+EBP],CX
-        BTC     [EDX+EBX*8],CX
-        BTC     [EBX+ECX*2+01h],CX
-        BTC     [ECX+EDX*4+00000100h],CX
-        BTC     [EAX+EAX*8+0A0B0C0D0h],CX
-        BTC     [EBP+EBP+10203040h],CX
-        LOCK BTC     [BX+SI],CX
-        LOCK BTC     [BX+DI],CX
-        LOCK BTC     [BP+SI],CX
-        LOCK BTC     [BP+DI],CX
-        LOCK BTC     [BP],CX
-        LOCK BTC     [SI],CX
-        LOCK BTC     [DI],CX
-        LOCK BTC     [BX+SI+1234h],CX
-        LOCK BTC     [BX+DI+1234h],CX
-        LOCK BTC     [BP+SI+1234h],CX
-        LOCK BTC     [BP+DI+1234h],CX
-        LOCK BTC     [BP+1234h],CX
-        LOCK BTC     [SI+1234h],CX
-        LOCK BTC     [DI+1234h],CX
-        BTC     [EAX+EAX*2+00000100h],DX
-        BTC     DS:[EBX+EBP*4+12345678h],DX
-        BTC     [EBP+EBP],DX
-        BTC     [ESP+EBP],DX
-        BTC     [EDX+EBX*8],DX
-        BTC     [EBX+ECX*2+01h],DX
-        BTC     [ECX+EDX*4+00000100h],DX
-        BTC     [EAX+EAX*8+0A0B0C0D0h],DX
-        BTC     [EBP+EBP+10203040h],DX
-        LOCK BTC     [BX+SI],DX
-        LOCK BTC     [BX+DI],DX
-        LOCK BTC     [BP+SI],DX
-        LOCK BTC     [BP+DI],DX
-        LOCK BTC     [BP],DX
-        LOCK BTC     [SI],DX
-        LOCK BTC     [DI],DX
-        LOCK BTC     [BX+SI+1234h],DX
-        LOCK BTC     [BX+DI+1234h],DX
-        LOCK BTC     [BP+SI+1234h],DX
-        LOCK BTC     [BP+DI+1234h],DX
-        LOCK BTC     [BP+1234h],DX
-        LOCK BTC     [SI+1234h],DX
-        LOCK BTC     [DI+1234h],DX
-        BTC     [EAX+EAX*2+00000100h],BX
-        BTC     DS:[EBX+EBP*4+12345678h],BX
-        BTC     [EBP+EBP],BX
-        BTC     [ESP+EBP],BX
-        BTC     [EDX+EBX*8],BX
-        BTC     [EBX+ECX*2+01h],BX
-        BTC     [ECX+EDX*4+00000100h],BX
-        BTC     [EAX+EAX*8+0A0B0C0D0h],BX
-        BTC     [EBP+EBP+10203040h],BX
-        LOCK BTC     [BX+SI],BX
-        LOCK BTC     [BX+DI],BX
-        LOCK BTC     [BP+SI],BX
-        LOCK BTC     [BP+DI],BX
-        LOCK BTC     [BP],BX
-        LOCK BTC     [SI],BX
-        LOCK BTC     [DI],BX
-        LOCK BTC     [BX+SI+1234h],BX
-        LOCK BTC     [BX+DI+1234h],BX
-        LOCK BTC     [BP+SI+1234h],BX
-        LOCK BTC     [BP+DI+1234h],BX
-        LOCK BTC     [BP+1234h],BX
-        LOCK BTC     [SI+1234h],BX
-        LOCK BTC     [DI+1234h],BX
-        BTC     [EAX+EAX*2+00000100h],SP
-        BTC     DS:[EBX+EBP*4+12345678h],SP
-        BTC     [EBP+EBP],SP
-        BTC     [ESP+EBP],SP
-        BTC     [EDX+EBX*8],SP
-        BTC     [EBX+ECX*2+01h],SP
-        BTC     [ECX+EDX*4+00000100h],SP
-        BTC     [EAX+EAX*8+0A0B0C0D0h],SP
-        BTC     [EBP+EBP+10203040h],SP
-        LOCK BTC     [BX+SI],SP
-        LOCK BTC     [BX+DI],SP
-        LOCK BTC     [BP+SI],SP
-        LOCK BTC     [BP+DI],SP
-        LOCK BTC     [BP],SP
-        LOCK BTC     [SI],SP
-        LOCK BTC     [DI],SP
-        LOCK BTC     [BX+SI+1234h],SP
-        LOCK BTC     [BX+DI+1234h],SP
-        LOCK BTC     [BP+SI+1234h],SP
-        LOCK BTC     [BP+DI+1234h],SP
-        LOCK BTC     [BP+1234h],SP
-        LOCK BTC     [SI+1234h],SP
-        LOCK BTC     [DI+1234h],SP
-        BTC     [EAX+EAX*2+00000100h],BP
-        BTC     DS:[EBX+EBP*4+12345678h],BP
-        BTC     [EBP+EBP],BP
-        BTC     [ESP+EBP],BP
-        BTC     [EDX+EBX*8],BP
-        BTC     [EBX+ECX*2+01h],BP
-        BTC     [ECX+EDX*4+00000100h],BP
-        BTC     [EAX+EAX*8+0A0B0C0D0h],BP
-        BTC     [EBP+EBP+10203040h],BP
-        LOCK BTC     [BX+SI],BP
-        LOCK BTC     [BX+DI],BP
-        LOCK BTC     [BP+SI],BP
-        LOCK BTC     [BP+DI],BP
-        LOCK BTC     [BP],BP
-        LOCK BTC     [SI],BP
-        LOCK BTC     [DI],BP
-        LOCK BTC     [BX+SI+1234h],BP
-        LOCK BTC     [BX+DI+1234h],BP
-        LOCK BTC     [BP+SI+1234h],BP
-        LOCK BTC     [BP+DI+1234h],BP
-        LOCK BTC     [BP+1234h],BP
-        LOCK BTC     [SI+1234h],BP
-        LOCK BTC     [DI+1234h],BP
-        BTC     [EAX+EAX*2+00000100h],SI
-        BTC     DS:[EBX+EBP*4+12345678h],SI
-        BTC     [EBP+EBP],SI
-        BTC     [ESP+EBP],SI
-        BTC     [EDX+EBX*8],SI
-        BTC     [EBX+ECX*2+01h],SI
-        BTC     [ECX+EDX*4+00000100h],SI
-        BTC     [EAX+EAX*8+0A0B0C0D0h],SI
-        BTC     [EBP+EBP+10203040h],SI
-        LOCK BTC     [BX+SI],SI
-        LOCK BTC     [BX+DI],SI
-        LOCK BTC     [BP+SI],SI
-        LOCK BTC     [BP+DI],SI
-        LOCK BTC     [BP],SI
-        LOCK BTC     [SI],SI
-        LOCK BTC     [DI],SI
-        LOCK BTC     [BX+SI+1234h],SI
-        LOCK BTC     [BX+DI+1234h],SI
-        LOCK BTC     [BP+SI+1234h],SI
-        LOCK BTC     [BP+DI+1234h],SI
-        LOCK BTC     [BP+1234h],SI
-        LOCK BTC     [SI+1234h],SI
-        LOCK BTC     [DI+1234h],SI
-        BTC     [EAX+EAX*2+00000100h],DI
-        BTC     DS:[EBX+EBP*4+12345678h],DI
-        BTC     [EBP+EBP],DI
-        BTC     [ESP+EBP],DI
-        BTC     [EDX+EBX*8],DI
-        BTC     [EBX+ECX*2+01h],DI
-        BTC     [ECX+EDX*4+00000100h],DI
-        BTC     [EAX+EAX*8+0A0B0C0D0h],DI
-        BTC     [EBP+EBP+10203040h],DI
-        LOCK BTC     [BX+SI],DI
-        LOCK BTC     [BX+DI],DI
-        LOCK BTC     [BP+SI],DI
-        LOCK BTC     [BP+DI],DI
-        LOCK BTC     [BP],DI
-        LOCK BTC     [SI],DI
-        LOCK BTC     [DI],DI
-        LOCK BTC     [BX+SI+1234h],DI
-        LOCK BTC     [BX+DI+1234h],DI
-        LOCK BTC     [BP+SI+1234h],DI
-        LOCK BTC     [BP+DI+1234h],DI
-        LOCK BTC     [BP+1234h],DI
-        LOCK BTC     [SI+1234h],DI
-        LOCK BTC     [DI+1234h],DI
-        BTC     EAX,EAX
-        BTC     ECX,EAX
-        BTC     EDX,EAX
-        BTC     EBX,EAX
-        BTC     ESP,EAX
-        BTC     EBP,EAX
-        BTC     ESI,EAX
-        BTC     EDI,EAX
-        BTC     [EAX],EAX
-        BTC     [EAX+00001234h],ECX
-        BTC     CS:[EAX],EBX
-        BTC     [EAX],EDX
-        BTC     ES:[EAX],ESP
-        BTC     SS:[EAX],EBP
-        BTC     FS:[EAX],ESI
-        BTC     GS:[EAX],EDI
-        BTC     [EAX+EAX*2+00000100h],EAX
-        BTC     DS:[EBX+EBP*4+12345678h],EAX
-        BTC     [EBP+EBP],EAX
-        BTC     [ESP+EBP],EAX
-        BTC     [EDX+EBX*8],EAX
-        BTC     [EBX+ECX*2+01h],EAX
-        BTC     [ECX+EDX*4+00000100h],EAX
-        BTC     [EAX+EAX*8+0A0B0C0D0h],EAX
-        BTC     [EBP+EBP+10203040h],EAX
-        LOCK BTC     [BX+SI],EAX
-        LOCK BTC     [BX+DI],EAX
-        LOCK BTC     [BP+SI],EAX
-        LOCK BTC     [BP+DI],EAX
-        LOCK BTC     [BP],EAX
-        LOCK BTC     [SI],EAX
-        LOCK BTC     [DI],EAX
-        LOCK BTC     [BX+SI+1234h],EAX
-        LOCK BTC     [BX+DI+1234h],EAX
-        LOCK BTC     [BP+SI+1234h],EAX
-        LOCK BTC     [BP+DI+1234h],EAX
-        LOCK BTC     [BP+1234h],EAX
-        LOCK BTC     [SI+1234h],EAX
-        LOCK BTC     [DI+1234h],EAX
-        BTC     EAX,01h
-        BTC     EAX,ECX
-        BTC     ECX,ECX
-        BTC     EDX,ECX
-        BTC     EBX,ECX
-        BTC     ESP,ECX
-        BTC     EBP,ECX
-        BTC     ESI,ECX
-        BTC     EDI,ECX
-        BTC     [ECX],EAX
-        BTC     [ECX+00001234h],ECX
-        BTC     CS:[ECX],EBX
-        BTC     [ECX],EDX
-        BTC     ES:[ECX],ESP
-        BTC     SS:[ECX],EBP
-        BTC     FS:[ECX],ESI
-        BTC     GS:[ECX],EDI
-        BTC     [EAX+EAX*2+00000100h],ECX
-        BTC     DS:[EBX+EBP*4+12345678h],ECX
-        BTC     [EBP+EBP],ECX
-        BTC     [ESP+EBP],ECX
-        BTC     [EDX+EBX*8],ECX
-        BTC     [EBX+ECX*2+01h],ECX
-        BTC     [ECX+EDX*4+00000100h],ECX
-        BTC     [EAX+EAX*8+0A0B0C0D0h],ECX
-        BTC     [EBP+EBP+10203040h],ECX
-        LOCK BTC     [BX+SI],ECX
-        LOCK BTC     [BX+DI],ECX
-        LOCK BTC     [BP+SI],ECX
-        LOCK BTC     [BP+DI],ECX
-        LOCK BTC     [BP],ECX
-        LOCK BTC     [SI],ECX
-        LOCK BTC     [DI],ECX
-        LOCK BTC     [BX+SI+1234h],ECX
-        LOCK BTC     [BX+DI+1234h],ECX
-        LOCK BTC     [BP+SI+1234h],ECX
-        LOCK BTC     [BP+DI+1234h],ECX
-        LOCK BTC     [BP+1234h],ECX
-        LOCK BTC     [SI+1234h],ECX
-        LOCK BTC     [DI+1234h],ECX
-        BTC     ECX,01h
-        BTC     EAX,EDX
-        BTC     ECX,EDX
-        BTC     EDX,EDX
-        BTC     EBX,EDX
-        BTC     ESP,EDX
-        BTC     EBP,EDX
-        BTC     ESI,EDX
-        BTC     EDI,EDX
-        BTC     [EDX],EAX
-        BTC     [EDX+00001234h],ECX
-        BTC     CS:[EDX],EBX
-        BTC     [EDX],EDX
-        BTC     ES:[EDX],ESP
-        BTC     SS:[EDX],EBP
-        BTC     FS:[EDX],ESI
-        BTC     GS:[EDX],EDI
-        BTC     [EAX+EAX*2+00000100h],EDX
-        BTC     DS:[EBX+EBP*4+12345678h],EDX
-        BTC     [EBP+EBP],EDX
-        BTC     [ESP+EBP],EDX
-        BTC     [EDX+EBX*8],EDX
-        BTC     [EBX+ECX*2+01h],EDX
-        BTC     [ECX+EDX*4+00000100h],EDX
-        BTC     [EAX+EAX*8+0A0B0C0D0h],EDX
-        BTC     [EBP+EBP+10203040h],EDX
-        LOCK BTC     [BX+SI],EDX
-        LOCK BTC     [BX+DI],EDX
-        LOCK BTC     [BP+SI],EDX
-        LOCK BTC     [BP+DI],EDX
-        LOCK BTC     [BP],EDX
-        LOCK BTC     [SI],EDX
-        LOCK BTC     [DI],EDX
-        LOCK BTC     [BX+SI+1234h],EDX
-        LOCK BTC     [BX+DI+1234h],EDX
-        LOCK BTC     [BP+SI+1234h],EDX
-        LOCK BTC     [BP+DI+1234h],EDX
-        LOCK BTC     [BP+1234h],EDX
-        LOCK BTC     [SI+1234h],EDX
-        LOCK BTC     [DI+1234h],EDX
-        BTC     EDX,01h
-        BTC     EAX,EBX
-        BTC     ECX,EBX
-        BTC     EDX,EBX
-        BTC     EBX,EBX
-        BTC     ESP,EBX
-        BTC     EBP,EBX
-        BTC     ESI,EBX
-        BTC     EDI,EBX
-        BTC     [EBX],EAX
-        BTC     [EBX+00001234h],ECX
-        BTC     CS:[EBX],EBX
-        BTC     [EBX],EDX
-        BTC     ES:[EBX],ESP
-        BTC     SS:[EBX],EBP
-        BTC     FS:[EBX],ESI
-        BTC     GS:[EBX],EDI
-        BTC     [EAX+EAX*2+00000100h],EBX
-        BTC     DS:[EBX+EBP*4+12345678h],EBX
-        BTC     [EBP+EBP],EBX
-        BTC     [ESP+EBP],EBX
-        BTC     [EDX+EBX*8],EBX
-        BTC     [EBX+ECX*2+01h],EBX
-        BTC     [ECX+EDX*4+00000100h],EBX
-        BTC     [EAX+EAX*8+0A0B0C0D0h],EBX
-        BTC     [EBP+EBP+10203040h],EBX
-        LOCK BTC     [BX+SI],EBX
-        LOCK BTC     [BX+DI],EBX
-        LOCK BTC     [BP+SI],EBX
-        LOCK BTC     [BP+DI],EBX
-        LOCK BTC     [BP],EBX
-        LOCK BTC     [SI],EBX
-        LOCK BTC     [DI],EBX
-        LOCK BTC     [BX+SI+1234h],EBX
-        LOCK BTC     [BX+DI+1234h],EBX
-        LOCK BTC     [BP+SI+1234h],EBX
-        LOCK BTC     [BP+DI+1234h],EBX
-        LOCK BTC     [BP+1234h],EBX
-        LOCK BTC     [SI+1234h],EBX
-        LOCK BTC     [DI+1234h],EBX
-        BTC     EBX,01h
-        BTC     EAX,ESP
-        BTC     ECX,ESP
-        BTC     EDX,ESP
-        BTC     EBX,ESP
-        BTC     ESP,ESP
-        BTC     EBP,ESP
-        BTC     ESI,ESP
-        BTC     EDI,ESP
-        BTC     [ESP+EAX],EAX
-        BTC     [ESP+EBP+00001234h],ECX
-        BTC     CS:[ESP+ECX],EBX
-        BTC     DS:[ESP+EDX],EDX
-        BTC     ES:[ESP],ESP
-        BTC     [EAX+EAX*2+00000100h],ESP
-        BTC     DS:[EBX+EBP*4+12345678h],ESP
-        BTC     [EBP+EBP],ESP
-        BTC     [ESP+EBP],ESP
-        BTC     [EDX+EBX*8],ESP
-        BTC     [EBX+ECX*2+01h],ESP
-        BTC     [ECX+EDX*4+00000100h],ESP
-        BTC     [EAX+EAX*8+0A0B0C0D0h],ESP
-        BTC     [EBP+EBP+10203040h],ESP
-        LOCK BTC     [BX+SI],ESP
-        LOCK BTC     [BX+DI],ESP
-        LOCK BTC     [BP+SI],ESP
-        LOCK BTC     [BP+DI],ESP
-        LOCK BTC     [BP],ESP
-        LOCK BTC     [SI],ESP
-        LOCK BTC     [DI],ESP
-        LOCK BTC     [BX+SI+1234h],ESP
-        LOCK BTC     [BX+DI+1234h],ESP
-        LOCK BTC     [BP+SI+1234h],ESP
-        LOCK BTC     [BP+DI+1234h],ESP
-        LOCK BTC     [BP+1234h],ESP
-        LOCK BTC     [SI+1234h],ESP
-        LOCK BTC     [DI+1234h],ESP
-        BTC     ESP,01h
-        BTC     EAX,EBP
-        BTC     ECX,EBP
-        BTC     EDX,EBP
-        BTC     EBX,EBP
-        BTC     ESP,EBP
-        BTC     EBP,EBP
-        BTC     ESI,EBP
-        BTC     EDI,EBP
-        BTC     [EBP],EAX
-        BTC     [EBP+00001234h],ECX
-        BTC     CS:[EBP],EBX
-        BTC     DS:[EBP],EDX
-        BTC     ES:[EBP],ESP
-        BTC     [EBP],EBP
-        BTC     FS:[EBP],ESI
-        BTC     GS:[EBP],EDI
-        BTC     [EAX+EAX*2+00000100h],EBP
-        BTC     DS:[EBX+EBP*4+12345678h],EBP
-        BTC     [EBP+EBP],EBP
-        BTC     [ESP+EBP],EBP
-        BTC     [EDX+EBX*8],EBP
-        BTC     [EBX+ECX*2+01h],EBP
-        BTC     [ECX+EDX*4+00000100h],EBP
-        BTC     [EAX+EAX*8+0A0B0C0D0h],EBP
-        BTC     [EBP+EBP+10203040h],EBP
-        LOCK BTC     [BX+SI],EBP
-        LOCK BTC     [BX+DI],EBP
-        LOCK BTC     [BP+SI],EBP
-        LOCK BTC     [BP+DI],EBP
-        LOCK BTC     [BP],EBP
-        LOCK BTC     [SI],EBP
-        LOCK BTC     [DI],EBP
-        LOCK BTC     [BX+SI+1234h],EBP
-        LOCK BTC     [BX+DI+1234h],EBP
-        LOCK BTC     [BP+SI+1234h],EBP
-        LOCK BTC     [BP+DI+1234h],EBP
-        LOCK BTC     [BP+1234h],EBP
-        LOCK BTC     [SI+1234h],EBP
-        LOCK BTC     [DI+1234h],EBP
-        BTC     EBP,01h
-        BTC     EAX,ESI
-        BTC     ECX,ESI
-        BTC     EDX,ESI
-        BTC     EBX,ESI
-        BTC     ESP,ESI
-        BTC     EBP,ESI
-        BTC     ESI,ESI
-        BTC     EDI,ESI
-        BTC     [ESI],EAX
-        BTC     [ESI+00001234h],ECX
-        BTC     CS:[ESI],EBX
-        BTC     [ESI],EDX
-        BTC     ES:[ESI],ESP
-        BTC     SS:[ESI],EBP
-        BTC     FS:[ESI],ESI
-        BTC     GS:[ESI],EDI
-        BTC     [EAX+EAX*2+00000100h],ESI
-        BTC     DS:[EBX+EBP*4+12345678h],ESI
-        BTC     [EBP+EBP],ESI
-        BTC     [ESP+EBP],ESI
-        BTC     [EDX+EBX*8],ESI
-        BTC     [EBX+ECX*2+01h],ESI
-        BTC     [ECX+EDX*4+00000100h],ESI
-        BTC     [EAX+EAX*8+0A0B0C0D0h],ESI
-        BTC     [EBP+EBP+10203040h],ESI
-        LOCK BTC     [BX+SI],ESI
-        LOCK BTC     [BX+DI],ESI
-        LOCK BTC     [BP+SI],ESI
-        LOCK BTC     [BP+DI],ESI
-        LOCK BTC     [BP],ESI
-        LOCK BTC     [SI],ESI
-        LOCK BTC     [DI],ESI
-        LOCK BTC     [BX+SI+1234h],ESI
-        LOCK BTC     [BX+DI+1234h],ESI
-        LOCK BTC     [BP+SI+1234h],ESI
-        LOCK BTC     [BP+DI+1234h],ESI
-        LOCK BTC     [BP+1234h],ESI
-        LOCK BTC     [SI+1234h],ESI
-        LOCK BTC     [DI+1234h],ESI
-        BTC     ESI,01h
-        BTC     EAX,EDI
-        BTC     ECX,EDI
-        BTC     EDX,EDI
-        BTC     EBX,EDI
-        BTC     ESP,EDI
-        BTC     EBP,EDI
-        BTC     ESI,EDI
-        BTC     EDI,EDI
-        BTC     [EDI],EAX
-        BTC     [EDI+00001234h],ECX
-        BTC     CS:[EDI],EBX
-        BTC     [EDI],EDX
-        BTC     ES:[EDI],ESP
-        BTC     SS:[EDI],EBP
-        BTC     FS:[EDI],ESI
-        BTC     GS:[EDI],EDI
-        BTC     [EAX+EAX*2+00000100h],EDI
-        BTC     DS:[EBX+EBP*4+12345678h],EDI
-        BTC     [EBP+EBP],EDI
-        BTC     [ESP+EBP],EDI
-        BTC     [EDX+EBX*8],EDI
-        BTC     [EBX+ECX*2+01h],EDI
-        BTC     [ECX+EDX*4+00000100h],EDI
-        BTC     [EAX+EAX*8+0A0B0C0D0h],EDI
-        BTC     [EBP+EBP+10203040h],EDI
-        LOCK BTC     word ptr FS:[EBX+EBP+0FFEEDDCCh],0A0h
-        LOCK BTC     [BX+SI],EDI
-        LOCK BTC     [BX+DI],EDI
-        LOCK BTC     [BP+SI],EDI
-        LOCK BTC     [BP+DI],EDI
-        LOCK BTC     [BP],EDI
-        LOCK BTC     [SI],EDI
-        LOCK BTC     [DI],EDI
-        LOCK BTC     [BX+SI+1234h],EDI
-        LOCK BTC     [BX+DI+1234h],EDI
-        LOCK BTC     [BP+SI+1234h],EDI
-        LOCK BTC     [BP+DI+1234h],EDI
-        LOCK BTC     [BP+1234h],EDI
-        LOCK BTC     [SI+1234h],EDI
-        LOCK BTC     [DI+1234h],EDI
-        BTC     EDI,01h
-        BTC     AX,AX
-        BTC     CX,AX
-        BTC     DX,AX
-        BTC     BX,AX
-        BTC     SP,AX
-        BTC     BP,AX
-        BTC     SI,AX
-        BTC     DI,AX
-        BTC     [BX+SI+1234h],AX
-        BTC     [BX+DI+1234h],AX
-        BTC     [BP+SI+1234h],AX
-        BTC     [BP+DI+1234h],AX
-        BTC     [BP+1234h],AX
-        BTC     [SI+1234h],AX
-        BTC     [DI+1234h],AX
-        BTC     CS:[BX+SI],AX
-        BTC     CS:[BX+DI],AX
-        BTC     CS:[BP+SI],AX
-        BTC     CS:[BP+DI],AX
-        BTC     CS:[BP],AX
-        BTC     CS:[SI],AX
-        BTC     CS:[DI],AX
-        BTC     [BX+SI],AX
-        BTC     [BX+DI],AX
-        BTC     DS:[BP+SI],AX
-        BTC     DS:[BP+DI],AX
-        BTC     DS:[BP],AX
-        BTC     [SI],AX
-        BTC     [DI],AX
-        BTC     ES:[BX+SI],AX
-        BTC     ES:[BX+DI],AX
-        BTC     ES:[BP+SI],AX
-        BTC     ES:[BP+DI],AX
-        BTC     ES:[BP],AX
-        BTC     ES:[SI],AX
-        BTC     ES:[DI],AX
-        BTC     SS:[BX+SI],AX
-        BTC     SS:[BX+DI],AX
-        BTC     [BP+SI],AX
-        BTC     [BP+DI],AX
-        BTC     [BP],AX
-        BTC     SS:[SI],AX
-        BTC     SS:[DI],AX
-        BTC     FS:[BX+SI],AX
-        BTC     FS:[BX+DI],AX
-        BTC     FS:[BP+SI],AX
-        BTC     FS:[BP+DI],AX
-        BTC     FS:[BP],AX
-        BTC     FS:[SI],AX
-        BTC     FS:[DI],AX
-        BTC     GS:[BX+SI],AX
-        BTC     GS:[BX+DI],AX
-        BTC     GS:[BP+SI],AX
-        BTC     GS:[BP+DI],AX
-        BTC     GS:[BP],AX
-        BTC     GS:[SI],AX
-        BTC     GS:[DI],AX
-        BTC     AX,01h
-        BTC     AX,0FFh
-        BTC     AX,CX
-        BTC     CX,CX
-        BTC     DX,CX
-        BTC     BX,CX
-        BTC     SP,CX
-        BTC     BP,CX
-        BTC     SI,CX
-        BTC     DI,CX
-        BTC     [BX+SI+1234h],CX
-        BTC     [BX+DI+1234h],CX
-        BTC     [BP+SI+1234h],CX
-        BTC     [BP+DI+1234h],CX
-        BTC     [BP+1234h],CX
-        BTC     [SI+1234h],CX
-        BTC     [DI+1234h],CX
-        BTC     CS:[BX+SI],CX
-        BTC     CS:[BX+DI],CX
-        BTC     CS:[BP+SI],CX
-        BTC     CS:[BP+DI],CX
-        BTC     CS:[BP],CX
-        BTC     CS:[SI],CX
-        BTC     CS:[DI],CX
-        BTC     [BX+SI],CX
-        BTC     [BX+DI],CX
-        BTC     DS:[BP+SI],CX
-        BTC     DS:[BP+DI],CX
-        BTC     DS:[BP],CX
-        BTC     [SI],CX
-        BTC     [DI],CX
-        BTC     ES:[BX+SI],CX
-        BTC     ES:[BX+DI],CX
-        BTC     ES:[BP+SI],CX
-        BTC     ES:[BP+DI],CX
-        BTC     ES:[BP],CX
-        BTC     ES:[SI],CX
-        BTC     ES:[DI],CX
-        BTC     SS:[BX+SI],CX
-        BTC     SS:[BX+DI],CX
-        BTC     [BP+SI],CX
-        BTC     [BP+DI],CX
-        BTC     [BP],CX
-        BTC     SS:[SI],CX
-        BTC     SS:[DI],CX
-        BTC     FS:[BX+SI],CX
-        BTC     FS:[BX+DI],CX
-        BTC     FS:[BP+SI],CX
-        BTC     FS:[BP+DI],CX
-        BTC     FS:[BP],CX
-        BTC     FS:[SI],CX
-        BTC     FS:[DI],CX
-        BTC     GS:[BX+SI],CX
-        BTC     GS:[BX+DI],CX
-        BTC     GS:[BP+SI],CX
-        BTC     GS:[BP+DI],CX
-        BTC     GS:[BP],CX
-        BTC     GS:[SI],CX
-        BTC     GS:[DI],CX
-        BTC     CX,01h
-        BTC     CX,0FFh
-        BTC     AX,DX
-        BTC     CX,DX
-        BTC     DX,DX
-        BTC     BX,DX
-        BTC     SP,DX
-        BTC     BP,DX
-        BTC     SI,DX
-        BTC     DI,DX
-        BTC     [BX+SI+1234h],DX
-        BTC     [BX+DI+1234h],DX
-        BTC     [BP+SI+1234h],DX
-        BTC     [BP+DI+1234h],DX
-        BTC     [BP+1234h],DX
-        BTC     [SI+1234h],DX
-        BTC     [DI+1234h],DX
-        BTC     CS:[BX+SI],DX
-        BTC     CS:[BX+DI],DX
-        BTC     CS:[BP+SI],DX
-        BTC     CS:[BP+DI],DX
-        BTC     CS:[BP],DX
-        BTC     CS:[SI],DX
-        BTC     CS:[DI],DX
-        BTC     [BX+SI],DX
-        BTC     [BX+DI],DX
-        BTC     DS:[BP+SI],DX
-        BTC     DS:[BP+DI],DX
-        BTC     DS:[BP],DX
-        BTC     [SI],DX
-        BTC     [DI],DX
-        BTC     ES:[BX+SI],DX
-        BTC     ES:[BX+DI],DX
-        BTC     ES:[BP+SI],DX
-        BTC     ES:[BP+DI],DX
-        BTC     ES:[BP],DX
-        BTC     ES:[SI],DX
-        BTC     ES:[DI],DX
-        BTC     SS:[BX+SI],DX
-        BTC     SS:[BX+DI],DX
-        BTC     [BP+SI],DX
-        BTC     [BP+DI],DX
-        BTC     [BP],DX
-        BTC     SS:[SI],DX
-        BTC     SS:[DI],DX
-        BTC     FS:[BX+SI],DX
-        BTC     FS:[BX+DI],DX
-        BTC     FS:[BP+SI],DX
-        BTC     FS:[BP+DI],DX
-        BTC     FS:[BP],DX
-        BTC     FS:[SI],DX
-        BTC     FS:[DI],DX
-        BTC     GS:[BX+SI],DX
-        BTC     GS:[BX+DI],DX
-        BTC     GS:[BP+SI],DX
-        BTC     GS:[BP+DI],DX
-        BTC     GS:[BP],DX
-        BTC     GS:[SI],DX
-        BTC     GS:[DI],DX
-        BTC     DX,01h
-        BTC     DX,0FFh
-        BTC     AX,BX
-        BTC     CX,BX
-        BTC     DX,BX
-        BTC     BX,BX
-        BTC     SP,BX
-        BTC     BP,BX
-        BTC     SI,BX
-        BTC     DI,BX
-        BTC     [BX+SI+1234h],BX
-        BTC     [BX+DI+1234h],BX
-        BTC     [BP+SI+1234h],BX
-        BTC     [BP+DI+1234h],BX
-        BTC     [BP+1234h],BX
-        BTC     [SI+1234h],BX
-        BTC     [DI+1234h],BX
-        BTC     CS:[BX+SI],BX
-        BTC     CS:[BX+DI],BX
-        BTC     CS:[BP+SI],BX
-        BTC     CS:[BP+DI],BX
-        BTC     CS:[BP],BX
-        BTC     CS:[SI],BX
-        BTC     CS:[DI],BX
-        BTC     [BX+SI],BX
-        BTC     [BX+DI],BX
-        BTC     DS:[BP+SI],BX
-        BTC     DS:[BP+DI],BX
-        BTC     DS:[BP],BX
-        BTC     [SI],BX
-        BTC     [DI],BX
-        BTC     ES:[BX+SI],BX
-        BTC     ES:[BX+DI],BX
-        BTC     ES:[BP+SI],BX
-        BTC     ES:[BP+DI],BX
-        BTC     ES:[BP],BX
-        BTC     ES:[SI],BX
-        BTC     ES:[DI],BX
-        BTC     SS:[BX+SI],BX
-        BTC     SS:[BX+DI],BX
-        BTC     [BP+SI],BX
-        BTC     [BP+DI],BX
-        BTC     [BP],BX
-        BTC     SS:[SI],BX
-        BTC     SS:[DI],BX
-        BTC     FS:[BX+SI],BX
-        BTC     FS:[BX+DI],BX
-        BTC     FS:[BP+SI],BX
-        BTC     FS:[BP+DI],BX
-        BTC     FS:[BP],BX
-        BTC     FS:[SI],BX
-        BTC     FS:[DI],BX
-        BTC     GS:[BX+SI],BX
-        BTC     GS:[BX+DI],BX
-        BTC     GS:[BP+SI],BX
-        BTC     GS:[BP+DI],BX
-        BTC     GS:[BP],BX
-        BTC     GS:[SI],BX
-        BTC     GS:[DI],BX
-        BTC     BX,01h
-        BTC     BX,0FFh
-        BTC     AX,SP
-        BTC     CX,SP
-        BTC     DX,SP
-        BTC     BX,SP
-        BTC     SP,SP
-        BTC     BP,SP
-        BTC     SI,SP
-        BTC     DI,SP
-        BTC     [BX+SI+1234h],SP
-        BTC     [BX+DI+1234h],SP
-        BTC     [BP+SI+1234h],SP
-        BTC     [BP+DI+1234h],SP
-        BTC     [BP+1234h],SP
-        BTC     [SI+1234h],SP
-        BTC     [DI+1234h],SP
-        BTC     CS:[BX+SI],SP
-        BTC     CS:[BX+DI],SP
-        BTC     CS:[BP+SI],SP
-        BTC     CS:[BP+DI],SP
-        BTC     CS:[BP],SP
-        BTC     CS:[SI],SP
-        BTC     CS:[DI],SP
-        BTC     [BX+SI],SP
-        BTC     [BX+DI],SP
-        BTC     DS:[BP+SI],SP
-        BTC     DS:[BP+DI],SP
-        BTC     DS:[BP],SP
-        BTC     [SI],SP
-        BTC     [DI],SP
-        BTC     ES:[BX+SI],SP
-        BTC     ES:[BX+DI],SP
-        BTC     ES:[BP+SI],SP
-        BTC     ES:[BP+DI],SP
-        BTC     ES:[BP],SP
-        BTC     ES:[SI],SP
-        BTC     ES:[DI],SP
-        BTC     SS:[BX+SI],SP
-        BTC     SS:[BX+DI],SP
-        BTC     [BP+SI],SP
-        BTC     [BP+DI],SP
-        BTC     [BP],SP
-        BTC     SS:[SI],SP
-        BTC     SS:[DI],SP
-        BTC     FS:[BX+SI],SP
-        BTC     FS:[BX+DI],SP
-        BTC     FS:[BP+SI],SP
-        BTC     FS:[BP+DI],SP
-        BTC     FS:[BP],SP
-        BTC     FS:[SI],SP
-        BTC     FS:[DI],SP
-        BTC     GS:[BX+SI],SP
-        BTC     GS:[BX+DI],SP
-        BTC     GS:[BP+SI],SP
-        BTC     GS:[BP+DI],SP
-        BTC     GS:[BP],SP
-        BTC     GS:[SI],SP
-        BTC     GS:[DI],SP
-        BTC     SP,01h
-        BTC     SP,0FFh
-        BTC     AX,BP
-        BTC     CX,BP
-        BTC     DX,BP
-        BTC     BX,BP
-        BTC     SP,BP
-        BTC     BP,BP
-        BTC     SI,BP
-        BTC     DI,BP
-        BTC     [BX+SI+1234h],BP
-        BTC     [BX+DI+1234h],BP
-        BTC     [BP+SI+1234h],BP
-        BTC     [BP+DI+1234h],BP
-        BTC     [BP+1234h],BP
-        BTC     [SI+1234h],BP
-        BTC     [DI+1234h],BP
-        BTC     CS:[BX+SI],BP
-        BTC     CS:[BX+DI],BP
-        BTC     CS:[BP+SI],BP
-        BTC     CS:[BP+DI],BP
-        BTC     CS:[BP],BP
-        BTC     CS:[SI],BP
-        BTC     CS:[DI],BP
-        BTC     [BX+SI],BP
-        BTC     [BX+DI],BP
-        BTC     DS:[BP+SI],BP
-        BTC     DS:[BP+DI],BP
-        BTC     DS:[BP],BP
-        BTC     [SI],BP
-        BTC     [DI],BP
-        BTC     ES:[BX+SI],BP
-        BTC     ES:[BX+DI],BP
-        BTC     ES:[BP+SI],BP
-        BTC     ES:[BP+DI],BP
-        BTC     ES:[BP],BP
-        BTC     ES:[SI],BP
-        BTC     ES:[DI],BP
-        BTC     SS:[BX+SI],BP
-        BTC     SS:[BX+DI],BP
-        BTC     [BP+SI],BP
-        BTC     [BP+DI],BP
-        BTC     [BP],BP
-        BTC     SS:[SI],BP
-        BTC     SS:[DI],BP
-        BTC     FS:[BX+SI],BP
-        BTC     FS:[BX+DI],BP
-        BTC     FS:[BP+SI],BP
-        BTC     FS:[BP+DI],BP
-        BTC     FS:[BP],BP
-        BTC     FS:[SI],BP
-        BTC     FS:[DI],BP
-        BTC     GS:[BX+SI],BP
-        BTC     GS:[BX+DI],BP
-        BTC     GS:[BP+SI],BP
-        BTC     GS:[BP+DI],BP
-        BTC     GS:[BP],BP
-        BTC     GS:[SI],BP
-        BTC     GS:[DI],BP
-        BTC     BP,01h
-        BTC     BP,0FFh
-        BTC     AX,SI
-        BTC     CX,SI
-        BTC     DX,SI
-        BTC     BX,SI
-        BTC     SP,SI
-        BTC     BP,SI
-        BTC     SI,SI
-        BTC     DI,SI
-        BTC     [BX+SI+1234h],SI
-        BTC     [BX+DI+1234h],SI
-        BTC     [BP+SI+1234h],SI
-        BTC     [BP+DI+1234h],SI
-        BTC     [BP+1234h],SI
-        BTC     [SI+1234h],SI
-        BTC     [DI+1234h],SI
-        BTC     CS:[BX+SI],SI
-        BTC     CS:[BX+DI],SI
-        BTC     CS:[BP+SI],SI
-        BTC     CS:[BP+DI],SI
-        BTC     CS:[BP],SI
-        BTC     CS:[SI],SI
-        BTC     CS:[DI],SI
-        BTC     [BX+SI],SI
-        BTC     [BX+DI],SI
-        BTC     DS:[BP+SI],SI
-        BTC     DS:[BP+DI],SI
-        BTC     DS:[BP],SI
-        BTC     [SI],SI
-        BTC     [DI],SI
-        BTC     ES:[BX+SI],SI
-        BTC     ES:[BX+DI],SI
-        BTC     ES:[BP+SI],SI
-        BTC     ES:[BP+DI],SI
-        BTC     ES:[BP],SI
-        BTC     ES:[SI],SI
-        BTC     ES:[DI],SI
-        BTC     SS:[BX+SI],SI
-        BTC     SS:[BX+DI],SI
-        BTC     [BP+SI],SI
-        BTC     [BP+DI],SI
-        BTC     [BP],SI
-        BTC     SS:[SI],SI
-        BTC     SS:[DI],SI
-        BTC     FS:[BX+SI],SI
-        BTC     FS:[BX+DI],SI
-        BTC     FS:[BP+SI],SI
-        BTC     FS:[BP+DI],SI
-        BTC     FS:[BP],SI
-        BTC     FS:[SI],SI
-        BTC     FS:[DI],SI
-        BTC     GS:[BX+SI],SI
-        BTC     GS:[BX+DI],SI
-        BTC     GS:[BP+SI],SI
-        BTC     GS:[BP+DI],SI
-        BTC     GS:[BP],SI
-        BTC     GS:[SI],SI
-        BTC     GS:[DI],SI
-        BTC     SI,01h
-        BTC     SI,0FFh
-        BTC     AX,DI
-        BTC     CX,DI
-        BTC     DX,DI
-        BTC     BX,DI
-        BTC     SP,DI
-        BTC     BP,DI
-        BTC     SI,DI
-        BTC     DI,DI
-        BTC     [BX+SI+1234h],DI
-        BTC     [BX+DI+1234h],DI
-        BTC     [BP+SI+1234h],DI
-        BTC     [BP+DI+1234h],DI
-        BTC     [BP+1234h],DI
-        BTC     [SI+1234h],DI
-        BTC     [DI+1234h],DI
-        BTC     CS:[BX+SI],DI
-        BTC     CS:[BX+DI],DI
-        BTC     CS:[BP+SI],DI
-        BTC     CS:[BP+DI],DI
-        BTC     CS:[BP],DI
-        BTC     CS:[SI],DI
-        BTC     CS:[DI],DI
-        BTC     [BX+SI],DI
-        BTC     [BX+DI],DI
-        BTC     DS:[BP+SI],DI
-        BTC     DS:[BP+DI],DI
-        BTC     DS:[BP],DI
-        BTC     [SI],DI
-        BTC     [DI],DI
-        BTC     ES:[BX+SI],DI
-        BTC     ES:[BX+DI],DI
-        BTC     ES:[BP+SI],DI
-        BTC     ES:[BP+DI],DI
-        BTC     ES:[BP],DI
-        BTC     ES:[SI],DI
-        BTC     ES:[DI],DI
-        BTC     SS:[BX+SI],DI
-        BTC     SS:[BX+DI],DI
-        BTC     [BP+SI],DI
-        BTC     [BP+DI],DI
-        BTC     [BP],DI
-        BTC     SS:[SI],DI
-        BTC     SS:[DI],DI
-        BTC     FS:[BX+SI],DI
-        BTC     FS:[BX+DI],DI
-        BTC     FS:[BP+SI],DI
-        BTC     FS:[BP+DI],DI
-        BTC     FS:[BP],DI
-        BTC     FS:[SI],DI
-        BTC     FS:[DI],DI
-        BTC     GS:[BX+SI],DI
-        BTC     GS:[BX+DI],DI
-        BTC     GS:[BP+SI],DI
-        BTC     GS:[BP+DI],DI
-        BTC     GS:[BP],DI
-        BTC     GS:[SI],DI
-        BTC     GS:[DI],DI
-        BTC     DI,01h
-        BTC     DI,0FFh
-        BTC     EAX,0FFh
-        BTC     ECX,0FFh
-        BTC     EDX,0FFh
-        BTC     EBX,0FFh
-        BTC     ESP,0FFh
-        BTC     EBP,0FFh
-        BTC     ESI,0FFh
-        BTC     EDI,0FFh
-        JO      JCC_REL16
-        JNO     START
-        JB      JCC_REL16
-        JNB     START
-        JZ      JCC_REL16
-        JNZ     START
-        JBE     JCC_REL16
-        JNBE    START
-        JS      JCC_REL16
-        JNS     START
-        JP      JCC_REL16
-        JNP     START
-        JL      JCC_REL16
-        JNL     START
-        JLE     JCC_REL16
-        JNLE    START 
-JCC_REL8:
-        JO      JCC_REL8
-        JNO     SHORT JCC_REL8F
-        JB      JCC_REL8
-        JNB     SHORT JCC_REL8F
-        JZ      JCC_REL8
-        JNZ     SHORT JCC_REL8F
-        JBE     JCC_REL8
-        JNBE    SHORT JCC_REL8F
-        JS      JCC_REL8
-        JNS     SHORT JCC_REL8F
-        JP      JCC_REL8
-        JNP     SHORT JCC_REL8F
-        JL      JCC_REL8
-        JNL     SHORT JCC_REL8F
-        JLE     JCC_REL8
-        JNLE    SHORT JCC_REL8F
-        JCXZ    JCC_REL8
-        JECXZ   SHORT JCC_REL8F
-JCC_REL8F:
-        LOCK BTC     [EAX+EAX+00004321h],AX
-        LOCK BTC     [EAX+EAX*2+00004321h],AX
-        LOCK BTC     [EAX+EAX*4+00004321h],AX
-        LOCK BTC     [EAX+EAX*8+00004321h],AX
-        LOCK BTC     [ESI+00004321h],AX
-        LOCK BTC     [EDI+00004321h],AX
-        LOCK BTC     dword ptr SS:[EBX+EAX*8+12345678h],9Ah
-        LOCK BTC     [EAX+EAX+00004321h],AX
-        LOCK BTC     [EAX+EAX*2+00004321h],AX
-        LOCK BTC     [EAX+EAX*4+00004321h],AX
-        LOCK BTC     [EAX+EAX*8+00004321h],AX
-        LOCK BTC     [ESI+00004321h],AX
-        LOCK BTC     [EDI+00004321h],AX
-        LOCK BTC     dword ptr SS:[EBX+EAX*8+12345678h],9Ah
-        lock btc	[eax + eax + 4321h], ax
-        lock btc	[2*eax + eax + 4321h], ax
-        lock btc	[4*eax + eax + 4321h], ax
-        lock btc	[8*eax + eax + 4321h], ax
-        lock btc	[esi + 4321h], ax
-        lock btc	[edi + 4321h], ax
-        lock btc	DWORD PTR SS:[8*eax + ebx + 12345678h], 9ah
-JCC_REL16:
+.MODEL SMALL
+.486
+.data          
+.code       
+org 100h
+start:
+        mov     eax, [EBP*4]
+        mov     eax, ss:[ebp*4]
+        mov     eax, ds:[ebp*4]
+        mov     ax, word ptr SS:[EBP+ebx*2]
+        mov     eax, dword ptr SS:[ESP+ebx*2] 
+        mov     ax, word ptr DS:[EBP+ebx*2]
+        mov     eax, dword ptr DS:[ESP+ebx*2]
         AAD
-    END     START
+        BTC     DS:[EAX*4],EAX
+        BTC     DS:[EBX*4],AX 
+        BTC     SS:[EBP*4],AX 
+        BTC     word ptr SS:[EBP],0FFH  
+        BTC     dword ptr SS:[ESP],0FFH 
+        BTC     [EBP*4+00000001H],EBP
+        BTC     SS:[EBP*4+00000100H],EBP
+        BTC     DS:[BX+0FEDCH],AX  
+        BTC     word ptr DS:[EBX+EBP+0FFEEDDCCH],0A0H 
+        BTC     word ptr SS:[EBP+EAX],0FFH
+        BTC     dword ptr SS:[EBP+EAX*8],0FFH
+        BTC     word ptr SS:[ESP+EAX],0FFH
+        BTC     dword ptr SS:[ESP+EAX*8],0FFH
+        BTC     word ptr SS:[ESP+EBP],0FFH
+        BTC     dword ptr SS:[ESP+EBP*8],0FFH
+        LOCK BTC     dword ptr DS:[EAX+EBX*8+0A7654321H],0FFH  
+        LOCK BTC     word ptr SS:[EAX+EBP*8+87654321H],0FFH
+        LOCK BTC     CS:[EAX+EBX*8+0B7654321H],EAX
+        LOCK BTC     DS:[EAX+EBP*8+87654321H],AX 
+        LOCK BTC     dword ptr SS:[EBP+EBX*4+12345678H],9AH
+        LOCK BTC     dword ptr SS:[EBX+EAX*8+12345678H],9AH
+        LOCK BTC     dword ptr SS:[EBX+EAX*8+12345678H],9AH
+        LOCK BTC     word ptr FS:[EBX+EBP+0FFEEDDCCH],0A0H 
+aac:
+        JNS     haha
+        JO      aac   
+haha:
+        BTC     CS:[DI],CX    
+        LOCK BTC     DS:[BX+SI+1234H],SI
+        BTC     SS:[EBP*4],AX 
+        LOCK BTC     DS:[DI+1234H],DI   
+        BTC     CS:[BX+DI],SI 
+        BTC     SS:[EBP],EAX  
+        BTC     DS:[ECX+EDX*4+00000100H],EDI 
+        LOCK BTC     DS:[BX+DI],ESI
+        BTC     EBP,ECX  
+        BTC     DS:[EBX+EBP*4+12345678H],ESI 
+        BTC     FS:[BX+SI],SP 
+        BTC     CS:[BX+SI],DI 
+        BTC     FS:[BX+DI],DX 
+        BTC     FS:[BX+DI],SI 
+        BTC     AX,SI
+        LOCK BTC     SS:[BP+1234H],DX   
+        BTC     DX,AX
+        BTC     SS:[BP+DI+1234H],CX
+        BTC     dword ptr SS:[ESP+EBP*8],0FFH
+        LOCK BTC     SS:[BP+1234H],EDX  
+        LOCK BTC     DS:[BX+DI],CX 
+        LOCK BTC     dword ptr SS:[EBX+EAX*8+12345678H],9AH
+        BTC     ES:[BX+SI],SI 
+        BTC     EBX,ECX  
+        BTC     FS:[EDX],ESI  
+        BTC     FS:[SI],CX    
+        LOCK BTC     DS:[DI],ESI
+        BTC     CS:[EAX],EBX  
+        BTC     DS:[EAX+EAX*2+00000100H],CX  
+        BTC     ESP,EBP  
+        BTC     DS:[SI],DX    
+        BTC     CS:[BP+DI],SI 
+        BTC     DS:[EDX+EBX*8],AX  
+        BTC     SS:[BP+DI],CX 
+        BTC     DS:[BP+DI],SI 
+        BTC     SP,01H
+        LOCK BTC     DS:[SI],BP
+        BTC     GS:[SI],SI    
+        BTC     CS:[BX+DI],CX 
+        BTC     FS:[DI],BX    
+        BTC     GS:[BP],SP    
+        BTC     DS:[SI],SI    
+        BTC     SS:[SI],SP    
+        LOCK BTC     DS:[BX+DI],BX 
+        BTC     EBP,EDI  
+        BTC     SS:[ESP+EBP],DI
+        BTC     SS:[ESP+EBP],EBX
+        BTC     DS:[BP+DI],BP 
+        BTC     CS:[EBX],EBX  
+        BTC     GS:[BP],AX    
+        BTC     ESI,0FFH 
+        LOCK BTC     DS:[DI],EDX
+        LOCK BTC     DS:[EAX+EAX*4+00004321H],AX  
+        BTC     CS:[BP],AX    
+        LOCK BTC     SS:[BP+DI],EAX
+        BTC     DS:[BX+DI+1234H],DX
+        BTC     DS:[SI+1234H],CX
+        BTC     DS:[EBX+EBP*4+12345678H],SI  
+        LOCK BTC     SS:[BP+1234H],EDI  
+        AAD
+        BTC     GS:[BX+SI],DI 
+        BTC     ES:[BP+SI],SI 
+        BTC     SS:[ESP+EBP],BX
+        BTC     CS:[EBP],EBX  
+        BTC     DS:[BX+DI],SP 
+        BTC     DS:[SI+1234H],DI
+        LOCK BTC     SS:[BP+DI+1234H],BX
+        BTC     dword ptr SS:[ESP],0FFH 
+        BTC     FS:[SI],AX    
+        LOCK BTC     DS:[BX+SI],CX 
+        BTC     DS:[SI+1234H],BP
+        BTC     EDI,ESI  
+        LOCK BTC     SS:[BP+DI+1234H],ECX 
+        BTC     DS:[EDI],EDX  
+        LOCK BTC     DS:[BX+SI+1234H],EAX 
+        BTC     DS:[BP+SI],SI 
+        BTC     GS:[BP+DI],AX 
+        BTC     SS:[BP],SP    
+        BTC     DS:[SI+1234H],DX
+        LOCK BTC     SS:[BP+DI],EDI
+        BTC     SP,DI
+        BTC     DS:[EAX+EAX*2+00000100H],EBX 
+        BTC     FS:[BP+SI],DX 
+        BTC     DS:[BP+DI],DI 
+        BTC     BP,DI
+        BTC     CS:[BP],SP    
+        LOCK BTC     SS:[BP+DI],ESP
+        BTC     SS:[BX+DI],SI 
+        LOCK BTC     SS:[BP+DI],EBX
+        BTC     CS:[SI],BP    
+        BTC     dword ptr FS:[0123H],01H
+        BTC     FS:[DI],SI    
+        BTC     SS:[DI],SP    
+        BTC     CS:[DI],DX    
+        BTC     GS:[EDI],EDI  
+        BTC     ECX,ESP  
+        BTC     ES:[BP+SI],SP 
+        LOCK BTC     DS:[BX+SI+1234H],EDI 
+        LOCK BTC     DS:[DI],CX
+        BTC     dword ptr DS:[SI],0B0H  
+        BTC     CS:[DI],DI    
+        BTC     DS:[BP+DI],BX 
+        BTC     DS:[ECX+EDX*4+00000100H],ESP 
+        BTC     SS:[EDX],EBP  
+        BTC     GS:[EAX],EDI  
+        BTC     GS:[BX+DI],DX 
+        BTC     SS:[BP+DI],BP 
+        BTC     ES:[BP],DI    
+        LOCK BTC     DS:[BX+SI+1234H],DX
+        LOCK BTC     DS:[BX+DI+1234H],BX
+        BTC     word ptr SS:[BP+SI],0A0H
+        BTC     FS:[ECX],ESI  
+        BTC     SS:[BP+SI],CX 
+        BTC     ES:[SI],AX    
+        BTC     FS:[BP],CX    
+        LOCK BTC     DS:[DI],DX
+        BTC     ES:[BX+DI],CX 
+        LOCK BTC     SS:[EBP+00004321H],AX
+        BTC     DS:[BP],BX    
+        BTC     GS:[BX+DI],AX 
+        BTC     SS:[BP+1234H],CX
+        BTC     DS:[DI],DI    
+        LOCK BTC     DS:[ESI+00004321H],AX
+        BTC     DI,0FFH  
+        LOCK BTC     SS:[BP+1234H],EAX  
+        LOCK BTC     DS:[SI],DI
+        BTC     ES:[BP],SP    
+        LOCK BTC     DS:[SI],CX
+        BTC     GS:[DI],CX    
+        BTC     FS:[SI],BP    
+        LOCK BTC     DS:[DI+1234H],SI   
+        BTC     DS:[DI+1234H],BP
+        BTC     DS:[EDX],EDX  
+        LOCK BTC     DS:[BX+DI+1234H],SP
+        BTC     SS:[BP+DI+1234H],DI
+        BTC     SS:[SI],BP    
+        BTC     SS:[BP+DI],DI 
+        BTC     CS:[BX+SI],CX 
+        BTC     DS:[EBX+ECX*2+01H],ESI  
+        BTC     GS:[EBX],EDI  
+        LOCK BTC     DS:[EDI+00004321H],AX
+        BTC     DS:[EAX+EAX*8+0A0B0C0D0H],ECX
+        BTC     DS:[EAX],EDX  
+        BTC     SS:[EBP+EBP],BP
+        LOCK BTC     DS:[SI+1234H],BP   
+        LOCK BTC     DS:[BX+SI+1234H],DI
+        BTC     SS:[EBP+EBP+10203040H],DI 
+        LOCK BTC     SS:[BP+1234H],EBP  
+        BTC     EBP,EBP  
+        LOCK BTC     DS:[DI],EBX
+        BTC     GS:[BX+SI],SI 
+        LOCK BTC     SS:[BP+SI+1234H],DI
+        LOCK BTC     SS:[BP],EDI
+        BTC     DS:[BX+0FEDCH],AX  
+        BTC     DS:[EDX+EBX*8],ESI 
+        BTC     DS:[BX+SI],CX 
+        BTC     EBP,EAX  
+        BTC     DS:[EBX+ECX*2+01H],BX   
+        BTC     DI,SP
+        LOCK BTC     DS:[DI],BP
+        BTC     CS:[BP],CX    
+        BTC     DS:[EAX+EAX*8+0A0B0C0D0H],EDI
+        BTC     SS:[BP+DI],BX 
+        BTC     SS:[SI],AX    
+        BTC     word ptr DS:[BX+DI],0A0H
+        LOCK BTC     DS:[DI+1234H],ESP  
+        BTC     DS:[EAX+EAX*8+0A0B0C0D0H],EAX
+        BTC     SS:[EAX],EBP  
+        BTC     DI,BP
+        LOCK BTC     SS:[BP+DI],SP 
+        BTC     SS:[SI],DI    
+        BTC     SS:[EBP+EBP],EDX
+        BTC     BX,SI
+        BTC     FS:[ESI],ESI  
+        BTC     CS:[BP+SI],DI 
+        BTC     DS:[EAX+EAX*2+00000100H],SP  
+        BTC     CS:[SI],SI    
+        BTC     BP,BP
+        BTC     DS:[BP+SI],BX 
+        BTC     GS:[BP+SI],SI 
+        BTC     DS:[EBX],EAX  
+        BTC     GS:[BX+SI],SP 
+        BTC     CS:[EDI],EBX  
+        BTC     EAX,0FFH 
+        BTC     SS:[BX+DI],DX 
+        BTC     DS:[EBX+ECX*2+01H],DI   
+        BTC     SS:[ESP+EBP],SI
+        BTC     SS:[BX+SI],AX 
+        LOCK BTC     SS:[BP+DI+1234H],SP
+        BTC     SS:[BP+DI],SP 
+        LOCK BTC     SS:[BP+DI+1234H],SI
+        BTC     SS:[BP],DI    
+        BTC     DS:[BX+SI],DX 
+        BTC     DS:[BX+DI+1234H],CX
+        BTC     FS:[BP+DI],DX 
+        BTC     FS:[BX+DI],BX 
+        BTC     ES:[ESI],ESP  
+        BTC     EAX,EDI  
+        LOCK BTC     DS:[BX+DI],EBX
+        BTC     SS:[ESP+EBP],EDX
+        BTC     SI,SI
+        BTC     DS:[EBX+EBP*4+12345678H],EBX 
+        BTC     CS:[DI],SP    
+        BTC     FS:[SI],BX    
+        LOCK BTC     SS:[BP],SP
+        BTC     DS:[SI+1234H],BX
+        BTC     CX,CX
+        BTC     ESI,ESI  
+        BTC     GS:[BP+SI],DX 
+        LOCK BTC     SS:[EBP*8+000000B0H],AX 
+        BTC     DS:[DI+1234H],DX
+        BTC     dword ptr GS:[12345678H],10H 
+        BTC     DX,01H
+        LOCK BTC     DS:[ECX*4+00004321H],AX 
+        BTC     DS:[DI+1234H],BX
+        LOCK BTC     SS:[BP],EBX
+        LOCK BTC     SS:[BP+DI],EBP
+        BTC     DI,BX
+        LOCK BTC     SS:[BP],ECX
+        BTC     DX,BP
+        BTC     word ptr SS:[EBP+EAX],0FFH
+        BTC     ES:[DI],DX    
+        BTC     SS:[BP+DI+1234H],DX
+        LOCK BTC     DS:[DI+1234H],DX   
+        BTC     SS:[EBP+EBP],EBP
+        LOCK BTC     DS:[SI],ESP
+        BTC     ESP,ESP  
+        BTC     DS:[BX+SI+1234H],CX
+        LOCK BTC     DS:[EAX+EAX*4+00004321H],AX  
+        BTC     GS:[EDX],EDI  
+        BTC     SS:[BX+SI],BX 
+        LOCK BTC     DS:[BX+SI+1234H],ESP 
+        LOCK BTC     DS:[DI+1234H],EBP  
+        LOCK BTC     SS:[BP+DI+1234H],EBP 
+        BTC     SP,BP
+        BTC     dword ptr SS:[12345678H],10H 
+        BTC     SS:[BP+1234H],SI
+        BTC     SS:[BX+SI],SP 
+        BTC     DS:[BX+DI+1234H],AX
+        BTC     GS:[BP],DI    
+        LOCK BTC     DS:[EDI+00004321H],AX
+        BTC     SS:[ESP+EBP],BP
+        LOCK BTC     SS:[BP],DI
+        BTC     EDI,EDI  
+        BTC     SS:[BP],AX    
+        LOCK BTC     SS:[BP+1234H],ECX  
+        BTC     SP,BX
+        BTC     DS:[BP],CX    
+        BTC     SI,BX
+        BTC     DS:[EBX+ECX*2+01H],EDX  
+        BTC     DS:[SI+1234H],AX
+        LOCK BTC     DS:[BX+DI],ESP
+        LOCK BTC     SS:[BP+DI],DX 
+        BTC     FS:[BX+SI],SI 
+        BTC     SS:[SI],SI    
+        BTC     SS:[BP+SI],AX 
+        BTC     DS:[ECX+EDX*4+00000100H],ECX 
+        BTC     SS:[EBP+EBP+10203040H],SI 
+        BTC     SS:[BX+DI],AX 
+        LOCK BTC     SS:[BP+SI+1234H],AX
+        BTC     BP,SI
+        BTC     DS:[EBX+00001234H],ECX  
+        BTC     DS:[EBX+EBP*4+12345678H],ECX 
+        BTC     DS:[EAX+EAX*8+0A0B0C0D0H],BX 
+        BTC     DS:[EDX+00001234H],ECX  
+        BTC     CS:[BP+DI],SP 
+        BTC     EDX,EAX  
+        BTC     DS:[ECX+EDX*4+00000100H],DI  
+        LOCK BTC     SS:[BP+SI+1234H],BX
+        LOCK BTC     DS:[BX+SI],EDI
+        BTC     DS:[EBX+EBP*4+12345678H],EAX 
+        BTC     FS:[BX+DI],BP 
+        BTC     ES:[BP+SI],DX 
+        BTC     GS:[SI],AX    
+        BTC     DS:[BP+SI],DX 
+        BTC     SS:[DI],SI    
+        BTC     EDI,EBX  
+        BTC     CS:[BP+SI],BP 
+        LOCK BTC     SS:[BP+DI+1234H],CX
+        BTC     word ptr SS:[ESP+EAX],0FFH
+        BTC     AX,0FFH  
+        LOCK BTC     DS:[DI+1234H],EDX  
+        BTC     DS:[EDI+00001234H],ECX  
+        BTC     SS:[BP+1234H],DI
+        LOCK BTC     DS:[DI],DI
+        BTC     CS:[SI],DI    
+        BTC     SS:[BX+DI],BX 
+        LOCK BTC     SS:[BP+1234H],SP   
+        BTC     ES:[BP],BP    
+        BTC     SS:[ESP+EBP+00001234H],ECX
+        LOCK BTC     DS:[BX+DI],EAX
+        BTC     DS:[EAX+EAX*8+0A0B0C0D0H],EBX
+        BTC     SS:[DI],AX    
+        BTC     SS:[BX+DI],BP 
+        BTC     DS:[EBX+ECX*2+01H],EAX  
+        BTC     BP,CX
+        BTC     DS:[EDX],EAX  
+        LOCK BTC     dword ptr SS:[EBP+EBX*4+12345678H],9AH
+        BTC     FS:[BP],AX    
+        LOCK BTC     DS:[ESI*4+00004321H],AX
+        BTC     SP,DX
+        BTC     CS:[BP+SI],CX 
+        BTC     EDX,EBX  
+        LOCK BTC     SS:[BP+DI+1234H],ESI 
+        BTC     SS:[BP+SI],SP 
+        BTC     BX,DI
+        BTC     GS:[BX+SI],BP 
+        BTC     FS:[SI],DX    
+        BTC     SS:[EBP+EBP+10203040H],ESP
+        BTC     DS:[ECX+EDX*4+00000100H],EDX 
+        BTC     CS:[SI],AX    
+        BTC     DS:[BX+SI+1234H],SP
+        BTC     SS:[EBP*4+00000100H],EBP
+        BTC     DS:[BX+SI],DI 
+        BTC     FS:[DI],CX    
+        BTC     GS:[SI],BX    
+        BTC     CS:[ESI],EBX  
+        BTC     BP,SP
+        BTC     GS:[BX+DI],SP 
+        BTC     FS:[BX+DI],SP 
+        BTC     SS:[ESP+EBP],ECX
+        BTC     ES:[BX+SI],BP 
+        BTC     DS:[EBX],EDX  
+        BTC     DS:[BX+SI+1234H],BP
+        BTC     DS:[DI+1234H],SI
+        BTC     FS:[DI],SP    
+        BTC     ES:[BP+SI],CX 
+        BTC     DS:[EBX+ECX*2+01H],EBX  
+        LOCK BTC     DS:[DI+1234H],EAX  
+        BTC     word ptr DS:[BX+SI],0A0H
+        BTC     SS:[BP+DI],AX 
+        BTC     ESI,ECX  
+        LOCK BTC     SS:[BP],BX
+        BTC     EDI,EBP  
+        BTC     CX,BX
+        BTC     CS:[BP+DI],DX 
+        BTC     AX,DX
+        BTC     BX,DX
+        LOCK BTC     DS:[SI+1234H],SI   
+        BTC     FS:[SI],SI    
+        BTC     SS:[ESP+EBP],ESI
+        BTC     ESP,0FFH 
+        LOCK BTC     DS:[BX+DI],BP 
+        BTC     DS:[ECX+EDX*4+00000100H],SP  
+        LOCK BTC     DS:[DI+1234H],BP   
+        LOCK BTC     DS:[DI+1234H],CX   
+        BTC     DS:[EAX+EAX*8+0A0B0C0D0H],SI 
+        BTC     SS:[EBP+EBP],CX
+        LOCK BTC     SS:[BP+SI],EBX
+        BTC     SI,AX
+        BTC     CS:[BX+DI],AX 
+        BTC     ESI,01H  
+        BTC     DS:[ECX+EDX*4+00000100H],DX  
+        BTC     ES:[BP],AX    
+        LOCK BTC     SS:[BP+SI],ESP
+        LOCK BTC     SS:[BP+SI],SI 
+        BTC     BX,0FFH  
+        BTC     word ptr DS:[DI],0A0H   
+        BTC     SS:[DI],CX    
+        BTC     DS:[BP+DI],CX 
+        BTC     DS:[EDX+EBX*8],BX  
+        LOCK BTC     SS:[BP+SI+1234H],SP
+        BTC     CS:[BX+DI],SP 
+        BTC     DX,DI
+        BTC     ES:[DI],SI    
+        BTC     ES:[BX+DI],BP 
+        LOCK BTC     DS:[DI],EBP
+        BTC     SS:[ESP+EBP],SP
+        BTC     SS:[BP+SI+1234H],AX
+        BTC     FS:[BP+DI],AX 
+        BTC     DS:[EBX+ECX*2+01H],CX   
+        BTC     dword ptr SS:[12345678H],10H 
+        BTC     DS:[EBX+EBP*4+12345678H],DI  
+        LOCK BTC     DS:[SI+1234H],EDX  
+        LOCK BTC     DS:[SI],ECX
+        BTC     EDX,ESI  
+        BTC     FS:[BP],BX    
+        BTC     GS:[SI],SP    
+        BTC     DS:[BX+SI],BP 
+        BTC     ES:[SI],SP    
+        BTC     DS:[BX+DI],DI 
+        BTC     GS:[DI],SP    
+        BTC     GS:[BX+DI],CX 
+        LOCK BTC     DS:[ESI+00004321H],AX
+        BTC     DS:[1234H],AX 
+        BTC     SS:[EBP+EBP+10203040H],BX 
+        BTC     SS:[EBP+EBP],SI
+        BTC     BP,AX
+        LOCK BTC     DS:[SI+1234H],ESI  
+        BTC     DX,SI
+        BTC     FS:[SI],DI    
+        BTC     DS:[BX+SI],AX 
+        LOCK BTC     DS:[BX+SI],EBP
+        BTC     DS:[BX+DI],AX 
+        LOCK BTC     dword ptr SS:[EBX+EAX*8+12345678H],9AH
+        LOCK BTC     DS:[SI+1234H],EDI  
+        BTC     dword ptr DS:[BX+DI],0B0H 
+        BTC     FS:[EBX],ESI  
+        BTC     ECX,EBP  
+        BTC     DS:[EDX+EBX*8],SP  
+        BTC     CS:[ESP+ECX],EBX
+        LOCK BTC     DS:[BX+SI+1234H],BX
+        BTC     ES:[BX+SI],DI 
+        BTC     DS:[EAX+00001234H],ECX  
+        BTC     ES:[BX+SI],SP 
+        LOCK BTC     DS:[BX+SI],BP 
+        BTC     SS:[DI],BP    
+        LOCK BTC     DS:[EAX+EBP*8+87654321H],AX 
+        BTC     DS:[EAX+EAX*2+00000100H],AX  
+        BTC     CS:[BX+SI],DX 
+        BTC     EAX,01H  
+        BTC     DS:[SI],CX    
+        BTC     SS:[EBP+EBP+10203040H],EAX
+        BTC     SS:[BP+SI],AX 
+        LOCK BTC     SS:[BP+DI+1234H],AX
+        BTC     ESP,EDI  
+        BTC     CS:[DI],AX    
+        BTC     SS:[BP],SI    
+        BTC     ES:[EDI],ESP  
+        LOCK BTC     SS:[BP+SI+1234H],ESP 
+        BTC     DS:[ESP+EDX],EDX
+        BTC     dword ptr SS:[EAX+EBP*8],0FFH
+        BTC     FS:[EDI],ESI  
+        BTC     DS:[EDX+EBX*8],EAX 
+        BTC     GS:[BP+SI],CX 
+        LOCK BTC     DS:[BX+DI],EDX
+        BTC     DS:[BP],DI    
+        LOCK BTC     word ptr FS:[EBX+EBP+0FFEEDDCCH],0A0H 
+        BTC     word ptr SS:[EBP],0FFH  
+        LOCK BTC     DS:[BX+SI+1234H],ESI 
+        BTC     CS:[SI],DX    
+        BTC     DS:[DI],AX    
+        BTC     DS:[BP+SI],SP 
+        LOCK BTC     SS:[BP+DI+1234H],DX
+        LOCK BTC     DS:[BX+SI+1234H],BP
+        BTC     SS:[BP],DX    
+        BTC     SS:[BX+SI],DX 
+        BTC     DS:[EBX+EBP*4+12345678H],EDI 
+        BTC     GS:[BP+DI],SI 
+        BTC     DS:[BX+SI],SP 
+        BTC     SS:[BX+SI],DI 
+        LOCK BTC     SS:[BP+SI],EAX
+        BTC     BP,01H
+        BTC     CS:[ECX],EBX  
+        LOCK BTC     DS:[DI+1234H],EBX  
+        BTC     CX,BP
+        LOCK BTC     DS:[BX+SI+1234H],CX
+        BTC     SS:[ECX],EBP  
+        BTC     ES:[BP+DI],BX 
+        LOCK BTC     SS:[BP+DI+1234H],BP
+        LOCK BTC     SS:[BP+DI+1234H],ESP 
+        BTC     dword ptr DS:[BX+SI],0B0H 
+        BTC     CS:[BX+DI],BX 
+        BTC     ES:[BP+SI],BP 
+        BTC     GS:[BP],SI    
+        BTC     DS:[BP+SI],CX 
+        BTC     EAX,EBP  
+        BTC     DS:[BX+DI],DX 
+        BTC     CS:[BP+DI],BP 
+        BTC     SS:[ESP+EAX],EAX
+        BTC     ES:[BP],CX    
+        BTC     DS:[EDI],EAX  
+        LOCK BTC     DS:[BX+SI],EAX
+        BTC     SS:[ESP+EBP],ESP
+        LOCK BTC     DS:[BX+SI],DI 
+        BTC     DS:[EBX+ECX*2+01H],SP   
+        BTC     ES:[ESP],ESP  
+        BTC     SI,DI
+        BTC     ES:[BP],SI    
+        BTC     ES:[BP],DX    
+        BTC     GS:[BX+DI],BX 
+        LOCK BTC     DS:[SI],EDI
+        BTC     EBX,EBP  
+        LOCK BTC     SS:[BP+DI],ESI
+        BTC     EAX,EDX  
+        BTC     FS:[SI],SP    
+        LOCK BTC     SS:[BP+1234H],EBX  
+        BTC     word ptr SS:[BP+DI],0A0H
+        BTC     SS:[EBP+EBP],EBX
+        BTC     dword ptr SS:[EBP+EAX*8],0FFH
+        BTC     ESI,EDX  
+        BTC     ES:[EBP],ESP  
+        BTC     ES:[DI],AX    
+        LOCK BTC     DS:[SI+1234H],ESP  
+        BTC     SS:[BP+DI+1234H],AX
+        BTC     dword ptr SS:[BP+DI],0B0H 
+        BTC     FS:[BX+DI],CX 
+        BTC     CS:[BP],BP    
+        BTC     DS:[EAX+EAX*8+0A0B0C0D0H],BP 
+        BTC     ES:[BP+SI],BX 
+        BTC     SS:[BP+1234H],AX
+        LOCK BTC     SS:[BP+SI+1234H],EAX 
+        BTC     FS:[BP],DX    
+        LOCK BTC     SS:[BP+SI],DI 
+        BTC     DS:[EAX+EAX*2+00000100H],ECX 
+        BTC     GS:[DI],DI    
+        LOCK BTC     SS:[BP+1234H],AX   
+        BTC     SS:[BP+1234H],BP
+        BTC     SS:[SI],CX    
+        BTC     CX,01H
+        BTC     SS:[BP],CX    
+        BTC     DS:[ECX+EDX*4+00000100H],BX  
+        BTC     DS:[EBX+ECX*2+01H],SI   
+        BTC     DS:[EDX+EBX*8],SI  
+        BTC     SS:[BP+1234H],BX
+        LOCK BTC     DS:[BX+SI+1234H],EDX 
+        BTC     DS:[ECX+EDX*4+00000100H],EBP 
+        LOCK BTC     DS:[SI],EBX
+        BTC     DS:[EBX+EBP*4+12345678H],DX  
+        BTC     SS:[BP+SI],BP 
+        LOCK BTC     DS:[SI+1234H],CX   
+        BTC     DS:[EAX+EAX*2+00000100H],SI  
+        BTC     FS:[BP+DI],BX 
+        BTC     EAX,EAX  
+        LOCK BTC     SS:[BP+SI+1234H],CX
+        LOCK BTC     DS:[BX+DI+1234H],DX
+        BTC     FS:[BP+DI],SI 
+        BTC     ES:[SI],CX    
+        BTC     DS:[DI],BX    
+        BTC     GS:[DI],BX    
+        BTC     SS:[EBP+EBP],ECX
+        BTC     FS:[BX+DI],AX 
+        BTC     DX,DX
+        BTC     SS:[BP+SI+1234H],BX
+        BTC     DS:[SI+1234H],SP
+        LOCK BTC     DS:[SI+1234H],EAX  
+        BTC     DS:[EAX+EAX*8+0A0B0C0D0H],SP 
+        BTC     CS:[BP+DI],AX 
+        BTC     SP,SI
+        BTC     SS:[BP+DI],SI 
+        BTC     DS:[EBX+ECX*2+01H],BP   
+        BTC     SS:[ESP+EBP],EDI
+        BTC     DS:[EAX+EAX*2+00000100H],EBP 
+        LOCK BTC     DS:[DI],ECX
+        BTC     DS:[EDX+EBX*8],ECX 
+        BTC     DS:[EBX+ECX*2+01H],ESP  
+        LOCK BTC     SS:[BP+1234H],CX   
+        BTC     ES:[DI],BP    
+        BTC     DS:[ESI],EDX  
+        LOCK BTC     SS:[BP+SI+1234H],EBP 
+        LOCK BTC     DS:[DI+1234H],BX   
+        BTC     CS:[BX+SI],SP 
+        BTC     FS:[DI],BP    
+        BTC     ES:[BX+DI],SI 
+        BTC     EDI,ECX  
+        LOCK BTC     DS:[DI],EDI
+        BTC     GS:[ECX],EDI  
+        BTC     DS:[BP],DX    
+        BTC     EBP,0FFH 
+        BTC     SS:[BP+DI+1234H],BP
+        BTC     DS:[EAX+EAX*8+0A0B0C0D0H],ESI
+        BTC     CS:[BP+DI],DI 
+        BTC     AX,CX
+        LOCK BTC     DS:[BX+DI+1234H],EDX 
+        LOCK BTC     SS:[BP+SI],BP 
+        BTC     ES:[BX+SI],BX 
+        BTC     EDX,ECX  
+        BTC     DS:[DI+1234H],DI
+        BTC     SS:[BP+1234H],SP
+        BTC     DS:[EAX+EAX*2+00000100H],EDI 
+        BTC     ESP,EDX  
+        LOCK BTC     DS:[SI+1234H],AX   
+        BTC     DS:[ECX],EAX  
+        BTC     DS:[EAX+EAX*2+00000100H],ESP 
+        BTC     CS:[DI],BP    
+        BTC     SS:[EBP+EBP+10203040H],AX 
+        BTC     FS:[BX+SI],AX 
+        BTC     EAX,ECX  
+        BTC     DI,AX
+        BTC     DS:[EDX+EBX*8],EDI 
+        BTC     SS:[BX+DI],DI 
+        BTC     FS:[EAX],ESI  
+        LOCK BTC     SS:[BP+SI],EDI
+        LOCK BTC     SS:[BP+DI],BP 
+        BTC     ESI,EBP  
+        BTC     ES:[BP+DI],DI 
+        BTC     FS:[DI],DI    
+        BTC     ES:[1234H],AX 
+        BTC     SS:[DI],DX    
+        BTC     DS:[12345678H],AX  
+        BTC     ES:[DI],SP    
+        LOCK BTC     SS:[BP+SI+1234H],EDI 
+        BTC     CS:[BP+SI],BX 
+        LOCK BTC     SS:[BP+SI],DX 
+        LOCK BTC     SS:[BP+SI],EBP
+        BTC     DS:[BP+SI],DI 
+        BTC     DS:[BP+DI],SP 
+        BTC     SI,BP
+        BTC     EDX,ESP  
+        BTC     DS:[EBX+ECX*2+01H],AX   
+        BTC     BX,BX
+        BTC     SS:[EBP+EBP+10203040H],ECX
+        BTC     GS:[BP],BP    
+        BTC     SS:[ESP+EBP],CX
+        BTC     FS:[BX+SI],BP 
+        LOCK BTC     DS:[SI],SP
+        BTC     DS:[DI+1234H],CX
+        BTC     DS:[DI],DX    
+        LOCK BTC     DS:[EAX+EAX*8+00004321H],AX  
+        BTC     DS:[DI],SP    
+        BTC     DS:[DI+1234H],AX
+        BTC     word ptr CS:[EBX+EBP+0FFEEDDCCH],0A0H 
+        BTC     EDX,EBP  
+        BTC     SS:[BP+SI],BX 
+        BTC     CS:[BX+SI],SI 
+        BTC     GS:[BP+DI],SP 
+        BTC     ES:[BP+DI],CX 
+        BTC     DS:[EBX+EBP*4+12345678H],EBP 
+        BTC     DS:[EAX+EAX*2+00000100H],DI  
+        LOCK BTC     DS:[SI+1234H],EBX  
+        LOCK BTC     DS:[BX+DI+1234H],ESI 
+        BTC     SS:[BP+SI],DI 
+        BTC     CS:[BP+SI],AX 
+        BTC     FS:[BP],SI    
+        BTC     DS:[EAX+EAX*8+0A0B0C0D0H],DI 
+        BTC     BP,DX
+        BTC     DX,0FFH  
+        BTC     ES:[BX+DI],AX 
+        BTC     SS:[EDI],EBP  
+        BTC     DS:[BX+DI+1234H],BP
+        BTC     SS:[BP+SI+1234H],DI
+        BTC     DS:[BX+DI+1234H],SI
+        BTC     AX,01H
+        BTC     CX,0FFH  
+        BTC     DS:[EAX+EAX*2+00000100H],ESI 
+        BTC     DI,01H
+        BTC     SP,0FFH  
+        BTC     ESI,ESP  
+        LOCK BTC     DS:[BX+SI],DX 
+        BTC     ES:[BX+DI],DX 
+        BTC     DS:[EBX+EBP*4+12345678H],BX  
+        LOCK BTC     word ptr SS:[EAX+EBP*8+87654321H],0FFH
+        BTC     SS:[EBP+EBP+10203040H],DX 
+        BTC     CS:[12345678H],AX  
+        BTC     CS:[BX+SI],BP 
+        BTC     SS:[EBP+EBP+10203040H],ESI
+        BTC     SS:[BP+DI+1234H],SP
+        BTC     GS:[BX+DI],SI 
+        BTC     SS:[DI],BX    
+        LOCK BTC     SS:[BP],EDX
+        BTC     ES:[EAX],ESP  
+        BTC     EBP,ESI  
+        BTC     DS:[BX+SI+1234H],BX
+        BTC     DS:[EAX+EAX*2+00000100H],BP  
+        LOCK BTC     SS:[BP],SI
+        BTC     GS:[SI],DX    
+        LOCK BTC     DS:[BX+SI],EBX
+        BTC     DS:[ESI],EAX  
+        BTC     GS:[BP+SI],DI 
+        BTC     CX,DI
+        LOCK BTC     SS:[BP+SI],CX 
+        BTC     DS:[EDX+EBX*8],EBP 
+        BTC     SS:[BP+DI+1234H],BX
+        LOCK BTC     SS:[BP+SI],SP 
+        BTC     FS:[DI],DX    
+        BTC     DX,BX
+        BTC     FS:[BP+SI],BP 
+        BTC     DS:[EDX+EBX*8],DX  
+        LOCK BTC     DS:[BX+DI],SI 
+        BTC     ES:[BX+SI],AX 
+        LOCK BTC     SS:[BP+SI],ECX
+        BTC     DI,DX
+        BTC     GS:[SI],CX    
+        BTC     DS:[ECX+EDX*4+00000100H],ESI 
+        BTC     ES:[1234H],AX 
+        BTC     EDI,EDX  
+        LOCK BTC     DS:[SI],EDX
+        LOCK BTC     SS:[BP+DI],EDX
+        BTC     SS:[EBP+EBP],ESI
+        BTC     DI,CX
+        LOCK BTC     DS:[BX+DI],EBP
+        LOCK BTC     DS:[EAX+EAX+00004321H],AX    
+        BTC     EDI,0FFH 
+        BTC     CS:[BX+DI],BP 
+        BTC     ES:[BP+SI],DI 
+        BTC     CS:[SI],BX    
+        BTC     DS:[ECX+EDX*4+00000100H],EAX 
+        BTC     DS:[BP],BP    
+        BTC     CS:[EDX],EBX  
+        BTC     DS:[SI],BP    
+        LOCK BTC     SS:[BP+DI],CX 
+        LOCK BTC     DS:[SI],EAX
+        BTC     AX,BP
+        BTC     ES:[BX+DI],DI 
+        BTC     SI,CX
+        LOCK BTC     SS:[BP+SI+1234H],EDX 
+        BTC     ES:[SI],BX    
+        BTC     FS:[BP+DI],SP 
+        BTC     DS:[BX+DI],CX 
+        BTC     ECX,ESI  
+        BTC     SS:[EBP+EBP],EAX
+        BTC     CX,SP
+        LOCK BTC     DS:[EAX+EAX*2+00004321H],AX  
+        BTC     SS:[EBP*4+00000001H],EBP
+        BTC     GS:[SI],DI    
+        BTC     ECX,EBX  
+        BTC     SS:[BP+SI+1234H],SI
+        BTC     DS:[EAX+EAX*2+00000100H],DX  
+        BTC     DS:[BX+SI],SI 
+        BTC     CS:[BP],BX    
+        BTC     ES:[BP+DI],BP 
+        BTC     ES:[BX+DI],SP 
+        BTC     DS:[BP+DI],DX 
+        BTC     GS:[DI],BP    
+        BTC     word ptr SS:[EAX+EBP],0FFH
+        BTC     SS:[EBX],EBP  
+        BTC     ECX,EAX  
+        BTC     FS:[BX+SI],DX 
+        LOCK BTC     SS:[BP+SI],EDX
+        BTC     SS:[ESP+EBP],DX
+        BTC     FS:[BP+DI],BP 
+        BTC     ESP,EBX  
+        BTC     DS:[ECX+EDX*4+00000100H],BP  
+        BTC     GS:[DI],AX    
+        BTC     DS:[BP],AX    
+        LOCK BTC     DS:[BX+DI+1234H],CX
+        BTC     ECX,EDX  
+        BTC     CS:[BP+SI],DX 
+        BTC     ES:[SI],DX    
+        BTC     EAX,ESI  
+        BTC     DS:[EDX+EBX*8],ESP 
+        LOCK BTC     DS:[BX+DI],SP 
+        LOCK BTC     DS:[BX+DI+1234H],AX
+        BTC     DS:[EBX*4],AX 
+        BTC     CS:[BX+SI],AX 
+        BTC     BX,BP
+        BTC     EDX,01H  
+        BTC     ES:[BP+DI],AX 
+        BTC     SS:[EBP+EBP+10203040H],EDX
+        BTC     GS:[BX+SI],CX 
+        BTC     DX,CX
+        LOCK BTC     DS:[BX+SI],ESP
+        BTC     BX,01H
+        BTC     ESI,EDI  
+        LOCK BTC     DS:[BX+SI],SI 
+        LOCK BTC     dword ptr DS:[EAX+EBX*8+0A7654321H],0FFH  
+        BTC     DS:[ECX+00001234H],ECX  
+        BTC     SS:[EBP+EBP],EDI
+        BTC     SS:[BP],BX    
+        BTC     dword ptr SS:[ESP+EAX*8],0FFH
+        LOCK BTC     DS:[BX+DI+1234H],DI
+        LOCK BTC     DS:[BX+SI+1234H],EBP 
+        BTC     FS:[BX+SI],CX 
+        LOCK BTC     DS:[BX+DI+1234H],ECX 
+        BTC     SI,DX
+        BTC     SS:[BP+DI],AX 
+        BTC     DS:[EAX+EAX*8+0A0B0C0D0H],ESP
+        BTC     ESP,EAX  
+        BTC     SS:[EBP],EBP  
+        BTC     GS:[SI],BP    
+        LOCK BTC     SS:[BP+1234H],BP   
+        BTC     SS:[BP+SI+1234H],BP
+        LOCK BTC     DS:[BX+DI],EDI
+        LOCK BTC     SS:[BP+DI+1234H],EDX 
+        LOCK BTC     DS:[BX+DI+1234H],EBP 
+        BTC     CS:[BP],SI    
+        LOCK BTC     SS:[BP+SI+1234H],SI
+        BTC     EBX,01H  
+        BTC     AX,DI
+        BTC     DS:[SI],AX    
+        BTC     DS:[DI],BP    
+        BTC     SS:[BP+DI],DX 
+        BTC     EBX,EAX  
+        BTC     SS:[DI],DI    
+        LOCK BTC     SS:[BP+1234H],BX   
+        BTC     EBP,EDX  
+        BTC     DI,DI
+        LOCK BTC     DS:[DI],SP
+        BTC     SS:[BP],AX    
+        BTC     SS:[EBP+EBP+10203040H],SP 
+        BTC     DI,SI
+        LOCK BTC     DS:[BX+SI],ESI
+        BTC     EBX,EDX  
+        BTC     ESI,EBX  
+        BTC     ES:[BP+DI],DX 
+        BTC     ES:[DI],DI    
+        LOCK BTC     SS:[BP+DI+1234H],EAX 
+        BTC     CS:[BP],DI    
+        BTC     DS:[BX+DI],BP 
+        LOCK BTC     DS:[DI],ESP
+        LOCK BTC     DS:[BX+SI+1234H],SP
+        BTC     FS:[BP],DI    
+        BTC     DS:[EAX+EAX*8+0A0B0C0D0H],EBP
+        LOCK BTC     DS:[DI],BX
+        LOCK BTC     SS:[BP+SI],BX 
+        LOCK BTC     DS:[SI+1234H],BX   
+        BTC     DS:[EBX+ECX*2+01H],EDI  
+        BTC     EBP,ESP  
+        LOCK BTC     DS:[SI],EBP
+        BTC     DS:[EBX+EBP*4+12345678H],EDX 
+        BTC     EDX,0FFH 
+        LOCK BTC     CS:[EAX+EBX*8+0B7654321H],EAX
+        BTC     CS:[DI],BX    
+        BTC     SS:[SI],BX    
+        BTC     DS:[BX+SI+1234H],DI
+        BTC     DS:[EDX+EBX*8],EBX 
+        BTC     SS:[BP+SI+1234H],DX
+        BTC     dword ptr ES:[0123H],01H
+        BTC     FS:[DI],AX    
+        BTC     DS:[EAX*4],EAX
+        BTC     CS:[BP+SI],SI 
+        BTC     DS:[EBP],EDX  
+        LOCK BTC     DS:[SI+1234H],EBP  
+        LOCK BTC     DS:[BX+DI],DI 
+        BTC     DS:[DI],SI    
+        BTC     DS:[EAX+EAX*8+0A0B0C0D0H],CX 
+        BTC     DS:[BX+SI+1234H],DX
+        LOCK BTC     DS:[EAX+EAX*2+00004321H],AX  
+        BTC     CS:[BP],DX    
+        BTC     EDI,EAX  
+        BTC     EBP,01H  
+        BTC     DS:[EAX],EAX  
+        BTC     DS:[BX+SI+1234H],SI
+        BTC     GS:[BX+SI],DX 
+        BTC     GS:[BP],CX    
+        BTC     SS:[BX+SI],CX 
+        BTC     DS:[EAX+EAX*8+0A0B0C0D0H],AX 
+        BTC     GS:[BX+DI],BP 
+        BTC     CS:[BP+DI],BX 
+        BTC     ES:[BP+DI],SI 
+        BTC     EBX,ESI  
+        BTC     FS:[BP+DI],DI 
+        BTC     SS:[EBP+EBP+10203040H],CX 
+        LOCK BTC     DS:[BX+SI],BX 
+        BTC     DS:[ECX+EDX*4+00000100H],EBX 
+        BTC     ES:[BP+SI],AX 
+        BTC     DS:[BP+DI],AX 
+        BTC     GS:[BP],DX    
+        LOCK BTC     DS:[BX+DI],ECX
+        LOCK BTC     SS:[BP+1234H],ESI  
+        BTC     EBX,ESP  
+        BTC     GS:[BP+DI],CX 
+        BTC     EAX,EBX  
+        BTC     SS:[BX+DI],SP 
+        BTC     ES:[EDX],ESP  
+        BTC     DS:[DI],CX    
+        LOCK BTC     SS:[BP+SI+1234H],DX
+        LOCK BTC     DS:[BX+DI+1234H],EDI 
+        BTC     GS:[BX+SI],BX 
+        BTC     EAX,ESP  
+        BTC     EBP,EBX  
+        BTC     DS:[EAX+EAX*8+0A0B0C0D0H],EDX
+        LOCK BTC     DS:[DI+1234H],ECX  
+        BTC     DS:[BP],SP    
+        LOCK BTC     DS:[SI+1234H],DX   
+        BTC     SS:[ESP+EBP],EBP
+        BTC     CS:[SI],SP    
+        LOCK BTC     DS:[BX+DI+1234H],ESP 
+        BTC     DS:[BX+DI+1234H],DI
+        BTC     EDX,EDI  
+        BTC     DS:[ECX+EDX*4+00000100H],SI  
+        BTC     FS:[BP+DI],CX 
+        BTC     GS:[BP],BX    
+        LOCK BTC     SS:[BP+1234H],DI   
+        BTC     SS:[EBP+EBP],SP
+        BTC     GS:[BP+SI],SP 
+        BTC     GS:[BP+SI],BP 
+        BTC     EDI,ESP  
+        BTC     FS:[BP+SI],DI 
+        BTC     SP,SP
+        BTC     DS:[EBX+EBP*4+12345678H],AX  
+        BTC     ES:[SI],SI    
+        BTC     DS:[EBX+EBP*4+12345678H],SP  
+        BTC     SS:[ESP+EBP],EAX
+        LOCK BTC     DS:[DI],SI
+        BTC     FS:[BP+SI],AX 
+        BTC     DS:[ESI+00001234H],ECX  
+        BTC     SS:[SI],DX    
+        BTC     ES:[BX+SI],DX 
+        LOCK BTC     DS:[EAX+EAX*8+00004321H],AX  
+        LOCK BTC     DS:[BX+DI],DX 
+        LOCK BTC     SS:[BP+SI+1234H],BP
+        BTC     SS:[EBP+EBP],AX
+        BTC     dword ptr SS:[BP+SI],0B0H 
+        BTC     ES:[ECX],ESP  
+        BTC     ES:[BP+DI],SP 
+        BTC     SP,CX
+        LOCK BTC     DS:[DI+1234H],EDI  
+        BTC     DS:[BX+DI],BX 
+        BTC     SS:[BP+SI+1234H],CX
+        BTC     ES:[BP],BX    
+        BTC     DS:[EAX+EAX*8+0A0B0C0D0H],DX 
+        BTC     EBX,EBX  
+        BTC     CS:[BP+DI],CX 
+        BTC     GS:[BP+DI],BP 
+        BTC     CS:[BX+DI],DI 
+        BTC     DS:[BP+SI],AX 
+        BTC     SS:[EBP+00001234H],ECX  
+        BTC     DS:[SI],DI    
+        BTC     AX,SP
+        LOCK BTC     DS:[DI+1234H],AX   
+        LOCK BTC     SS:[BP+SI+1234H],EBX 
+        LOCK BTC     SS:[BP+SI+1234H],ECX 
+        BTC     ES:[BX+DI],BX 
+        LOCK BTC     DS:[DI+1234H],ESI  
+        LOCK BTC     SS:[BP],ESI
+        BTC     word ptr SS:[ESP+EBP],0FFH
+        LOCK BTC     DS:[BX+SI],ECX
+        BTC     DS:[SI+1234H],SI
+        LOCK BTC     SS:[BP+SI+1234H],ESI 
+        BTC     DS:[BX+SI+1234H],AX
+        BTC     FS:[BP],SP    
+        BTC     dword ptr DS:[DI],0B0H  
+        LOCK BTC     DS:[DI+1234H],SP   
+        BTC     SS:[BP+SI],SI 
+        BTC     SI,01H
+        BTC     ES:[DI],CX    
+        BTC     DS:[EDX+EBX*8],DI  
+        BTC     EBX,EDI  
+        BTC     ECX,ECX  
+        BTC     GS:[BP+SI],AX 
+        BTC     BX,CX
+        BTC     CS:[SI],CX    
+        BTC     DS:[SI],SP    
+        BTC     DS:[SI],AX    
+        BTC     ESP,ECX  
+        BTC     SS:[EBP+EBP],DI
+        LOCK BTC     DS:[BX+SI],EDX
+        BTC     BX,SP
+        BTC     SS:[EBP+EBP],BX
+        BTC     GS:[EBP],EDI  
+        BTC     FS:[BP+SI],SI 
+        LOCK BTC     SS:[BP],EBP
+        BTC     SS:[EBP+EBP+10203040H],EBP
+        LOCK BTC     DS:[BX+SI+1234H],ECX 
+        BTC     GS:[ESI],EDI  
+        BTC     DS:[EBX+ECX*2+01H],DX   
+        BTC     FS:[BX+SI],DI 
+        BTC     BX,AX
+        BTC     SS:[BP+1234H],DX
+        BTC     FS:[BX+SI],BX 
+        LOCK BTC     DS:[EDI*2+87654321H],AX 
+        BTC     GS:[BP+DI],BX 
+        LOCK BTC     DS:[SI],ESI
+        LOCK BTC     DS:[BX+SI+1234H],EBX 
+        BTC     ES:[EBX],ESP  
+        BTC     ES:[BX+SI],CX 
+        BTC     DS:[EAX+EAX*2+00000100H],EDX 
+        BTC     DS:[BP+SI],BP 
+        BTC     DS:[EDX+EBX*8],BP  
+        BTC     ES:[SI],BP    
+        BTC     DS:[DI+1234H],SP
+        LOCK BTC     DS:[BX+DI+1234H],EAX 
+        BTC     GS:[DI],SI    
+        BTC     SS:[BX+SI],BP 
+        LOCK BTC     DS:[BX+DI+1234H],BP
+        BTC     GS:[DI],DX    
+        BTC     ES:[DI],BX    
+        BTC     SS:[ESP+EBP],AX
+        LOCK BTC     SS:[BP],BP
+        BTC     ES:[SI],DI    
+        BTC     FS:[BP+SI],SP 
+        LOCK BTC     SS:[BP+DI],DI 
+        BTC     DX,SP
+        BTC     GS:[BX+SI],AX 
+        BTC     CS:[DI],SI    
+        BTC     CS:[BX+SI],BX 
+        BTC     DS:[ECX+EDX*4+00000100H],CX  
+        BTC     ECX,01H  
+        LOCK BTC     SS:[BP+1234H],SI   
+        BTC     DS:[EAX+EAX*2+00000100H],EAX 
+        BTC     DS:[SI],BX    
+        BTC     SS:[BP+SI+1234H],SP
+        LOCK BTC     SS:[EBX+EBP*8+00004321H],AX  
+        LOCK BTC     SS:[BP+DI+1234H],DI
+        LOCK BTC     DS:[BX+SI+1234H],AX
+        BTC     ECX,0FFH 
+        LOCK BTC     DS:[SI],DX
+        BTC     FS:[BX+DI],DI 
+        BTC     ESP,ESI  
+        BTC     DS:[DI],AX    
+        LOCK BTC     SS:[BP],EAX
+        BTC     SS:[BX+DI],CX 
+        BTC     DS:[ECX+EDX*4+00000100H],AX  
+        BTC     SS:[EBP+EBP],ESP
+        BTC     EDI,01H  
+        BTC     dword ptr ES:[0123H],01H
+        LOCK BTC     SS:[BP],ESP
+        LOCK BTC     DS:[SI+1234H],ECX  
+        LOCK BTC     DS:[SI+1234H],SP   
+        LOCK BTC     SS:[BP+1234H],ESP  
+        BTC     SS:[EBP+EBP+10203040H],EDI
+        BTC     DS:[EBX+ECX*2+01H],ECX  
+        BTC     GS:[BP+DI],DI 
+        BTC     BP,BX
+        BTC     EBX,0FFH 
+        LOCK BTC     DS:[EAX+EAX+00004321H],AX    
+        BTC     dword ptr SS:[BP],0B0H  
+        BTC     word ptr SS:[BP],0A0H   
+        BTC     EDX,EDX  
+        BTC     DS:[EBX+EBP*4+12345678H],ESP 
+        BTC     DS:[EDX+EBX*8],CX  
+        BTC     FS:[BP],BP    
+        BTC     DS:[BX+DI],SI 
+        BTC     CS:[BP+SI],SP 
+        BTC     AX,AX
+        LOCK BTC     DS:[BX+DI+1234H],EBX 
+        BTC     DS:[EBX+ECX*2+01H],EBP  
+        BTC     DS:[EBX+EBP*4+12345678H],BP  
+        BTC     SS:[EBP+EBP+10203040H],BP 
+        BTC     CX,DX
+        BTC     SS:[12345678H],AX  
+        LOCK BTC     SS:[BP+SI],ESI
+        BTC     FS:[BP+SI],BX 
+        LOCK BTC     SS:[BP+DI+1234H],EBX 
+        BTC     SS:[EBP+EBP],DX
+        LOCK BTC     SS:[BP+DI+1234H],EDI 
+        LOCK BTC     SS:[BP],CX
+        LOCK BTC     DS:[SI],BX
+        LOCK BTC     DS:[SI],SI
+        LOCK BTC     DS:[DI],EAX
+        BTC     DS:[EAX+EAX*2+00000100H],BX  
+        BTC     ESP,01H  
+        LOCK BTC     SS:[BP+DI],BX 
+        BTC     SS:[BP],BP    
+        BTC     DS:[ECX],EDX  
+        BTC     DS:[BX+SI],BX 
+        BTC     DS:[BX+DI+1234H],BX
+        BTC     SS:[BP+DI+1234H],SI
+        BTC     CX,AX
+        BTC     FS:[EBP],ESI  
+        BTC     word ptr DS:[SI],0A0H   
+        BTC     DS:[BX+SI],AX 
+        LOCK BTC     DS:[BX+DI+1234H],SI
+        BTC     SS:[ESI],EBP  
+        BTC     FS:[BP+SI],CX 
+        BTC     BP,0FFH
+        BTC     SS:[EBP+EBP+10203040H],EBX
+        BTC     DS:[EDX+EBX*8],EDX 
+        BTC     CX,SI
+        BTC     GS:[BP+DI],DX 
+        BTC     DS:[BP],SI    
+        BTC     SI,SP
+        BTC     ECX,EDI  
+        BTC     DS:[EBX+EBP*4+12345678H],CX  
+        BTC     AX,BX
+        BTC     SP,AX
+        BTC     DS:[BX+DI+1234H],SP
+        LOCK BTC     SS:[BP],DX
+        LOCK BTC     SS:[BP+DI],SI 
+        LOCK BTC     SS:[BP+DI],ECX
+        LOCK BTC     DS:[SI+1234H],DI   
+        BTC     GS:[BX+DI],DI 
+        BTC     SS:[BX+SI],SI 
+        BTC     GS:[BP+SI],BX 
+        BTC     SI,0FFH  
+        BTC     ESI,EAX  
+        BTC     SS:[BP+SI],DX 
+        BTC     CS:[BX+DI],DX 
+        LOCK BTC     DS:[BX+SI],SP 
+        BTC     DS:[BX+DI],AX 
+END start
