@@ -22,7 +22,7 @@ exit:
     int     21h 
 calc    proc near 
     ; EQUATION    d = a + 12*b*c +6 / 65*c + 7*a^2
-    SEGSS lods    word ptr [si]    ; ax = offset of B
+    SEGSS lodsw                 ; ax = offset of B
     mov     si,   ax            ; si = offset of B
     lodsw                       ; eax = 00 00 C B
     mov     cx,   ax            ; ch = C cl = B
