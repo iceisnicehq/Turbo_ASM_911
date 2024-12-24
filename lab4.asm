@@ -6,10 +6,6 @@
     A       dd +1.0
     B       dd +127.0
     C       dd +127.0
-    six     dd +6.0
-    seven   dd +6.0
-    five    dd +6.0
-    eight   dd +22.0
     D       dd ?
 .code
     ; EQUATION    d = a + 12*b*c +6 / 65*c + 7*a^2
