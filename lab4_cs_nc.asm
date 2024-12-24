@@ -1,7 +1,7 @@
 .model small
 .386
 .stack 100h
-.dat
+.data
     A       dd +1.0
     B       dd +127.0
     C       dd +127.0
