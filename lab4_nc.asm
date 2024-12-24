@@ -20,7 +20,7 @@ Start:
     fsubp   st(1), st(0)       
     fld     st(2)              
     fscale                     
-    fadd    st(0), st()       
+    fadd    st(0), st(3)       
     fld     st(1)              
     fmul    st(0), st(3)       
     fadd    st(0), st(3)       
