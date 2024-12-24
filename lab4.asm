@@ -16,8 +16,6 @@
 start:
     mov     ax, @data
     mov     ds, ax
-    mov     es, ax
-    ; finit 
     fld     C                  ; st(0) = C
     fld     A                  ; st(0) = A, st(1) = C
     fld1                       ; st(0) = 1, st(1) = A, st(2) = C

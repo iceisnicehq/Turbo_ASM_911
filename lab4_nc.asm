@@ -2,9 +2,9 @@
 .386
 .stack 100h
 .data
-    A       dd +1.0
-    B       dd +127.0
-    C       dd +127.0
+    A       dd 1.0
+    B       dd 127.0
+    C       dd 127.0
     D       dd ?
 .code
 Start:
