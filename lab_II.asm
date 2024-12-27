@@ -128,23 +128,3 @@ exit:
     mov     ax, 4C00h      
     int     21h
     END     start
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
