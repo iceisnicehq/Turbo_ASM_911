@@ -71,7 +71,7 @@ negative_ac:
     js    overflow                      ; ; if sf = 1, то есть у нас результат по виду отрицательный..., то есть результат больше чем 7FFFh
 checkFile:
     or     bl, bl                       ; дескриптор равен 0?
-    jnz    iteration                    ; если нет, то прыжок на следующую итерацию
+    jnz    iter                    ; если нет, то прыжок на следующую итерацию
     jmp    numerator                    ; если да, то прыгаем на числитель
 overflow:
     mov    al, bh                       ; al = a
@@ -123,7 +123,7 @@ posNumber:                                                            ; ПРИМ
     mov    cx, si                       ; восстанавливаем cx
     mov    bx, bp                       ; восстанавливаем bx
     ; bh = a ;    cl = b     ; ch = c
-iteration:
+iter:
     cmp    ch, 7fh       
     jne    inc_c
     cmp    cl, 7fh
