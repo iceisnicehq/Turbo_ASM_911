@@ -81,11 +81,11 @@ FWRITE_NUMBERS:
     MOV    DL, '-'                  ; DH = 2dH
 POSITIVE_NUM:
     AAM                             ; ADJUST AL TO bcd (E.G. 127D==7FH => AX = 0c07H)
-    OR     AL, 30H                  ; CONVERT AL TO ASCII    (E.G. AX = 0c37H)
+    ADD    AL, 30H                  ; CONVERT AL TO ASCII    (E.G. AX = 0c37H)
     MOV    DH, AL                   ; DX = AL|2d             (E.G. DX = 372dH) 
     MOV    AL, AH                   ; AL = AH                (E.G. AX = 0c0cH)
     AAM                             ; ADJUST AL TO bcd       (E.G. AX = 0102H) 
-    OR     AX, 3030H                ; CONVERT AL TO ASCII    (E.G. AX = 3132H)      
+    ADD    AX, 3030H                ; CONVERT AL TO ASCII    (E.G. AX = 3132H)      
     XCHG   DL, AL                   ;                        (E.G. AX = 312dH, DX = 3732H)  
     STOSW                           ; NUMBERS =              (+100|0000|0000) DI = DI + 2
     MOV    AX, DX                   ;                        (E.G. AX = 3732H)
