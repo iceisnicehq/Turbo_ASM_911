@@ -110,7 +110,8 @@ FWRITE_NUMBERS:
     NEG    AL                       ; AL = |AL|
     MOV    DL, '-'                  ; DL = '-'
 POSITIVE_NUM:                                                 ; ПРИМЕР ДЛЯ 127
-    AAM                             ; ПЕРЕВОД AL В BCD-ФОРМАТ  (E.G. 127D=7FH => AX = 0c07H)
+    AAM            
+                     ; ПЕРЕВОД AL В BCD-ФОРМАТ  (E.G. 127D=7FH => AX = 0c07H)
     ADD    AL, 30H                  ; ПЕРЕВОД AL В ASCII       (E.G. AX = 0С37H) (0СH=12D)
     MOV    DH, AL                   ; DH - ЕДИНИЦЫ, DH - ЗНАК  (E.G. DX = 372DH) 
     MOV    AL, AH                   ; AL = AH                  (E.G. AX = 0C0CH)
@@ -171,22 +172,23 @@ NUMERATOR:
     MOV    DX, AX                   ; DX = A
     ADD    DX, 13                   ; DX = A+13
     IMUL   DX                       ; DX:AX = A(A+13)
-    MOV    BX, AX                   ; BX = A(A+13)
-    MOV    AH, CL                   ; AL = B
+    MOV    DI, AX                   ; DI = A(A+13)
+    MOV    AL, CL                   ; AL = B
     CBW                             ; AX = B
     MOV    DX, AX                   ; DX = B
-    SAL    AX, 5                    ; AX = 32*B
-    SUB    AX, DX                   ; AX = 31*B
-    XOR    CL, CL                   ; CL = 00
-    SAR    CH, 7                    ; CX = 2*C
-    IMUL   CX                       ; DX:AX = 62*B*C
-    OR     BX, BX                   ; CHECK SIGN OF BX
+    SAL    DX, 5                    ; DX = 32*B
+    SUB    DX, AX                   ; DX = 31*B
+    MOV    AL, CH                   ; AL = C
+    CBW                             ; AX = C
+    SAL    AX, 1                    ; AX = 2*C
+    IMUL   DX                       ; DX:AX = 62*B*C
+    OR     DI, DI                   ; CHECK SIGN OF BX
     JNS    ADDING_POS               ; IF AX IS NOT NEGATIVE JUMP TO NEGATIVE_A2C
-    ADD    AX, BX                   ; DX:AX = 62*B*C + A(13+A)
+    ADD    AX, DI                   ; DX:AX = 62*B*C + A(13+A)
     ADC    DX, -1                   ; DX    = -1 + cf  (-1 это для знака отрицательнго числа)
     JMP    SHORT DIVIDING           ; GO TO DIV
 ADDING_POS:
-    ADD    AX, BX                   ; DX:AX = 62*B*C + A(13+A)
+    ADD    AX, DI                   ; DX:AX = 62*B*C + A(13+A)
     ADC    DX, 0                    ; DX + cf 
 DIVIDING:
     IDIV   BP                       ; 62*B*C + 13*A + A^2 = 62*B*C + A(13+A)
