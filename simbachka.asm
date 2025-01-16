@@ -27,18 +27,17 @@ START:
     MOV    AX, @DATA                  
     MOV    DS, AX  
     MOV    ES, AX                   ; ES нужен для записи STOSW, так как там AX -> word ptr [ES:DI]
-    CLD
-    MOV    BH, [A]                  ; BH = A
-    XOR    BL, BL
+    MOV    CH, [A]                  ; CH = A
     MOV    CL, [B]                  ; CL = C
-    MOV    CH, [C]                  ; CH = B
+    MOV    BH, [C]                  ; BH = C
+    XOR    BL, BL
 ; 3 OR для проверки на заданность переменных, ноль=не заданы, если не задана хоть одна, то идём в цикл -128 127.
 ; OR с самим собой значение не меняет, но флаги ставит, так что если регистр = 0, то zf = 1
     OR     BH, BH
     JZ     MAKE_FILE
-    OR     CH, CH
-    JZ     MAKE_FILE
     OR     CL, CL
+    JZ     MAKE_FILE
+    OR     CH, CH
     JNZ    CALC_DENOM  
 ; ---------создание файла-------------
   ; int 21, function 03Ch. Функция 03Ch для прерывания доса (21h): "Create file" - создать файл
@@ -58,15 +57,16 @@ MAKE_FILE:
     INT    21H                      ; CALL DOS 
     MOV    BX, AX                   ; SAVE DESCR
     MOV    BH, MIN_VAL              ; BH <- MIN VAL (BH <- 80h) 
-    MOV    CH, MIN_VAL              ;
     MOV    CL, MIN_VAL              ;
-    MOV    DI, OFFSET NUMBERS       ; DI стоит на NUMBERS для записи STOSW (ES:[DI] <- AX)
+    MOV    CH, MIN_VAL              ;
+    MOV    DI, OFFSET NUMBERS + NUMS_LEN - 4       ; DI стоит на КОНЦЕ NUMBERS (на десятках для C) (без cr lf) для записи STOSW (ES:[DI] <- AX)
+    STD
 ;-----------------------
     ; D  = 62*B*C+13*A+A^2   /   A+5*C^2
-    ;   BL = DESCR  ; BH = A
-    ;   CL = B      ; CH = C
+    ;   BL = DESCR  ; BH = C
+    ;   CL = B      ; CH = A
 CALC_DENOM:
-    MOV    AL, CH                   ; AL = C
+    MOV    AL, BH                   ; AL = C
     CBW                             ; AX = C
     MOV    DX, AX                   ; DX = C
     SAL    AX, 2                    ; AX = 4C
@@ -76,7 +76,7 @@ CALC_DENOM:
                                     ;         то в лежит знак + значимая часть (результать больше 65535)
     JNZ    PREP_FWRITE              ; если не ноль, то перполнение  
     MOV    BP, AX                   ; BP = 5C^2
-    MOV    AL, BH                   ; AH = A
+    MOV    AL, CH                   ; AH = A
     CBW                             ; AX = A
     OR     AX, AX                   ; ПРОВЕРКА ЗНАКА AX
     JNS    A_IS_POSITIVE            ; IF AX >= 0
@@ -96,39 +96,36 @@ NUMERATOR_CHECK:
     JNZ    INC_VARIABLES            ;          ЕСЛИ ОН НЕ НОЛЬ, ТО ИДЕМ В ИТЕРАЦИЮ ЦИКЛОВ
     JMP    SHORT NUMERATOR          ;          ИНАЧЕ СЧИТАЕМ ЧИСЛИТЕЛЬ
 PREP_FWRITE:
-    MOV    SI, DI                   ; SI = DI, ПРОСТО СОХРАНЯЕМ, ТАК КАК DI ИЗМЕНИТСЯ ИЗ-ЗА STOSW
-    MOV    BP, BX                   ; BP = BX  (BH = A, BL = DESCR)
-    MOV    AL, BH                   ; AL = A
-    MOV    BX, CX                   ; BL = B, BH = C
+    MOV    BP, BX                   ; BP = BX  (BH = C, BL = DESCR)
+    MOV    AL, BH                   ; AL = C
+    MOV    BX, CX                   ; BL = B, BH = A
     MOV    CX, 3                    ; CX = 3   (3 ЦИКЛА)
-;  три итерации цикла, после каждой итерации di увеличивается на 5, число для записи находится в al, в dl знак числа
-    ; 1) для a
+;  три итерации цикла, после каждой итерации di уменьшается на 5, число для записи находится в al, в dl знак числа
+    ; 1) для c
     ; 2) для b
-    ; 3) для c
+    ; 3) для a
 FWRITE_NUMBERS:
-    MOV    DL, '+'                  ; DL = '+'
+    MOV    DX, '0+'                 ; DX = '+0'   (DX = 302Dh)
     OR     AL, AL                   ; ПРОВЕРКА ЗНАКА ЧИСЛА В AL
     JNS    POSITIVE_NUM             ; AL >= 0
     NEG    AL                       ; AL = |AL|
-    MOV    DL, '-'                  ; DL = '-'
+    MOV    DL, '-'                  ; DH = '-'
 POSITIVE_NUM:                                                 ; ПРИМЕР ДЛЯ 127
-    AAM            
-                     ; ПЕРЕВОД AL В BCD-ФОРМАТ  (E.G. 127D=7FH => AX = 0c07H)
-    ADD    AL, 30H                  ; ПЕРЕВОД AL В ASCII       (E.G. AX = 0С37H) (0СH=12D)
-    MOV    DH, AL                   ; DH - ЕДИНИЦЫ, DH - ЗНАК  (E.G. DX = 372DH) 
+    AAM                             ; ПЕРЕВОД AL В BCD-ФОРМАТ  (E.G. 127D=7FH => AX = 0c07H)
+    ADD    DH, AL                   ; DH - ЕДИНИЦЫ, DL - ЗНАК  (E.G. DX = 372DH) 
     MOV    AL, AH                   ; AL = AH                  (E.G. AX = 0C0CH)
-    AAM                             ; ПЕРЕВОД AL В BCD         (E.G. AX = 0102H) 
-    ADD    AX, 3030H                ; ПЕРЕВОД AL В ASCII       (E.G. AX = 3132H)      
-    XCHG   DL, AL                   ;                          (E.G. AX = 312dH, DX = 3732H)  
-    STOSW                           ; NUMBERS =                (+100,0000,0000)  DI = DI + 2
-    MOV    AX, DX                   ;                          (E.G. AX = 3732H)
-    STOSW                           ; NUMBERS =                (+127,0000,0000)  DI = DI + 4
-    INC    DI                       ;                                            DI = DI + 5
-    MOV    AL, BL                   ; СЛЕДУЮЩЕЕ ЧИСЛО ДЛЯ ЗАПИСИ (B, C)
-    XCHG   BL, BH                   ; ТРИ ЦИКЛА: 1) BL = C, BH = B 2) BL = B, BH = C 3) BL = C, BH = B
+    AAM                             ; ПЕРЕВОД AL В BCD         (E.G. AX = 0102H)
+    ADD    AX, 3030H                ; ПЕРЕВОД AX В ASCII       (E.G. AX = 3132H)  
+    XCHG   DH, AH                   ; DL = знак, DH - сотни, AH = единицы, AL = десятки  (E.G. AX = 3732h, DX = 312DH)  
+    STOSW                           ; NUMBERS =                (0000,0000,0027)  DI = DI - 2
+    MOV    AX, DX                   ;                          (E.G. AX = 2D31H)
+    STOSW                           ; NUMBERS =                (+127,0000,0000)  DI = DI - 4
+    DEC    DI                       ;                                            DI = DI - 5
+    MOV    AL, BL                   ; СЛЕДУЮЩЕЕ ЧИСЛО ДЛЯ ЗАПИСИ (B, A)
+    XCHG   BL, BH                   ; ТРИ ЦИКЛА: 1) BL = B, BH = A 2) BL = A, BH = B 3) BL = B, BH = A
     LOOP   FWRITE_NUMBERS           ; ЦИКЛИМСЯ 3 РАЗА
-    XCHG   BL, BH                   ; BL = B, BH = C, возращаем как было до циклов 
-    MOV    DI, SI                   ; DI ОБРАТНО НА НАЧАЛО NUMBERS
+    XCHG   BL, BH                   ; BL = A, BH = B, возращаем как было до циклов 
+    ; MOV    DI, SI                   ; DI ОБРАТНО НА НАЧАЛО NUMBERS
     MOV    SI, BX                   ; СОХРАНЯЕМ BX (на самом деле CX)
 ; функция 40h:
     ; на вход:
@@ -138,26 +135,28 @@ POSITIVE_NUM:                                                 ; ПРИМЕР Д�
         ; ds:dx = адрес на строку для записи
     MOV    AH, 40H                  ; WRITE TO FILENAME FUNCTION
     MOV    CX, NUMS_LEN             ; NUMBER OF BYTES TO WRITE (NUMBERS LENGTH)
-    MOV    DX, DI                   ; DX = адрес смещения NUMBERS
+    MOV    DX, OFFSET NUMBERS       ; DX = адрес смещения NUMBERS - 2
     MOV    BX, BP                   ; BL = DESCR
     XOR    BH, BH                   ; BH = 0
     INT    21H                      ; CALL DOS
+    ADD    DI, CX                   ; DI = адрес конца NUMBERS - 2
+    DEC    DI
     MOV    CX, SI                   ; восстанавливаем CX
     MOV    BX, BP                   ; восстанавливаем BX
 INC_VARIABLES:
-    CMP    CH, MAX_VAL              ; проверка на макс C
+    CMP    BH, MAX_VAL              ; проверка на макс C
     JNE    INC_C
     CMP    CL, MAX_VAL              ; B
     JNE    INC_B
-    CMP    BH, MAX_VAL              ; A
+    CMP    CH, MAX_VAL              ; A
     JE     CLOSE_FILE
-    INC    BH
+    INC    CH
     MOV    CL, MIN_VAL-1            ; -1 потому что дальше стоит INC CL 
 INC_B:
     INC    CL
-    MOV    CH, MIN_VAL-1            ; -1 потому что дальше стоит INC CH
+    MOV    BH, MIN_VAL-1            ; -1 потому что дальше стоит INC BH
 INC_C:
-    INC    CH
+    INC    BH
     JMP    CALC_DENOM  
 CLOSE_FILE:
 ; 3Eh функция закрытия файла. 
@@ -169,8 +168,8 @@ CLOSE_FILE:
 NUMERATOR:
         ; 62*B*C + 13*A + A^2 = 62*B*C + A(13+A)
         ; BP IS DENOM, AX = A
-        ; BL = DESCR  ; BH = A
-        ; CL = B      ; CH = C
+        ; BL = DESCR  ; BH = C
+        ; CL = B      ; CH = A
     MOV    DX, AX                   ; DX = A
     ADD    DX, 13                   ; DX = A+13
     IMUL   DX                       ; DX:AX = A(A+13)
@@ -180,12 +179,12 @@ NUMERATOR:
     MOV    DX, AX                   ; DX = B
     SAL    DX, 5                    ; DX = 32*B
     SUB    DX, AX                   ; DX = 31*B
-    MOV    AL, CH                   ; AL = C
+    MOV    AL, BH                   ; AL = C
     CBW                             ; AX = C
     SAL    AX, 1                    ; AX = 2*C
     IMUL   DX                       ; DX:AX = 62*B*C
-    OR     DI, DI                   ; CHECK SIGN OF BX
-    JNS    ADDING_POS               ; IF AX IS NOT NEGATIVE JUMP TO NEGATIVE_A2C
+    OR     DI, DI                   ; CHECK SIGN OF A(A+13)
+    JNS    ADDING_POS               ; IF AX IS NOT NEGATIVE JUMP TO ADDING_POS
     ADD    AX, DI                   ; DX:AX = 62*B*C + A(13+A)
     ADC    DX, -1                   ; DX    = -1 + cf  (-1 это для знака отрицательнго числа)
     JMP    SHORT DIVIDING           ; GO TO DIV
