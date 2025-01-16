@@ -27,7 +27,9 @@ START:
     MOV    AX, @DATA                  
     MOV    DS, AX  
     MOV    ES, AX                   ; ES нужен для записи STOSW, так как там AX -> word ptr [ES:DI]
+    CLD
     MOV    BH, [A]                  ; BH = A
+    XOR    BL, BL
     MOV    CL, [B]                  ; CL = C
     MOV    CH, [C]                  ; CH = B
 ; 3 OR для проверки на заданность переменных, ноль=не заданы, если не задана хоть одна, то идём в цикл -128 127.
