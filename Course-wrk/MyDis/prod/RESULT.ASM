@@ -1,18 +1,18 @@
-BTC     DS:[EAX*4],EAX                                      ; 66 67 0F BB 04 85 00 00 00 00
-BTC     DS:[EBX*4],AX                                       ; 67 0F BB 04 9D 00 00 00 00
-BTC     SS:[EBP*4],AX                                       ; 67 0F BB 04 AD 00 00 00 00
+BTC     DS:[4*EAX],EAX                                      ; 66 67 0F BB 04 85 00 00 00 00
+BTC     DS:[4*EBX],AX                                       ; 67 0F BB 04 9D 00 00 00 00
+BTC     SS:[4*EBP],AX                                       ; 67 0F BB 04 AD 00 00 00 00
 BTC     word ptr SS:[EBP],0FFH                              ; 67 0F BA 7D 00 FF
 BTC     dword ptr SS:[ESP],0FFH                             ; 66 67 0F BA 3C 24 FF
-BTC     SS:[EBP*4+00000001H],EBP                            ; 66 67 0F BB 2C AD 01 00 00 00
-BTC     SS:[EBP*4+00000100H],EBP                            ; 66 67 0F BB 2C AD 00 01 00 00
+BTC     SS:[4*EBP+1H],EBP                                   ; 66 67 0F BB 2C AD 01 00 00 00
+BTC     SS:[4*EBP+100H],EBP                                 ; 66 67 0F BB 2C AD 00 01 00 00
 BTC     DS:[BX+0FEDCH],AX                                   ; 0F BB 87 DC FE
-BTC     word ptr CS:[EBX+EBP+0FFEEDDCCH],0A0H               ; 2E 67 0F BA BC 2B CC DD EE FF A0
-BTC     word ptr SS:[EBP+EAX],0FFH                          ; 67 0F BA 7C 05 00 FF
-BTC     dword ptr SS:[EBP+EAX*8],0FFH                       ; 66 67 0F BA 7C C5 00 FF
-BTC     word ptr SS:[ESP+EAX],0FFH                          ; 67 0F BA 3C 04 FF
-BTC     dword ptr SS:[ESP+EAX*8],0FFH                       ; 66 67 0F BA 3C C4 FF
-BTC     word ptr SS:[ESP+EBP],0FFH                          ; 67 0F BA 3C 2C FF
-BTC     dword ptr SS:[ESP+EBP*8],0FFH                       ; 66 67 0F BA 3C EC FF
+BTC     word ptr CS:[EBP+EBX+0FFEEDDCCH],0A0H               ; 2E 67 0F BA BC 2B CC DD EE FF A0
+BTC     word ptr SS:[EAX+EBP],0FFH                          ; 67 0F BA 7C 05 00 FF
+BTC     dword ptr SS:[8*EAX+EBP],0FFH                       ; 66 67 0F BA 7C C5 00 FF
+BTC     word ptr SS:[EAX+ESP],0FFH                          ; 67 0F BA 3C 04 FF
+BTC     dword ptr SS:[8*EAX+ESP],0FFH                       ; 66 67 0F BA 3C C4 FF
+BTC     word ptr SS:[EBP+ESP],0FFH                          ; 67 0F BA 3C 2C FF
+BTC     dword ptr SS:[8*EBP+ESP],0FFH                       ; 66 67 0F BA 3C EC FF
 BTC     DS:[BX+SI],AX                                       ; 0F BB 00
 BTC     DS:[BX+DI],AX                                       ; 0F BB 01
 BTC     SS:[BP+SI],AX                                       ; 0F BB 02
@@ -22,15 +22,15 @@ BTC     DS:[SI],AX                                          ; 0F BB 04
 BTC     DS:[DI],AX                                          ; 0F BB 05
 BTC     ES:[1234H],AX                                       ; 26 0F BB 06 34 12
 BTC     SS:[12345678H],AX                                   ; 36 67 0F BB 05 78 56 34 12
-BTC     dword ptr FS:[0123H],01H                            ; 66 64 0F BA 3E 23 01 01
+BTC     dword ptr FS:[123H],1H                              ; 66 64 0F BA 3E 23 01 01
 BTC     dword ptr GS:[12345678H],10H                        ; 66 65 67 0F BA 3D 78 56 34 12 10
 BTC     DS:[1234H],AX                                       ; 0F BB 06 34 12
 BTC     DS:[12345678H],AX                                   ; 67 0F BB 05 78 56 34 12
-BTC     dword ptr ES:[0123H],01H                            ; 66 26 0F BA 3E 23 01 01
+BTC     dword ptr ES:[123H],1H                              ; 66 26 0F BA 3E 23 01 01
 BTC     dword ptr SS:[12345678H],10H                        ; 66 36 67 0F BA 3D 78 56 34 12 10
 BTC     ES:[1234H],AX                                       ; 26 0F BB 06 34 12
 BTC     CS:[12345678H],AX                                   ; 2E 67 0F BB 05 78 56 34 12
-BTC     dword ptr ES:[0123H],01H                            ; 66 26 0F BA 3E 23 01 01
+BTC     dword ptr ES:[123H],1H                              ; 66 26 0F BA 3E 23 01 01
 BTC     dword ptr SS:[12345678H],10H                        ; 66 36 67 0F BA 3D 78 56 34 12 10
 BTC     word ptr DS:[BX+SI],0A0H                            ; 0F BA 38 A0
 BTC     dword ptr DS:[BX+SI],0B0H                           ; 66 0F BA 38 B0
@@ -46,77 +46,77 @@ BTC     word ptr DS:[DI],0A0H                               ; 0F BA 3D A0
 BTC     dword ptr DS:[DI],0B0H                              ; 66 0F BA 3D B0
 BTC     word ptr DS:[SI],0A0H                               ; 0F BA 3C A0
 BTC     dword ptr DS:[SI],0B0H                              ; 66 0F BA 3C B0
-BTC     DS:[EAX+EAX*2+00000100H],AX                         ; 67 0F BB 84 40 00 01 00 00
-BTC     DS:[EBX+EBP*4+12345678H],AX                         ; 3E 67 0F BB 84 AB 78 56 34 12
+BTC     DS:[2*EAX+EAX+100H],AX                              ; 67 0F BB 84 40 00 01 00 00
+BTC     DS:[4*EBP+EBX+12345678H],AX                         ; 3E 67 0F BB 84 AB 78 56 34 12
 BTC     SS:[EBP+EBP],AX                                     ; 67 0F BB 44 2D 00
-BTC     SS:[ESP+EBP],AX                                     ; 67 0F BB 04 2C
-BTC     DS:[EDX+EBX*8],AX                                   ; 67 0F BB 04 DA
-BTC     DS:[EBX+ECX*2+01H],AX                               ; 67 0F BB 44 4B 01
-BTC     DS:[ECX+EDX*4+00000100H],AX                         ; 67 0F BB 84 91 00 01 00 00
-BTC     DS:[EAX+EAX*8+0A0B0C0D0H],AX                        ; 67 0F BB 84 C0 D0 C0 B0 A0
+BTC     SS:[EBP+ESP],AX                                     ; 67 0F BB 04 2C
+BTC     DS:[8*EBX+EDX],AX                                   ; 67 0F BB 04 DA
+BTC     DS:[2*ECX+EBX+1H],AX                                ; 67 0F BB 44 4B 01
+BTC     DS:[4*EDX+ECX+100H],AX                              ; 67 0F BB 84 91 00 01 00 00
+BTC     DS:[8*EAX+EAX+0A0B0C0D0H],AX                        ; 67 0F BB 84 C0 D0 C0 B0 A0
 BTC     SS:[EBP+EBP+10203040H],AX                           ; 67 0F BB 84 2D 40 30 20 10
-BTC     DS:[EAX+EAX*2+00000100H],CX                         ; 67 0F BB 8C 40 00 01 00 00
-BTC     DS:[EBX+EBP*4+12345678H],CX                         ; 3E 67 0F BB 8C AB 78 56 34 12
+BTC     DS:[2*EAX+EAX+100H],CX                              ; 67 0F BB 8C 40 00 01 00 00
+BTC     DS:[4*EBP+EBX+12345678H],CX                         ; 3E 67 0F BB 8C AB 78 56 34 12
 BTC     SS:[EBP+EBP],CX                                     ; 67 0F BB 4C 2D 00
-BTC     SS:[ESP+EBP],CX                                     ; 67 0F BB 0C 2C
-BTC     DS:[EDX+EBX*8],CX                                   ; 67 0F BB 0C DA
-BTC     DS:[EBX+ECX*2+01H],CX                               ; 67 0F BB 4C 4B 01
-BTC     DS:[ECX+EDX*4+00000100H],CX                         ; 67 0F BB 8C 91 00 01 00 00
-BTC     DS:[EAX+EAX*8+0A0B0C0D0H],CX                        ; 67 0F BB 8C C0 D0 C0 B0 A0
+BTC     SS:[EBP+ESP],CX                                     ; 67 0F BB 0C 2C
+BTC     DS:[8*EBX+EDX],CX                                   ; 67 0F BB 0C DA
+BTC     DS:[2*ECX+EBX+1H],CX                                ; 67 0F BB 4C 4B 01
+BTC     DS:[4*EDX+ECX+100H],CX                              ; 67 0F BB 8C 91 00 01 00 00
+BTC     DS:[8*EAX+EAX+0A0B0C0D0H],CX                        ; 67 0F BB 8C C0 D0 C0 B0 A0
 BTC     SS:[EBP+EBP+10203040H],CX                           ; 67 0F BB 8C 2D 40 30 20 10
-BTC     DS:[EAX+EAX*2+00000100H],DX                         ; 67 0F BB 94 40 00 01 00 00
-BTC     DS:[EBX+EBP*4+12345678H],DX                         ; 3E 67 0F BB 94 AB 78 56 34 12
+BTC     DS:[2*EAX+EAX+100H],DX                              ; 67 0F BB 94 40 00 01 00 00
+BTC     DS:[4*EBP+EBX+12345678H],DX                         ; 3E 67 0F BB 94 AB 78 56 34 12
 BTC     SS:[EBP+EBP],DX                                     ; 67 0F BB 54 2D 00
-BTC     SS:[ESP+EBP],DX                                     ; 67 0F BB 14 2C
-BTC     DS:[EDX+EBX*8],DX                                   ; 67 0F BB 14 DA
-BTC     DS:[EBX+ECX*2+01H],DX                               ; 67 0F BB 54 4B 01
-BTC     DS:[ECX+EDX*4+00000100H],DX                         ; 67 0F BB 94 91 00 01 00 00
-BTC     DS:[EAX+EAX*8+0A0B0C0D0H],DX                        ; 67 0F BB 94 C0 D0 C0 B0 A0
+BTC     SS:[EBP+ESP],DX                                     ; 67 0F BB 14 2C
+BTC     DS:[8*EBX+EDX],DX                                   ; 67 0F BB 14 DA
+BTC     DS:[2*ECX+EBX+1H],DX                                ; 67 0F BB 54 4B 01
+BTC     DS:[4*EDX+ECX+100H],DX                              ; 67 0F BB 94 91 00 01 00 00
+BTC     DS:[8*EAX+EAX+0A0B0C0D0H],DX                        ; 67 0F BB 94 C0 D0 C0 B0 A0
 BTC     SS:[EBP+EBP+10203040H],DX                           ; 67 0F BB 94 2D 40 30 20 10
-BTC     DS:[EAX+EAX*2+00000100H],BX                         ; 67 0F BB 9C 40 00 01 00 00
-BTC     DS:[EBX+EBP*4+12345678H],BX                         ; 3E 67 0F BB 9C AB 78 56 34 12
+BTC     DS:[2*EAX+EAX+100H],BX                              ; 67 0F BB 9C 40 00 01 00 00
+BTC     DS:[4*EBP+EBX+12345678H],BX                         ; 3E 67 0F BB 9C AB 78 56 34 12
 BTC     SS:[EBP+EBP],BX                                     ; 67 0F BB 5C 2D 00
-BTC     SS:[ESP+EBP],BX                                     ; 67 0F BB 1C 2C
-BTC     DS:[EDX+EBX*8],BX                                   ; 67 0F BB 1C DA
-BTC     DS:[EBX+ECX*2+01H],BX                               ; 67 0F BB 5C 4B 01
-BTC     DS:[ECX+EDX*4+00000100H],BX                         ; 67 0F BB 9C 91 00 01 00 00
-BTC     DS:[EAX+EAX*8+0A0B0C0D0H],BX                        ; 67 0F BB 9C C0 D0 C0 B0 A0
+BTC     SS:[EBP+ESP],BX                                     ; 67 0F BB 1C 2C
+BTC     DS:[8*EBX+EDX],BX                                   ; 67 0F BB 1C DA
+BTC     DS:[2*ECX+EBX+1H],BX                                ; 67 0F BB 5C 4B 01
+BTC     DS:[4*EDX+ECX+100H],BX                              ; 67 0F BB 9C 91 00 01 00 00
+BTC     DS:[8*EAX+EAX+0A0B0C0D0H],BX                        ; 67 0F BB 9C C0 D0 C0 B0 A0
 BTC     SS:[EBP+EBP+10203040H],BX                           ; 67 0F BB 9C 2D 40 30 20 10
-BTC     DS:[EAX+EAX*2+00000100H],SP                         ; 67 0F BB A4 40 00 01 00 00
-BTC     DS:[EBX+EBP*4+12345678H],SP                         ; 3E 67 0F BB A4 AB 78 56 34 12
+BTC     DS:[2*EAX+EAX+100H],SP                              ; 67 0F BB A4 40 00 01 00 00
+BTC     DS:[4*EBP+EBX+12345678H],SP                         ; 3E 67 0F BB A4 AB 78 56 34 12
 BTC     SS:[EBP+EBP],SP                                     ; 67 0F BB 64 2D 00
-BTC     SS:[ESP+EBP],SP                                     ; 67 0F BB 24 2C
-BTC     DS:[EDX+EBX*8],SP                                   ; 67 0F BB 24 DA
-BTC     DS:[EBX+ECX*2+01H],SP                               ; 67 0F BB 64 4B 01
-BTC     DS:[ECX+EDX*4+00000100H],SP                         ; 67 0F BB A4 91 00 01 00 00
-BTC     DS:[EAX+EAX*8+0A0B0C0D0H],SP                        ; 67 0F BB A4 C0 D0 C0 B0 A0
+BTC     SS:[EBP+ESP],SP                                     ; 67 0F BB 24 2C
+BTC     DS:[8*EBX+EDX],SP                                   ; 67 0F BB 24 DA
+BTC     DS:[2*ECX+EBX+1H],SP                                ; 67 0F BB 64 4B 01
+BTC     DS:[4*EDX+ECX+100H],SP                              ; 67 0F BB A4 91 00 01 00 00
+BTC     DS:[8*EAX+EAX+0A0B0C0D0H],SP                        ; 67 0F BB A4 C0 D0 C0 B0 A0
 BTC     SS:[EBP+EBP+10203040H],SP                           ; 67 0F BB A4 2D 40 30 20 10
-BTC     DS:[EAX+EAX*2+00000100H],BP                         ; 67 0F BB AC 40 00 01 00 00
-BTC     DS:[EBX+EBP*4+12345678H],BP                         ; 3E 67 0F BB AC AB 78 56 34 12
+BTC     DS:[2*EAX+EAX+100H],BP                              ; 67 0F BB AC 40 00 01 00 00
+BTC     DS:[4*EBP+EBX+12345678H],BP                         ; 3E 67 0F BB AC AB 78 56 34 12
 BTC     SS:[EBP+EBP],BP                                     ; 67 0F BB 6C 2D 00
-BTC     SS:[ESP+EBP],BP                                     ; 67 0F BB 2C 2C
-BTC     DS:[EDX+EBX*8],BP                                   ; 67 0F BB 2C DA
-BTC     DS:[EBX+ECX*2+01H],BP                               ; 67 0F BB 6C 4B 01
-BTC     DS:[ECX+EDX*4+00000100H],BP                         ; 67 0F BB AC 91 00 01 00 00
-BTC     DS:[EAX+EAX*8+0A0B0C0D0H],BP                        ; 67 0F BB AC C0 D0 C0 B0 A0
+BTC     SS:[EBP+ESP],BP                                     ; 67 0F BB 2C 2C
+BTC     DS:[8*EBX+EDX],BP                                   ; 67 0F BB 2C DA
+BTC     DS:[2*ECX+EBX+1H],BP                                ; 67 0F BB 6C 4B 01
+BTC     DS:[4*EDX+ECX+100H],BP                              ; 67 0F BB AC 91 00 01 00 00
+BTC     DS:[8*EAX+EAX+0A0B0C0D0H],BP                        ; 67 0F BB AC C0 D0 C0 B0 A0
 BTC     SS:[EBP+EBP+10203040H],BP                           ; 67 0F BB AC 2D 40 30 20 10
-BTC     DS:[EAX+EAX*2+00000100H],SI                         ; 67 0F BB B4 40 00 01 00 00
-BTC     DS:[EBX+EBP*4+12345678H],SI                         ; 3E 67 0F BB B4 AB 78 56 34 12
+BTC     DS:[2*EAX+EAX+100H],SI                              ; 67 0F BB B4 40 00 01 00 00
+BTC     DS:[4*EBP+EBX+12345678H],SI                         ; 3E 67 0F BB B4 AB 78 56 34 12
 BTC     SS:[EBP+EBP],SI                                     ; 67 0F BB 74 2D 00
-BTC     SS:[ESP+EBP],SI                                     ; 67 0F BB 34 2C
-BTC     DS:[EDX+EBX*8],SI                                   ; 67 0F BB 34 DA
-BTC     DS:[EBX+ECX*2+01H],SI                               ; 67 0F BB 74 4B 01
-BTC     DS:[ECX+EDX*4+00000100H],SI                         ; 67 0F BB B4 91 00 01 00 00
-BTC     DS:[EAX+EAX*8+0A0B0C0D0H],SI                        ; 67 0F BB B4 C0 D0 C0 B0 A0
+BTC     SS:[EBP+ESP],SI                                     ; 67 0F BB 34 2C
+BTC     DS:[8*EBX+EDX],SI                                   ; 67 0F BB 34 DA
+BTC     DS:[2*ECX+EBX+1H],SI                                ; 67 0F BB 74 4B 01
+BTC     DS:[4*EDX+ECX+100H],SI                              ; 67 0F BB B4 91 00 01 00 00
+BTC     DS:[8*EAX+EAX+0A0B0C0D0H],SI                        ; 67 0F BB B4 C0 D0 C0 B0 A0
 BTC     SS:[EBP+EBP+10203040H],SI                           ; 67 0F BB B4 2D 40 30 20 10
-BTC     DS:[EAX+EAX*2+00000100H],DI                         ; 67 0F BB BC 40 00 01 00 00
-BTC     DS:[EBX+EBP*4+12345678H],DI                         ; 3E 67 0F BB BC AB 78 56 34 12
+BTC     DS:[2*EAX+EAX+100H],DI                              ; 67 0F BB BC 40 00 01 00 00
+BTC     DS:[4*EBP+EBX+12345678H],DI                         ; 3E 67 0F BB BC AB 78 56 34 12
 BTC     SS:[EBP+EBP],DI                                     ; 67 0F BB 7C 2D 00
-BTC     SS:[ESP+EBP],DI                                     ; 67 0F BB 3C 2C
-BTC     DS:[EDX+EBX*8],DI                                   ; 67 0F BB 3C DA
-BTC     DS:[EBX+ECX*2+01H],DI                               ; 67 0F BB 7C 4B 01
-BTC     DS:[ECX+EDX*4+00000100H],DI                         ; 67 0F BB BC 91 00 01 00 00
-BTC     DS:[EAX+EAX*8+0A0B0C0D0H],DI                        ; 67 0F BB BC C0 D0 C0 B0 A0
+BTC     SS:[EBP+ESP],DI                                     ; 67 0F BB 3C 2C
+BTC     DS:[8*EBX+EDX],DI                                   ; 67 0F BB 3C DA
+BTC     DS:[2*ECX+EBX+1H],DI                                ; 67 0F BB 7C 4B 01
+BTC     DS:[4*EDX+ECX+100H],DI                              ; 67 0F BB BC 91 00 01 00 00
+BTC     DS:[8*EAX+EAX+0A0B0C0D0H],DI                        ; 67 0F BB BC C0 D0 C0 B0 A0
 BTC     SS:[EBP+EBP+10203040H],DI                           ; 67 0F BB BC 2D 40 30 20 10
 BTC     EAX,EAX                                             ; 66 0F BB C0
 BTC     ECX,EAX                                             ; 66 0F BB C1
@@ -127,23 +127,23 @@ BTC     EBP,EAX                                             ; 66 0F BB C5
 BTC     ESI,EAX                                             ; 66 0F BB C6
 BTC     EDI,EAX                                             ; 66 0F BB C7
 BTC     DS:[EAX],EAX                                        ; 66 67 0F BB 00
-BTC     DS:[EAX+00001234H],ECX                              ; 66 67 0F BB 88 34 12 00 00
+BTC     DS:[EAX+1234H],ECX                                  ; 66 67 0F BB 88 34 12 00 00
 BTC     CS:[EAX],EBX                                        ; 66 2E 67 0F BB 18
 BTC     DS:[EAX],EDX                                        ; 66 67 0F BB 10
 BTC     ES:[EAX],ESP                                        ; 66 26 67 0F BB 20
 BTC     SS:[EAX],EBP                                        ; 66 36 67 0F BB 28
 BTC     FS:[EAX],ESI                                        ; 66 64 67 0F BB 30
 BTC     GS:[EAX],EDI                                        ; 66 65 67 0F BB 38
-BTC     DS:[EAX+EAX*2+00000100H],EAX                        ; 66 67 0F BB 84 40 00 01 00 00
-BTC     DS:[EBX+EBP*4+12345678H],EAX                        ; 66 3E 67 0F BB 84 AB 78 56 34 12
+BTC     DS:[2*EAX+EAX+100H],EAX                             ; 66 67 0F BB 84 40 00 01 00 00
+BTC     DS:[4*EBP+EBX+12345678H],EAX                        ; 66 3E 67 0F BB 84 AB 78 56 34 12
 BTC     SS:[EBP+EBP],EAX                                    ; 66 67 0F BB 44 2D 00
-BTC     SS:[ESP+EBP],EAX                                    ; 66 67 0F BB 04 2C
-BTC     DS:[EDX+EBX*8],EAX                                  ; 66 67 0F BB 04 DA
-BTC     DS:[EBX+ECX*2+01H],EAX                              ; 66 67 0F BB 44 4B 01
-BTC     DS:[ECX+EDX*4+00000100H],EAX                        ; 66 67 0F BB 84 91 00 01 00 00
-BTC     DS:[EAX+EAX*8+0A0B0C0D0H],EAX                       ; 66 67 0F BB 84 C0 D0 C0 B0 A0
+BTC     SS:[EBP+ESP],EAX                                    ; 66 67 0F BB 04 2C
+BTC     DS:[8*EBX+EDX],EAX                                  ; 66 67 0F BB 04 DA
+BTC     DS:[2*ECX+EBX+1H],EAX                               ; 66 67 0F BB 44 4B 01
+BTC     DS:[4*EDX+ECX+100H],EAX                             ; 66 67 0F BB 84 91 00 01 00 00
+BTC     DS:[8*EAX+EAX+0A0B0C0D0H],EAX                       ; 66 67 0F BB 84 C0 D0 C0 B0 A0
 BTC     SS:[EBP+EBP+10203040H],EAX                          ; 66 67 0F BB 84 2D 40 30 20 10
-BTC     EAX,01H                                             ; 66 0F BA F8 01
+BTC     EAX,1H                                              ; 66 0F BA F8 01
 BTC     EAX,ECX                                             ; 66 0F BB C8
 BTC     ECX,ECX                                             ; 66 0F BB C9
 BTC     EDX,ECX                                             ; 66 0F BB CA
@@ -153,23 +153,23 @@ BTC     EBP,ECX                                             ; 66 0F BB CD
 BTC     ESI,ECX                                             ; 66 0F BB CE
 BTC     EDI,ECX                                             ; 66 0F BB CF
 BTC     DS:[ECX],EAX                                        ; 66 67 0F BB 01
-BTC     DS:[ECX+00001234H],ECX                              ; 66 67 0F BB 89 34 12 00 00
+BTC     DS:[ECX+1234H],ECX                                  ; 66 67 0F BB 89 34 12 00 00
 BTC     CS:[ECX],EBX                                        ; 66 2E 67 0F BB 19
 BTC     DS:[ECX],EDX                                        ; 66 67 0F BB 11
 BTC     ES:[ECX],ESP                                        ; 66 26 67 0F BB 21
 BTC     SS:[ECX],EBP                                        ; 66 36 67 0F BB 29
 BTC     FS:[ECX],ESI                                        ; 66 64 67 0F BB 31
 BTC     GS:[ECX],EDI                                        ; 66 65 67 0F BB 39
-BTC     DS:[EAX+EAX*2+00000100H],ECX                        ; 66 67 0F BB 8C 40 00 01 00 00
-BTC     DS:[EBX+EBP*4+12345678H],ECX                        ; 66 3E 67 0F BB 8C AB 78 56 34 12
+BTC     DS:[2*EAX+EAX+100H],ECX                             ; 66 67 0F BB 8C 40 00 01 00 00
+BTC     DS:[4*EBP+EBX+12345678H],ECX                        ; 66 3E 67 0F BB 8C AB 78 56 34 12
 BTC     SS:[EBP+EBP],ECX                                    ; 66 67 0F BB 4C 2D 00
-BTC     SS:[ESP+EBP],ECX                                    ; 66 67 0F BB 0C 2C
-BTC     DS:[EDX+EBX*8],ECX                                  ; 66 67 0F BB 0C DA
-BTC     DS:[EBX+ECX*2+01H],ECX                              ; 66 67 0F BB 4C 4B 01
-BTC     DS:[ECX+EDX*4+00000100H],ECX                        ; 66 67 0F BB 8C 91 00 01 00 00
-BTC     DS:[EAX+EAX*8+0A0B0C0D0H],ECX                       ; 66 67 0F BB 8C C0 D0 C0 B0 A0
+BTC     SS:[EBP+ESP],ECX                                    ; 66 67 0F BB 0C 2C
+BTC     DS:[8*EBX+EDX],ECX                                  ; 66 67 0F BB 0C DA
+BTC     DS:[2*ECX+EBX+1H],ECX                               ; 66 67 0F BB 4C 4B 01
+BTC     DS:[4*EDX+ECX+100H],ECX                             ; 66 67 0F BB 8C 91 00 01 00 00
+BTC     DS:[8*EAX+EAX+0A0B0C0D0H],ECX                       ; 66 67 0F BB 8C C0 D0 C0 B0 A0
 BTC     SS:[EBP+EBP+10203040H],ECX                          ; 66 67 0F BB 8C 2D 40 30 20 10
-BTC     ECX,01H                                             ; 66 0F BA F9 01
+BTC     ECX,1H                                              ; 66 0F BA F9 01
 BTC     EAX,EDX                                             ; 66 0F BB D0
 BTC     ECX,EDX                                             ; 66 0F BB D1
 BTC     EDX,EDX                                             ; 66 0F BB D2
@@ -179,23 +179,23 @@ BTC     EBP,EDX                                             ; 66 0F BB D5
 BTC     ESI,EDX                                             ; 66 0F BB D6
 BTC     EDI,EDX                                             ; 66 0F BB D7
 BTC     DS:[EDX],EAX                                        ; 66 67 0F BB 02
-BTC     DS:[EDX+00001234H],ECX                              ; 66 67 0F BB 8A 34 12 00 00
+BTC     DS:[EDX+1234H],ECX                                  ; 66 67 0F BB 8A 34 12 00 00
 BTC     CS:[EDX],EBX                                        ; 66 2E 67 0F BB 1A
 BTC     DS:[EDX],EDX                                        ; 66 67 0F BB 12
 BTC     ES:[EDX],ESP                                        ; 66 26 67 0F BB 22
 BTC     SS:[EDX],EBP                                        ; 66 36 67 0F BB 2A
 BTC     FS:[EDX],ESI                                        ; 66 64 67 0F BB 32
 BTC     GS:[EDX],EDI                                        ; 66 65 67 0F BB 3A
-BTC     DS:[EAX+EAX*2+00000100H],EDX                        ; 66 67 0F BB 94 40 00 01 00 00
-BTC     DS:[EBX+EBP*4+12345678H],EDX                        ; 66 3E 67 0F BB 94 AB 78 56 34 12
+BTC     DS:[2*EAX+EAX+100H],EDX                             ; 66 67 0F BB 94 40 00 01 00 00
+BTC     DS:[4*EBP+EBX+12345678H],EDX                        ; 66 3E 67 0F BB 94 AB 78 56 34 12
 BTC     SS:[EBP+EBP],EDX                                    ; 66 67 0F BB 54 2D 00
-BTC     SS:[ESP+EBP],EDX                                    ; 66 67 0F BB 14 2C
-BTC     DS:[EDX+EBX*8],EDX                                  ; 66 67 0F BB 14 DA
-BTC     DS:[EBX+ECX*2+01H],EDX                              ; 66 67 0F BB 54 4B 01
-BTC     DS:[ECX+EDX*4+00000100H],EDX                        ; 66 67 0F BB 94 91 00 01 00 00
-BTC     DS:[EAX+EAX*8+0A0B0C0D0H],EDX                       ; 66 67 0F BB 94 C0 D0 C0 B0 A0
+BTC     SS:[EBP+ESP],EDX                                    ; 66 67 0F BB 14 2C
+BTC     DS:[8*EBX+EDX],EDX                                  ; 66 67 0F BB 14 DA
+BTC     DS:[2*ECX+EBX+1H],EDX                               ; 66 67 0F BB 54 4B 01
+BTC     DS:[4*EDX+ECX+100H],EDX                             ; 66 67 0F BB 94 91 00 01 00 00
+BTC     DS:[8*EAX+EAX+0A0B0C0D0H],EDX                       ; 66 67 0F BB 94 C0 D0 C0 B0 A0
 BTC     SS:[EBP+EBP+10203040H],EDX                          ; 66 67 0F BB 94 2D 40 30 20 10
-BTC     EDX,01H                                             ; 66 0F BA FA 01
+BTC     EDX,1H                                              ; 66 0F BA FA 01
 BTC     EAX,EBX                                             ; 66 0F BB D8
 BTC     ECX,EBX                                             ; 66 0F BB D9
 BTC     EDX,EBX                                             ; 66 0F BB DA
@@ -205,23 +205,23 @@ BTC     EBP,EBX                                             ; 66 0F BB DD
 BTC     ESI,EBX                                             ; 66 0F BB DE
 BTC     EDI,EBX                                             ; 66 0F BB DF
 BTC     DS:[EBX],EAX                                        ; 66 67 0F BB 03
-BTC     DS:[EBX+00001234H],ECX                              ; 66 67 0F BB 8B 34 12 00 00
+BTC     DS:[EBX+1234H],ECX                                  ; 66 67 0F BB 8B 34 12 00 00
 BTC     CS:[EBX],EBX                                        ; 66 2E 67 0F BB 1B
 BTC     DS:[EBX],EDX                                        ; 66 67 0F BB 13
 BTC     ES:[EBX],ESP                                        ; 66 26 67 0F BB 23
 BTC     SS:[EBX],EBP                                        ; 66 36 67 0F BB 2B
 BTC     FS:[EBX],ESI                                        ; 66 64 67 0F BB 33
 BTC     GS:[EBX],EDI                                        ; 66 65 67 0F BB 3B
-BTC     DS:[EAX+EAX*2+00000100H],EBX                        ; 66 67 0F BB 9C 40 00 01 00 00
-BTC     DS:[EBX+EBP*4+12345678H],EBX                        ; 66 3E 67 0F BB 9C AB 78 56 34 12
+BTC     DS:[2*EAX+EAX+100H],EBX                             ; 66 67 0F BB 9C 40 00 01 00 00
+BTC     DS:[4*EBP+EBX+12345678H],EBX                        ; 66 3E 67 0F BB 9C AB 78 56 34 12
 BTC     SS:[EBP+EBP],EBX                                    ; 66 67 0F BB 5C 2D 00
-BTC     SS:[ESP+EBP],EBX                                    ; 66 67 0F BB 1C 2C
-BTC     DS:[EDX+EBX*8],EBX                                  ; 66 67 0F BB 1C DA
-BTC     DS:[EBX+ECX*2+01H],EBX                              ; 66 67 0F BB 5C 4B 01
-BTC     DS:[ECX+EDX*4+00000100H],EBX                        ; 66 67 0F BB 9C 91 00 01 00 00
-BTC     DS:[EAX+EAX*8+0A0B0C0D0H],EBX                       ; 66 67 0F BB 9C C0 D0 C0 B0 A0
+BTC     SS:[EBP+ESP],EBX                                    ; 66 67 0F BB 1C 2C
+BTC     DS:[8*EBX+EDX],EBX                                  ; 66 67 0F BB 1C DA
+BTC     DS:[2*ECX+EBX+1H],EBX                               ; 66 67 0F BB 5C 4B 01
+BTC     DS:[4*EDX+ECX+100H],EBX                             ; 66 67 0F BB 9C 91 00 01 00 00
+BTC     DS:[8*EAX+EAX+0A0B0C0D0H],EBX                       ; 66 67 0F BB 9C C0 D0 C0 B0 A0
 BTC     SS:[EBP+EBP+10203040H],EBX                          ; 66 67 0F BB 9C 2D 40 30 20 10
-BTC     EBX,01H                                             ; 66 0F BA FB 01
+BTC     EBX,1H                                              ; 66 0F BA FB 01
 BTC     EAX,ESP                                             ; 66 0F BB E0
 BTC     ECX,ESP                                             ; 66 0F BB E1
 BTC     EDX,ESP                                             ; 66 0F BB E2
@@ -230,21 +230,21 @@ BTC     ESP,ESP                                             ; 66 0F BB E4
 BTC     EBP,ESP                                             ; 66 0F BB E5
 BTC     ESI,ESP                                             ; 66 0F BB E6
 BTC     EDI,ESP                                             ; 66 0F BB E7
-BTC     SS:[ESP+EAX],EAX                                    ; 66 67 0F BB 04 04
-BTC     SS:[ESP+EBP+00001234H],ECX                          ; 66 67 0F BB 8C 2C 34 12 00 00
-BTC     CS:[ESP+ECX],EBX                                    ; 66 2E 67 0F BB 1C 0C
-BTC     DS:[ESP+EDX],EDX                                    ; 66 3E 67 0F BB 14 14
+BTC     SS:[EAX+ESP],EAX                                    ; 66 67 0F BB 04 04
+BTC     SS:[EBP+ESP+1234H],ECX                              ; 66 67 0F BB 8C 2C 34 12 00 00
+BTC     CS:[ECX+ESP],EBX                                    ; 66 2E 67 0F BB 1C 0C
+BTC     DS:[EDX+ESP],EDX                                    ; 66 3E 67 0F BB 14 14
 BTC     ES:[ESP],ESP                                        ; 66 26 67 0F BB 24 24
-BTC     DS:[EAX+EAX*2+00000100H],ESP                        ; 66 67 0F BB A4 40 00 01 00 00
-BTC     DS:[EBX+EBP*4+12345678H],ESP                        ; 66 3E 67 0F BB A4 AB 78 56 34 12
+BTC     DS:[2*EAX+EAX+100H],ESP                             ; 66 67 0F BB A4 40 00 01 00 00
+BTC     DS:[4*EBP+EBX+12345678H],ESP                        ; 66 3E 67 0F BB A4 AB 78 56 34 12
 BTC     SS:[EBP+EBP],ESP                                    ; 66 67 0F BB 64 2D 00
-BTC     SS:[ESP+EBP],ESP                                    ; 66 67 0F BB 24 2C
-BTC     DS:[EDX+EBX*8],ESP                                  ; 66 67 0F BB 24 DA
-BTC     DS:[EBX+ECX*2+01H],ESP                              ; 66 67 0F BB 64 4B 01
-BTC     DS:[ECX+EDX*4+00000100H],ESP                        ; 66 67 0F BB A4 91 00 01 00 00
-BTC     DS:[EAX+EAX*8+0A0B0C0D0H],ESP                       ; 66 67 0F BB A4 C0 D0 C0 B0 A0
+BTC     SS:[EBP+ESP],ESP                                    ; 66 67 0F BB 24 2C
+BTC     DS:[8*EBX+EDX],ESP                                  ; 66 67 0F BB 24 DA
+BTC     DS:[2*ECX+EBX+1H],ESP                               ; 66 67 0F BB 64 4B 01
+BTC     DS:[4*EDX+ECX+100H],ESP                             ; 66 67 0F BB A4 91 00 01 00 00
+BTC     DS:[8*EAX+EAX+0A0B0C0D0H],ESP                       ; 66 67 0F BB A4 C0 D0 C0 B0 A0
 BTC     SS:[EBP+EBP+10203040H],ESP                          ; 66 67 0F BB A4 2D 40 30 20 10
-BTC     ESP,01H                                             ; 66 0F BA FC 01
+BTC     ESP,1H                                              ; 66 0F BA FC 01
 BTC     EAX,EBP                                             ; 66 0F BB E8
 BTC     ECX,EBP                                             ; 66 0F BB E9
 BTC     EDX,EBP                                             ; 66 0F BB EA
@@ -254,23 +254,23 @@ BTC     EBP,EBP                                             ; 66 0F BB ED
 BTC     ESI,EBP                                             ; 66 0F BB EE
 BTC     EDI,EBP                                             ; 66 0F BB EF
 BTC     SS:[EBP],EAX                                        ; 66 67 0F BB 45 00
-BTC     SS:[EBP+00001234H],ECX                              ; 66 67 0F BB 8D 34 12 00 00
+BTC     SS:[EBP+1234H],ECX                                  ; 66 67 0F BB 8D 34 12 00 00
 BTC     CS:[EBP],EBX                                        ; 66 2E 67 0F BB 5D 00
 BTC     DS:[EBP],EDX                                        ; 66 3E 67 0F BB 55 00
 BTC     ES:[EBP],ESP                                        ; 66 26 67 0F BB 65 00
 BTC     SS:[EBP],EBP                                        ; 66 67 0F BB 6D 00
 BTC     FS:[EBP],ESI                                        ; 66 64 67 0F BB 75 00
 BTC     GS:[EBP],EDI                                        ; 66 65 67 0F BB 7D 00
-BTC     DS:[EAX+EAX*2+00000100H],EBP                        ; 66 67 0F BB AC 40 00 01 00 00
-BTC     DS:[EBX+EBP*4+12345678H],EBP                        ; 66 3E 67 0F BB AC AB 78 56 34 12
+BTC     DS:[2*EAX+EAX+100H],EBP                             ; 66 67 0F BB AC 40 00 01 00 00
+BTC     DS:[4*EBP+EBX+12345678H],EBP                        ; 66 3E 67 0F BB AC AB 78 56 34 12
 BTC     SS:[EBP+EBP],EBP                                    ; 66 67 0F BB 6C 2D 00
-BTC     SS:[ESP+EBP],EBP                                    ; 66 67 0F BB 2C 2C
-BTC     DS:[EDX+EBX*8],EBP                                  ; 66 67 0F BB 2C DA
-BTC     DS:[EBX+ECX*2+01H],EBP                              ; 66 67 0F BB 6C 4B 01
-BTC     DS:[ECX+EDX*4+00000100H],EBP                        ; 66 67 0F BB AC 91 00 01 00 00
-BTC     DS:[EAX+EAX*8+0A0B0C0D0H],EBP                       ; 66 67 0F BB AC C0 D0 C0 B0 A0
+BTC     SS:[EBP+ESP],EBP                                    ; 66 67 0F BB 2C 2C
+BTC     DS:[8*EBX+EDX],EBP                                  ; 66 67 0F BB 2C DA
+BTC     DS:[2*ECX+EBX+1H],EBP                               ; 66 67 0F BB 6C 4B 01
+BTC     DS:[4*EDX+ECX+100H],EBP                             ; 66 67 0F BB AC 91 00 01 00 00
+BTC     DS:[8*EAX+EAX+0A0B0C0D0H],EBP                       ; 66 67 0F BB AC C0 D0 C0 B0 A0
 BTC     SS:[EBP+EBP+10203040H],EBP                          ; 66 67 0F BB AC 2D 40 30 20 10
-BTC     EBP,01H                                             ; 66 0F BA FD 01
+BTC     EBP,1H                                              ; 66 0F BA FD 01
 BTC     EAX,ESI                                             ; 66 0F BB F0
 BTC     ECX,ESI                                             ; 66 0F BB F1
 BTC     EDX,ESI                                             ; 66 0F BB F2
@@ -280,23 +280,23 @@ BTC     EBP,ESI                                             ; 66 0F BB F5
 BTC     ESI,ESI                                             ; 66 0F BB F6
 BTC     EDI,ESI                                             ; 66 0F BB F7
 BTC     DS:[ESI],EAX                                        ; 66 67 0F BB 06
-BTC     DS:[ESI+00001234H],ECX                              ; 66 67 0F BB 8E 34 12 00 00
+BTC     DS:[ESI+1234H],ECX                                  ; 66 67 0F BB 8E 34 12 00 00
 BTC     CS:[ESI],EBX                                        ; 66 2E 67 0F BB 1E
 BTC     DS:[ESI],EDX                                        ; 66 67 0F BB 16
 BTC     ES:[ESI],ESP                                        ; 66 26 67 0F BB 26
 BTC     SS:[ESI],EBP                                        ; 66 36 67 0F BB 2E
 BTC     FS:[ESI],ESI                                        ; 66 64 67 0F BB 36
 BTC     GS:[ESI],EDI                                        ; 66 65 67 0F BB 3E
-BTC     DS:[EAX+EAX*2+00000100H],ESI                        ; 66 67 0F BB B4 40 00 01 00 00
-BTC     DS:[EBX+EBP*4+12345678H],ESI                        ; 66 3E 67 0F BB B4 AB 78 56 34 12
+BTC     DS:[2*EAX+EAX+100H],ESI                             ; 66 67 0F BB B4 40 00 01 00 00
+BTC     DS:[4*EBP+EBX+12345678H],ESI                        ; 66 3E 67 0F BB B4 AB 78 56 34 12
 BTC     SS:[EBP+EBP],ESI                                    ; 66 67 0F BB 74 2D 00
-BTC     SS:[ESP+EBP],ESI                                    ; 66 67 0F BB 34 2C
-BTC     DS:[EDX+EBX*8],ESI                                  ; 66 67 0F BB 34 DA
-BTC     DS:[EBX+ECX*2+01H],ESI                              ; 66 67 0F BB 74 4B 01
-BTC     DS:[ECX+EDX*4+00000100H],ESI                        ; 66 67 0F BB B4 91 00 01 00 00
-BTC     DS:[EAX+EAX*8+0A0B0C0D0H],ESI                       ; 66 67 0F BB B4 C0 D0 C0 B0 A0
+BTC     SS:[EBP+ESP],ESI                                    ; 66 67 0F BB 34 2C
+BTC     DS:[8*EBX+EDX],ESI                                  ; 66 67 0F BB 34 DA
+BTC     DS:[2*ECX+EBX+1H],ESI                               ; 66 67 0F BB 74 4B 01
+BTC     DS:[4*EDX+ECX+100H],ESI                             ; 66 67 0F BB B4 91 00 01 00 00
+BTC     DS:[8*EAX+EAX+0A0B0C0D0H],ESI                       ; 66 67 0F BB B4 C0 D0 C0 B0 A0
 BTC     SS:[EBP+EBP+10203040H],ESI                          ; 66 67 0F BB B4 2D 40 30 20 10
-BTC     ESI,01H                                             ; 66 0F BA FE 01
+BTC     ESI,1H                                              ; 66 0F BA FE 01
 BTC     EAX,EDI                                             ; 66 0F BB F8
 BTC     ECX,EDI                                             ; 66 0F BB F9
 BTC     EDX,EDI                                             ; 66 0F BB FA
@@ -306,25 +306,25 @@ BTC     EBP,EDI                                             ; 66 0F BB FD
 BTC     ESI,EDI                                             ; 66 0F BB FE
 BTC     EDI,EDI                                             ; 66 0F BB FF
 BTC     DS:[EDI],EAX                                        ; 66 67 0F BB 07
-BTC     DS:[EDI+00001234H],ECX                              ; 66 67 0F BB 8F 34 12 00 00
+BTC     DS:[EDI+1234H],ECX                                  ; 66 67 0F BB 8F 34 12 00 00
 BTC     CS:[EDI],EBX                                        ; 66 2E 67 0F BB 1F
 BTC     DS:[EDI],EDX                                        ; 66 67 0F BB 17
 BTC     ES:[EDI],ESP                                        ; 66 26 67 0F BB 27
 BTC     SS:[EDI],EBP                                        ; 66 36 67 0F BB 2F
 BTC     FS:[EDI],ESI                                        ; 66 64 67 0F BB 37
 BTC     GS:[EDI],EDI                                        ; 66 65 67 0F BB 3F
-BTC     DS:[EAX+EAX*2+00000100H],EDI                        ; 66 67 0F BB BC 40 00 01 00 00
-BTC     DS:[EBX+EBP*4+12345678H],EDI                        ; 66 3E 67 0F BB BC AB 78 56 34 12
+BTC     DS:[2*EAX+EAX+100H],EDI                             ; 66 67 0F BB BC 40 00 01 00 00
+BTC     DS:[4*EBP+EBX+12345678H],EDI                        ; 66 3E 67 0F BB BC AB 78 56 34 12
 BTC     SS:[EBP+EBP],EDI                                    ; 66 67 0F BB 7C 2D 00
-BTC     SS:[ESP+EBP],EDI                                    ; 66 67 0F BB 3C 2C
-BTC     DS:[EDX+EBX*8],EDI                                  ; 66 67 0F BB 3C DA
-BTC     DS:[EBX+ECX*2+01H],EDI                              ; 66 67 0F BB 7C 4B 01
-BTC     DS:[ECX+EDX*4+00000100H],EDI                        ; 66 67 0F BB BC 91 00 01 00 00
-BTC     DS:[EAX+EAX*8+0A0B0C0D0H],EDI                       ; 66 67 0F BB BC C0 D0 C0 B0 A0
+BTC     SS:[EBP+ESP],EDI                                    ; 66 67 0F BB 3C 2C
+BTC     DS:[8*EBX+EDX],EDI                                  ; 66 67 0F BB 3C DA
+BTC     DS:[2*ECX+EBX+1H],EDI                               ; 66 67 0F BB 7C 4B 01
+BTC     DS:[4*EDX+ECX+100H],EDI                             ; 66 67 0F BB BC 91 00 01 00 00
+BTC     DS:[8*EAX+EAX+0A0B0C0D0H],EDI                       ; 66 67 0F BB BC C0 D0 C0 B0 A0
 BTC     SS:[EBP+EBP+10203040H],EDI                          ; 66 67 0F BB BC 2D 40 30 20 10
-BTC     word ptr SS:[EAX+EBP],0FFH                          ; 67 0F BA 3C 28 FF
-BTC     dword ptr SS:[EAX+EBP*8],0FFH                       ; 66 67 0F BA 3C E8 FF
-BTC     EDI,01H                                             ; 66 0F BA FF 01
+BTC     word ptr SS:[EBP+EAX],0FFH                          ; 67 0F BA 3C 28 FF
+BTC     dword ptr SS:[8*EBP+EAX],0FFH                       ; 66 67 0F BA 3C E8 FF
+BTC     EDI,1H                                              ; 66 0F BA FF 01
 BTC     AX,AX                                               ; 0F BB C0
 BTC     CX,AX                                               ; 0F BB C1
 BTC     DX,AX                                               ; 0F BB C2
@@ -382,7 +382,7 @@ BTC     GS:[BP+DI],AX                                       ; 65 0F BB 03
 BTC     GS:[BP],AX                                          ; 65 0F BB 46 00
 BTC     GS:[SI],AX                                          ; 65 0F BB 04
 BTC     GS:[DI],AX                                          ; 65 0F BB 05
-BTC     AX,01H                                              ; 0F BA F8 01
+BTC     AX,1H                                               ; 0F BA F8 01
 BTC     AX,0FFH                                             ; 0F BA F8 FF
 BTC     AX,CX                                               ; 0F BB C8
 BTC     CX,CX                                               ; 0F BB C9
@@ -441,7 +441,7 @@ BTC     GS:[BP+DI],CX                                       ; 65 0F BB 0B
 BTC     GS:[BP],CX                                          ; 65 0F BB 4E 00
 BTC     GS:[SI],CX                                          ; 65 0F BB 0C
 BTC     GS:[DI],CX                                          ; 65 0F BB 0D
-BTC     CX,01H                                              ; 0F BA F9 01
+BTC     CX,1H                                               ; 0F BA F9 01
 BTC     CX,0FFH                                             ; 0F BA F9 FF
 BTC     AX,DX                                               ; 0F BB D0
 BTC     CX,DX                                               ; 0F BB D1
@@ -500,7 +500,7 @@ BTC     GS:[BP+DI],DX                                       ; 65 0F BB 13
 BTC     GS:[BP],DX                                          ; 65 0F BB 56 00
 BTC     GS:[SI],DX                                          ; 65 0F BB 14
 BTC     GS:[DI],DX                                          ; 65 0F BB 15
-BTC     DX,01H                                              ; 0F BA FA 01
+BTC     DX,1H                                               ; 0F BA FA 01
 BTC     DX,0FFH                                             ; 0F BA FA FF
 BTC     AX,BX                                               ; 0F BB D8
 BTC     CX,BX                                               ; 0F BB D9
@@ -559,7 +559,7 @@ BTC     GS:[BP+DI],BX                                       ; 65 0F BB 1B
 BTC     GS:[BP],BX                                          ; 65 0F BB 5E 00
 BTC     GS:[SI],BX                                          ; 65 0F BB 1C
 BTC     GS:[DI],BX                                          ; 65 0F BB 1D
-BTC     BX,01H                                              ; 0F BA FB 01
+BTC     BX,1H                                               ; 0F BA FB 01
 BTC     BX,0FFH                                             ; 0F BA FB FF
 BTC     AX,SP                                               ; 0F BB E0
 BTC     CX,SP                                               ; 0F BB E1
@@ -618,7 +618,7 @@ BTC     GS:[BP+DI],SP                                       ; 65 0F BB 23
 BTC     GS:[BP],SP                                          ; 65 0F BB 66 00
 BTC     GS:[SI],SP                                          ; 65 0F BB 24
 BTC     GS:[DI],SP                                          ; 65 0F BB 25
-BTC     SP,01H                                              ; 0F BA FC 01
+BTC     SP,1H                                               ; 0F BA FC 01
 BTC     SP,0FFH                                             ; 0F BA FC FF
 BTC     AX,BP                                               ; 0F BB E8
 BTC     CX,BP                                               ; 0F BB E9
@@ -677,7 +677,7 @@ BTC     GS:[BP+DI],BP                                       ; 65 0F BB 2B
 BTC     GS:[BP],BP                                          ; 65 0F BB 6E 00
 BTC     GS:[SI],BP                                          ; 65 0F BB 2C
 BTC     GS:[DI],BP                                          ; 65 0F BB 2D
-BTC     BP,01H                                              ; 0F BA FD 01
+BTC     BP,1H                                               ; 0F BA FD 01
 BTC     BP,0FFH                                             ; 0F BA FD FF
 BTC     AX,SI                                               ; 0F BB F0
 BTC     CX,SI                                               ; 0F BB F1
@@ -736,7 +736,7 @@ BTC     GS:[BP+DI],SI                                       ; 65 0F BB 33
 BTC     GS:[BP],SI                                          ; 65 0F BB 76 00
 BTC     GS:[SI],SI                                          ; 65 0F BB 34
 BTC     GS:[DI],SI                                          ; 65 0F BB 35
-BTC     SI,01H                                              ; 0F BA FE 01
+BTC     SI,1H                                               ; 0F BA FE 01
 BTC     SI,0FFH                                             ; 0F BA FE FF
 BTC     AX,DI                                               ; 0F BB F8
 BTC     CX,DI                                               ; 0F BB F9
@@ -795,7 +795,7 @@ BTC     GS:[BP+DI],DI                                       ; 65 0F BB 3B
 BTC     GS:[BP],DI                                          ; 65 0F BB 7E 00
 BTC     GS:[SI],DI                                          ; 65 0F BB 3C
 BTC     GS:[DI],DI                                          ; 65 0F BB 3D
-BTC     DI,01H                                              ; 0F BA FF 01
+BTC     DI,1H                                               ; 0F BA FF 01
 BTC     DI,0FFH                                             ; 0F BA FF FF
 BTC     EAX,0FFH                                            ; 66 0F BA F8 FF
 BTC     ECX,0FFH                                            ; 66 0F BA F9 FF
@@ -1022,64 +1022,64 @@ LOCK BTC     SS:[BP+DI+1234H],EDI                           ; F0 66 0F BB BB 34 
 LOCK BTC     SS:[BP+1234H],EDI                              ; F0 66 0F BB BE 34 12
 LOCK BTC     DS:[SI+1234H],EDI                              ; F0 66 0F BB BC 34 12
 LOCK BTC     DS:[DI+1234H],EDI                              ; F0 66 0F BB BD 34 12
-LOCK BTC     DS:[EAX+EAX+00004321H],AX                      ; F0 67 0F BB 84 00 21 43 00 00
-LOCK BTC     DS:[EAX+EAX*2+00004321H],AX                    ; F0 67 0F BB 84 40 21 43 00 00
-LOCK BTC     DS:[EAX+EAX*4+00004321H],AX                    ; F0 67 0F BB 84 80 21 43 00 00
-LOCK BTC     DS:[EAX+EAX*8+00004321H],AX                    ; F0 67 0F BB 84 C0 21 43 00 00
-LOCK BTC     DS:[ESI+00004321H],AX                          ; F0 67 0F BB 86 21 43 00 00
-LOCK BTC     DS:[EDI+00004321H],AX                          ; F0 67 0F BB 87 21 43 00 00
-LOCK BTC     DS:[EAX+EAX+00004321H],AX                      ; F0 67 0F BB 84 00 21 43 00 00
-LOCK BTC     DS:[EAX+EAX*2+00004321H],AX                    ; F0 67 0F BB 84 40 21 43 00 00
-LOCK BTC     DS:[EAX+EAX*4+00004321H],AX                    ; F0 67 0F BB 84 80 21 43 00 00
-LOCK BTC     DS:[EAX+EAX*8+00004321H],AX                    ; F0 67 0F BB 84 C0 21 43 00 00
-LOCK BTC     DS:[ESI+00004321H],AX                          ; F0 67 0F BB 86 21 43 00 00
-LOCK BTC     DS:[EDI+00004321H],AX                          ; F0 67 0F BB 87 21 43 00 00
-LOCK BTC     SS:[EBX+EBP*8+00004321H],AX                    ; F0 67 0F BB 84 EB 21 43 00 00
-LOCK BTC     SS:[EBP+00004321H],AX                          ; F0 67 0F BB 85 21 43 00 00
-LOCK BTC     DS:[ECX*4+00004321H],AX                        ; F0 67 0F BB 04 8D 21 43 00 00
-LOCK BTC     SS:[EBP*8+000000B0H],AX                        ; F0 67 0F BB 04 ED B0 00 00 00
-LOCK BTC     DS:[ESI*4+00004321H],AX                        ; F0 67 0F BB 04 B5 21 43 00 00
-LOCK BTC     DS:[EDI*2+87654321H],AX                        ; F0 67 0F BB 04 7D 21 43 65 87
-JO      $+00C5H                                             ; 0F 80 C1 00
+LOCK BTC     DS:[EAX+EAX+4321H],AX                          ; F0 67 0F BB 84 00 21 43 00 00
+LOCK BTC     DS:[2*EAX+EAX+4321H],AX                        ; F0 67 0F BB 84 40 21 43 00 00
+LOCK BTC     DS:[4*EAX+EAX+4321H],AX                        ; F0 67 0F BB 84 80 21 43 00 00
+LOCK BTC     DS:[8*EAX+EAX+4321H],AX                        ; F0 67 0F BB 84 C0 21 43 00 00
+LOCK BTC     DS:[ESI+4321H],AX                              ; F0 67 0F BB 86 21 43 00 00
+LOCK BTC     DS:[EDI+4321H],AX                              ; F0 67 0F BB 87 21 43 00 00
+LOCK BTC     DS:[EAX+EAX+4321H],AX                          ; F0 67 0F BB 84 00 21 43 00 00
+LOCK BTC     DS:[2*EAX+EAX+4321H],AX                        ; F0 67 0F BB 84 40 21 43 00 00
+LOCK BTC     DS:[4*EAX+EAX+4321H],AX                        ; F0 67 0F BB 84 80 21 43 00 00
+LOCK BTC     DS:[8*EAX+EAX+4321H],AX                        ; F0 67 0F BB 84 C0 21 43 00 00
+LOCK BTC     DS:[ESI+4321H],AX                              ; F0 67 0F BB 86 21 43 00 00
+LOCK BTC     DS:[EDI+4321H],AX                              ; F0 67 0F BB 87 21 43 00 00
+LOCK BTC     SS:[8*EBP+EBX+4321H],AX                        ; F0 67 0F BB 84 EB 21 43 00 00
+LOCK BTC     SS:[EBP+4321H],AX                              ; F0 67 0F BB 85 21 43 00 00
+LOCK BTC     DS:[4*ECX+4321H],AX                            ; F0 67 0F BB 04 8D 21 43 00 00
+LOCK BTC     SS:[8*EBP+B0H],AX                              ; F0 67 0F BB 04 ED B0 00 00 00
+LOCK BTC     DS:[4*ESI+4321H],AX                            ; F0 67 0F BB 04 B5 21 43 00 00
+LOCK BTC     DS:[2*EDI+87654321H],AX                        ; F0 67 0F BB 04 7D 21 43 65 87
+JO      $+0C5H                                              ; 0F 80 C1 00
 JNO     $-155FH                                             ; 0F 81 9D EA
-JB      $+00BDH                                             ; 0F 82 B9 00
+JB      $+0BDH                                              ; 0F 82 B9 00
 JNB     $-1567H                                             ; 0F 83 95 EA
-JZ      $+00B5H                                             ; 0F 84 B1 00
+JZ      $+0B5H                                              ; 0F 84 B1 00
 JNZ     $-156FH                                             ; 0F 85 8D EA
-JBE     $+00ADH                                             ; 0F 86 A9 00
+JBE     $+0ADH                                              ; 0F 86 A9 00
 JNBE    $-1577H                                             ; 0F 87 85 EA
-JS      $+00A5H                                             ; 0F 88 A1 00
+JS      $+0A5H                                              ; 0F 88 A1 00
 JNS     $-157FH                                             ; 0F 89 7D EA
-JP      $+009DH                                             ; 0F 8A 99 00
+JP      $+9DH                                               ; 0F 8A 99 00
 JNP     $-1587H                                             ; 0F 8B 75 EA
-JL      $+0095H                                             ; 0F 8C 91 00
+JL      $+95H                                               ; 0F 8C 91 00
 JNL     $-158FH                                             ; 0F 8D 6D EA
-JLE     $+008DH                                             ; 0F 8E 89 00
+JLE     $+8DH                                               ; 0F 8E 89 00
 JNLE    $-1597H                                             ; 0F 8F 65 EA
 JO      $                                                   ; 70 FE
-JNO     $-0002H                                             ; 71 FC
-JB      $-0004H                                             ; 72 FA
-JNB     $-0006H                                             ; 73 F8
-JZ      $-0008H                                             ; 74 F6
-JNZ     $-000AH                                             ; 75 F4
-JBE     $-000CH                                             ; 76 F2
-JNBE    $-000EH                                             ; 77 F0
-JS      $-0010H                                             ; 78 EE
-JNS     $-0012H                                             ; 79 EC
-JP      $-0014H                                             ; 7A EA
-JNP     $-0016H                                             ; 7B E8
-JL      $-0018H                                             ; 7C E6
-JNL     $-001AH                                             ; 7D E4
-JLE     $-001CH                                             ; 7E E2
-JNLE    $-001EH                                             ; 7F E0
-JCXZ    $-0020H                                             ; E3 DE
-JECXZ   $-0022H                                             ; 67 E3 DB
-LOCK BTC     dword ptr DS:[EAX+EBX*8+0A7654321H],0FFH       ; F0 66 67 0F BA BC D8 21 43 65 A7 FF
-LOCK BTC     word ptr SS:[EAX+EBP*8+87654321H],0FFH         ; F0 67 0F BA BC E8 21 43 65 87 FF
-LOCK BTC     CS:[EAX+EBX*8+0B7654321H],EAX                  ; F0 66 2E 67 0F BB 84 D8 21 43 65 B7
-LOCK BTC     DS:[EAX+EBP*8+87654321H],AX                    ; F0 3E 67 0F BB 84 E8 21 43 65 87
-LOCK BTC     dword ptr SS:[EBP+EBX*4+12345678H],9AH         ; F0 66 67 0F BA BC 9D 78 56 34 12 9A
-LOCK BTC     dword ptr SS:[EBX+EAX*8+12345678H],9AH         ; F0 66 36 67 0F BA BC C3 78 56 34 12 9A
-LOCK BTC     dword ptr SS:[EBX+EAX*8+12345678H],9AH         ; F0 66 36 67 0F BA BC C3 78 56 34 12 9A
-LOCK BTC     word ptr FS:[EBX+EBP+0FFEEDDCCH],0A0H          ; F0 64 67 0F BA BC 2B CC DD EE FF A0
+JNO     $-2H                                                ; 71 FC
+JB      $-4H                                                ; 72 FA
+JNB     $-6H                                                ; 73 F8
+JZ      $-8H                                                ; 74 F6
+JNZ     $-0AH                                               ; 75 F4
+JBE     $-0CH                                               ; 76 F2
+JNBE    $-0EH                                               ; 77 F0
+JS      $-10H                                               ; 78 EE
+JNS     $-12H                                               ; 79 EC
+JP      $-14H                                               ; 7A EA
+JNP     $-16H                                               ; 7B E8
+JL      $-18H                                               ; 7C E6
+JNL     $-1AH                                               ; 7D E4
+JLE     $-1CH                                               ; 7E E2
+JNLE    $-1EH                                               ; 7F E0
+JCXZ    $-20H                                               ; E3 DE
+JECXZ   $-22H                                               ; 67 E3 DB
+LOCK BTC     dword ptr DS:[8*EBX+EAX+0A7654321H],0FFH       ; F0 66 67 0F BA BC D8 21 43 65 A7 FF
+LOCK BTC     word ptr SS:[8*EBP+EAX+87654321H],0FFH         ; F0 67 0F BA BC E8 21 43 65 87 FF
+LOCK BTC     CS:[8*EBX+EAX+0B7654321H],EAX                  ; F0 66 2E 67 0F BB 84 D8 21 43 65 B7
+LOCK BTC     DS:[8*EBP+EAX+87654321H],AX                    ; F0 3E 67 0F BB 84 E8 21 43 65 87
+LOCK BTC     dword ptr SS:[4*EBX+EBP+12345678H],9AH         ; F0 66 67 0F BA BC 9D 78 56 34 12 9A
+LOCK BTC     dword ptr SS:[8*EAX+EBX+12345678H],9AH         ; F0 66 36 67 0F BA BC C3 78 56 34 12 9A
+LOCK BTC     dword ptr SS:[8*EAX+EBX+12345678H],9AH         ; F0 66 36 67 0F BA BC C3 78 56 34 12 9A
+LOCK BTC     word ptr FS:[EBP+EBX+0FFEEDDCCH],0A0H          ; F0 64 67 0F BA BC 2B CC DD EE FF A0
 AAD                                                         ; D5 0A
