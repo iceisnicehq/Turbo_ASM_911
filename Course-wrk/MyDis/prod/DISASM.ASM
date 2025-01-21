@@ -12,9 +12,9 @@ LOCALS @@
         op2                 DB ?
     ENDS
 
-    PREFIXES RECORD          prefix:1, sib:1, modrm:1, ext:1, size66:1, addr67:1, seg_over:1, xxx:1 ; PSME SASxb
+    PREFIXES RECORD          prefix:1, sib:1, modrm:1, ext:1, size66:1, addr67:1, seg_over:1, zeros:1 ; PSME SASxb
     ;Mask bit                -128-     -64-   -32-     -16-   -8-       -4-       -2-
-IRP       MASKING,          <prefix,   sib,   modrm,   ext,   size66,   addr67,   seg_over>
+IRP       MASKING,          <prefix,   sib,   modrm,   ext,   size66,   addr67,   seg_over, zeros>
     MASK_&MASKING           = MASK &MASKING
 ENDM
     MASK_REGULAR            =  0FDh 
@@ -288,13 +288,29 @@ ins_str ENDP
 
 put_hex_to_str_bx PROC ; IN (ax - hex_num; bx - str_ptr; dl=1 if word), OUT bx - end_str_ptr
     pushf   
-    mov         cx, 10h
     mov         si, 2
     or          dl, dl
+    mov         dl, 0f0h
     JZ          SHORT @@not_word_size
     shl         si, 1
+    shl         dx, 8
 @@not_word_size:
+    mov         cx, si
+    NOT_SET     [info_bytes], MASK_ZEROS, @@skip_zeros
+@@decrease_si:
+    test dx, ax
+    jne @@skip_zeros
+    dec si
+    shr dx, 4
+    loop @@decrease_si
+@@skip_zeros:
+    or          si, si
+    jne         @@next
+    popf
+    ret
+@@next:
     push        si
+    mov         cx, 10h
 @@division:
     dec         si
     xor         dx, dx
@@ -361,6 +377,7 @@ read_buffer_byte PROC
     mov         dl, [bx]
     inc         scanned_byte_count
     push        dx
+    AND         [info_bytes], NOT MASK_ZEROS
     movzx       ax, dl
     mov         bx, mach_code_end_ptr
     xor         dl, dl
@@ -507,26 +524,29 @@ ea_start:
     je          print_disp       
 @@ea_with_disp:
     NOT_SET     [info_bytes], MASK_SIB, @@no_sib
-    CMPJNE      base, 1010b, @@no_ebp_base
-    CMPJE       mode, 000b, @@no_base
-@@no_ebp_base:
-    movzx       bx, base
-    add         bl, REG_SHIFT
-    mov         si, reg_mnem[bx]
-    call        ins_str
     CMPJE       index, 1000b, @@SIB_INDEX_NONE
-    PUT_CHAR    "+"
-@@no_base:
+    CMPJE       scale, 000b, @@skip_scale
+    mov         dl, "0"
+    add         dl, scale
+    PUT_CHAR    dl
+    PUT_CHAR    "*"
+@@skip_scale:
     movzx       bx, index
     add         bl, REG_SHIFT
     mov         si, reg_mnem[bx]
     call        ins_str
-    CMPJE       scale, 000b, @@check_mode
-    PUT_CHAR    "*"
-    mov         dl, "0"
-    add         dl, scale
-    PUT_CHAR    dl
 @@SIB_INDEX_NONE:
+    CMPJNE      base, 1010b, @@no_ebp_base
+    CMPJE       mode, 000b, @@no_base
+@@no_ebp_base:
+    CMPJE       index, 1000b, @@only_base
+    PUT_CHAR    "+"
+@@only_base:
+    movzx       bx, base
+    add         bl, REG_SHIFT
+    mov         si, reg_mnem[bx]
+    call        ins_str
+@@no_base:
     CMPJNE      base, 1010b, @@check_mode
     or          DWORD PTR [disp], 0
     jnz         SHORT @@sib_disp
@@ -543,6 +563,7 @@ ea16:
 @@sib_disp:
     PUT_CHAR    "+"
 print_disp:
+    OR          [info_bytes], MASK_ZEROS
     mov         ax, disp
     CMPJE       mode, 010b, @@print_byte_disp
     test        [info_bytes], MASK_ADDR67
@@ -554,6 +575,10 @@ print_disp:
     mov         dl, 1
     call        put_word_ax
     pop         ax
+    OR          disp32, 0
+    JZ          @@zero_disp32
+    AND         [info_bytes], NOT MASK_ZEROS
+@@zero_disp32:   
     clc
 @@disp_16:
     mov         dl, 1
@@ -572,6 +597,7 @@ print_disp:
     PUT_CHAR    "]"
     jmp         SHORT @@return
 print_imm8:
+    OR          [info_bytes], MASK_ZEROS
     cmp         al, REL8
     mov         ax, imm
     jae         SHORT print_rel
