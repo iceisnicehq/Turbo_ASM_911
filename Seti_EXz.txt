@@ -36,7 +36,7 @@
         PC10 12.15.200.73/30
              12.15.200.75/30 Broadcast
 
-4)  Настройка ip, ipv4route только на sw,  как в лр18
+4)  Настройка ip,  как в лр18
     PC5  12.15.100.6/28
     PC2  12.15.100.17/29
     PC3  12.15.100.25/30
@@ -45,14 +45,49 @@
     Далее OSPF and 
     R1   12.15.1.9/30    to R2
     R1   12.15.2.21/30   to R3
-    network 12.15.1.8/30    AREA 12
-    network 12.15.2.20/30   AREA 12
+    int <1interface_R1> -> ip ospf area 12
+    int <2interface_R1> -> ip ospf area 12
     R2   12.15.1.10/30   to R1
     R2   12.15.100.4/28  to SW1 (sw2)
-    network 12.15.1.8/30    AREA 12
-    network 12.15.100.0/27  AREA 15
+    int <12.15.1.8/30> -> ip ospf area 12
+    int <12.15.100.0/27) -> ip ospf area 15
     R3   12.15.2.22/30   to R1
     R3   12.15.200.65/29 to SW4
-    network 12.15.2.20/30   AREA 12
-    network 12.15.200.48/28 AREA 16
+    int <12.15.2.20/30> -> ip ospf area 12
+    int <12.15.200.48/28> -> ip ospf area 16
+
+5) vlans management
+    ovs-vsctl add-port ovs0 vlan# -- set interface vlan# type=internal
+    then mkdir vlan#
+    ipv4address
+    options -> {
+    TYPE=ovsport
+    BOOTPROTO=static
+    BRIDGE=ovs0
+    VID=10
+    DISABLED=no
+    NM_CONTROLLED=no
+    SYSTEMD_CONTROLLED=no
+    }
+6) EVERY ens/enp INTERFACE SHOULD HAVE "options" with {
+    BOOTPROTO=static
+    TYPE=eth
+    CONFIG_WIRELESS=no
+    SYSTEMD_CONTROLLED=no
+    CONFIG_IPV4=yes
+    DISABLED=no  <--- the main one
+    NM_CONTROLLED=no
+    SYSTEMD_CONTROLLED=no
+    }
+    It's done for upping
+7) ROUTING IN vlan network
+    sub-interfaces on Routers
+    host interface has no ip 
+    sub-inteface config "options" {
+    TYPE=vlan
+    HOST=<host interface>
+    VID=#
+    BOOTPROTO=static
+    }
+8) every PC should have default via to <sub-interface ip>
     на всех R sysctl -w net.ipv4.ip_forward=1 + vim /etc/net/sysctl.conf (ip_forward=1)
