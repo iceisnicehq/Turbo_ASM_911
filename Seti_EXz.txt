@@ -47,14 +47,17 @@
     R1   12.15.2.21/30   to R3
     int <1interface_R1> -> ip ospf area 12
     int <2interface_R1> -> ip ospf area 12
+    router ospf -> redistribute connected
     R2   12.15.1.10/30   to R1
     R2   12.15.100.4/28  to SW1 (sw2)
     int <12.15.1.8/30> -> ip ospf area 12
     int <12.15.100.0/27) -> ip ospf area 15
+    router ospf -> redistribute connected
     R3   12.15.2.22/30   to R1
     R3   12.15.200.65/29 to SW4
     int <12.15.2.20/30> -> ip ospf area 12
     int <12.15.200.48/28> -> ip ospf area 16
+    router ospf -> redistribute connected
 
 5) vlans management
     ovs-vsctl add-port ovs0 vlan# -- set interface vlan# type=internal
