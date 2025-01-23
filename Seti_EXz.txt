@@ -77,7 +77,7 @@
     BOOTPROTO=static
     TYPE=eth
     CONFIG_WIRELESS=no
-    SYSTEMD_CONTROLLED=no
+    SYSTEMD_CONTROLLED=no    <--- better delete it
     CONFIG_IPV4=yes
     DISABLED=no
     NM_CONTROLLED=no
