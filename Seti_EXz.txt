@@ -72,13 +72,14 @@
     NM_CONTROLLED=no
     SYSTEMD_CONTROLLED=no
     }
+!!! NO SYSTEMD_BOOTPROTO !!! 
 6) EVERY ens/enp INTERFACE SHOULD HAVE "options" with {
     BOOTPROTO=static
     TYPE=eth
     CONFIG_WIRELESS=no
     SYSTEMD_CONTROLLED=no
     CONFIG_IPV4=yes
-    DISABLED=no  <--- the main one
+    DISABLED=no
     NM_CONTROLLED=no
     SYSTEMD_CONTROLLED=no
     }
