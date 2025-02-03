@@ -15,7 +15,7 @@ LOCALS @@
     PREFIXES RECORD          prefix:1, sib:1, modrm:1, ext:1, size66:1, addr67:1, seg_over:1, zeros:1 ; PSME SASxb
     ;Mask bit                -128-     -64-   -32-     -16-   -8-       -4-       -2-
 IRP       MASKING,          <prefix,   sib,   modrm,   ext,   size66,   addr67,   seg_over, zeros>
-    MASK_&MASKING           = MASK &MASKING
+    MASK_&MASKING           = MASK MASKING
 ENDM
     MASK_REGULAR            =  0FDh 
     MASK_AAD                =  0FEh
@@ -161,6 +161,7 @@ Start:
     mov         ax, @DATA
     mov         ds, ax
     mov         es, ax
+    or         [info_bytes], NOT prefixes
     mov         ax, 3D00h          
     mov         dx, OFFSET com_file
     int         21h
@@ -296,7 +297,7 @@ put_hex_to_str_bx PROC ; IN (ax - hex_num; bx - str_ptr; dl=1 if word), OUT bx -
     shl         dx, 8
 @@not_word_size:
     mov         cx, si
-    NOT_SET     [info_bytes], MASK_ZEROS, @@skip_zeros
+    NOT_SET     [info_bytes], MASK_ZEROS, @@next
 @@decrease_si:
     test dx, ax
     jne @@skip_zeros

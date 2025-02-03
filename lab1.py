@@ -1,4 +1,4 @@
-# 62*b*c+13*a+a^2   /   a+5*c^2
+# 62*B*C+13*A+A^2   /   A+5*C^2
 def main(reg=0):
     if reg == 0:
         count = 0
@@ -16,10 +16,10 @@ def main(reg=0):
         C = int(input("C: "))
         numerator = 62*B*C+13*A+A^2
         denom = A+5*C**2
-        answer = numerator // denom
+        answer = numerator / denom
         print(answer)
-        print(hex(answer))
+        # print(hex(answer))
 if __name__ == "__main__":
-    main(0)
+    main(1)
     #  6 179 328
     # 10 597 888
