@@ -22,7 +22,8 @@ ENDM
 
 .data
 comFileName                 db      "COM.COM", 0
-errorCom                    db      "Error with openning COM file$"
+comError                    db      "Error with openning COM file$"
+exitMessage                 db      "Exiting...$"
 crfl                        db      0Dh, 0Ah
 crflLen                     EQU     $ - crfl
 
@@ -187,7 +188,8 @@ arrayRegsWord               dw      regAX, regCX, regDX, regBX, regSP, regBP, re
 arrayRegsDword              dw      regEAX, regECX, regEDX, regEBX, regESP, regEBP, regESI, regEDI
 arrayRegsLen                dw      2, 3, 2
                                         
-answerFileName              db      "RES.ASM", 0
+resFileName                 db      "RES.ASM", 0
+resError                    db      "Error with creating RES file$"
 sahfString                  db      "SAHF", 0Dh, 0Ah
 sahfStringLength            EQU     6
 
@@ -205,12 +207,14 @@ answerFile                  db      ?
 cycleCount                  dw      ?
 dispFlag                    db      ?
 disp8BPFlag                 db      ?
-fileNumber                  dw      ?
 nextIsSegFlag               db      ?
 segAddress                  dw      ?
 modd                        dw      ?
 commandsBuffer              db      2048 dup (?)
 xaddFlag                    db      ?
+resFileHandle               dw      ?
+comFileHandle               dw      ?
+
 
 .code
 
@@ -218,17 +222,36 @@ Start:
     mov     ax, @data
     mov     ds, ax
     mov     es, ax
-    
-    mov     ax, 03D00h
+    cld
+    mov     ax, 3D00h
     mov     dx, offset comFileName
     int     21h
-    
-    mov     dx, offset commandsBuffer
-    mov     bx, ax
-    mov     cx, 2048
+    jnc     comNoError
+    mov     dx, offset comError
+    mov     ah, 9
+    int     21h
+    jmp     exit
+comNoError:
+    mov     comFileHandle, ax
+    mov     ah, 3Ch
+    xor     cx, cx 
+    mov     dx, offset resFileName
+    int     21h
+    jnc     resNoError
+    mov     dx, offset resError
+    mov     ah, 9
+    int     21h
+    jmp     exit
+resNoError:
+    mov     resFileHandle, ax
+
+    mov     si, offset commandsBuffer
+    mov     dx, si
+    mov     cx, size commandsBuffer
     
 readingComFile:
     mov     ah, 03Fh
+    mov     bx, comFileHandle
     int     21h
     cmp     ax, cx
     jl      endReadingComFile
@@ -238,19 +261,14 @@ readingComFile:
 
 endReadingComFile:
     add     cycleCount, ax
-createAnswerFile:
-    mov     ah, 03Ch
-    mov     dx, offset answerFileName
-    int     21h
-    mov     fileNumber, ax
-    mov     si, offset commandsBuffer
+
 
 readComBuffer:
 
 
 cycleForCommands:    
     or      cycleCount, 0
-    jz      ending
+    jz      exit
     mov     answerBufferLen, 0
     lodsb
     dec     cycleCount
@@ -348,7 +366,7 @@ byteGS:
 
 writeToFile PROC 
     mov     ah, 40h
-    mov     bx, fileNumber
+    mov     bx, resFileHandle
     int     21h
     ret  
 writeToFile ENDP
@@ -701,11 +719,35 @@ SIB ENDP
 
 
 
-ending:
+exit:
     mov     ah, 03Eh
-    mov     bx, fileNumber
+    mov     bx, resFileHandle
     int     21h
-    
+    mov     bx, comFileHandle
+    int     21h
+    mov     dx, offset exitMessage
+    mov     ah, 09h
+    int     21h
     mov     ah, 04Ch
     int     21h
     end     Start
+
+
+getByte proc
+    mov         ax, numOfReadBytes
+    add         ax, offset commandsBuffer
+    cmp         ax, si
+    ja          getBufByte
+    mov         ah, 3Fh
+    mov         cx, size commandsBuffer
+    mov         dx, offset commandsBuffer
+    mov         si, dx
+    mov         bx, comFileHandle
+    int         21h
+    or          ax, ax
+    jz          exit
+    mov         numOfReadBytes, ax 
+getBufByte:
+    lodsb
+    ret
+endp
