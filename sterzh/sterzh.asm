@@ -210,7 +210,7 @@ nextIsSegFlag               db      ?
 segAddress                  dw      ?
 modd                        dw      ?
 commandsBuffer              db      2048 dup (?)
-
+xaddFlag                    db      ?
 
 .code
 
@@ -254,29 +254,22 @@ cycleForCommands:
     mov     answerBufferLen, 0
     lodsb
     dec     cycleCount
-    cmp     al, 0Fh
-    jne     noByte0F
-    lodsb
-    dec     cycleCount   
-noByte0F:
     movzx   bx, al
     shl     bx, 1
-    call    arrayOP[bx]
+    jmp     arrayOP[bx]
     
 byteSahf:
     writeFileOffset sahfString, sahfStringLength
     jmp     cycleForCommands
 
 byteXadd:
-
-
-btsOPFirst:
-    call    disasmFunction
-    call    writeToBufferImm
-    call    endAnswerBuffer
-    jmp     cycleForCommands
-    
-btsOPSecond:
+    mov     xaddFlag, 1
+    lodsb
+    dec     cycleCount
+    cmp     al, 0C0h
+    jne     no8bit
+    or      operSizeFlag, 2
+no8bit:
     call    disasmFunction
     
     movzx   bx, al
@@ -284,14 +277,19 @@ btsOPSecond:
     shr     bx, 2
     
     or      operSizeFlag, 0
-    jne     dwordLastOperand
-    writeBuffer arrayRegsWord[bx], 2
-    jmp     btsOPSecondEnd
+    je      wordLastOperand
+    cmp     operSizeFlag, 1
+    je      dwordLastOperand
+    writeBuffer arrayRegsByte[bx], 2
+    jmp     xaddEnd
     
+wordLastOperand:
+    writeBuffer arrayRegsWord[bx], 2
+    jmp     xaddEnd
 dwordLastOperand:
     writeBuffer arrayRegsDword[bx], 3
-    
-btsOPSecondEnd:
+    jmp     xaddEnd
+xaddEnd:
     call    endAnswerBuffer
     jmp     cycleForCommands
     
@@ -470,13 +468,13 @@ writeToBuffer ENDP
 
 disasmFunction PROC
     mov     di, offset answerBuffer
-    cmp     al, 0BAh
-    jbe     thisBTS
+    or      xaddflag, 0
+    jnz     xaddTrue 
     writeBufferOffset shlMnem, shlMnemLen
     jmp     goToLodsb   
 
-thisBTS:
-    ; writeBufferOffset BTS_, BTS_Len
+xaddTrue:
+    writeBufferOffset xaddMnem, xaddMnemLen
 goToLodsb:
     lodsb
     dec     cycleCount
@@ -502,7 +500,10 @@ nextNext:
     push    bx
     mov     bx, operSizeFlag
     shl     bx, 1
+    or      xaddflag, 0
+    jnz     noTypeOvr
     writeBufferOffset arrayPtrs[bx], arrayPtrsLen[bx]
+noTypeOvr:
     or      segAddress, 0
     je      notSeg
     or      nextIsSegFlag, 1
@@ -601,7 +602,7 @@ endAnswerBuffer PROC
     mov     operSizeFlag, 0
     mov     addrSizeFlag, 0
     mov     SIBbyteFlag, 0
-    
+    mov     xaddFlag, 0 
     ret
 endAnswerBuffer ENDP
 
