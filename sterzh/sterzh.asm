@@ -169,7 +169,7 @@ disp8BPFlag                 db      ?
 nextIsSegFlag               db      ?
 segAddress                  dw      ?
 modd                        dw      ?
-dataBuffer                  db      4096 dup (?)
+dataBuffer                  db      30 dup (?)
 xaddFlag                    db      ?
 resFileHandle               dw      ?
 comFileHandle               dw      ?
@@ -203,18 +203,9 @@ comNoError:
     jmp     exit
 resNoError:
     mov     resFileHandle, ax
-    mov     si, offset dataBuffer
-    mov     dx, si
-    mov     cx, size dataBuffer
-    mov     ah, 3Fh
-    mov     bx, comFileHandle
-    int     21h
-    add     ax, si
-    mov     dataBytes, ax
-findNextOpcode:    
-    cmp     si, databytes
-    je      exit
-    lodsb
+findNextOpcode:
+    mov     cl, 1
+    call    readFile
     movzx   bx, al
     shl     bx, 1
     jmp     arrayOP[bx]
@@ -225,7 +216,8 @@ byteSahf:
     jmp     findNextOpcode
 byteXadd:
     mov     xaddFlag, 1
-    lodsb
+    mov     cl, 1
+    call    readFile
     cmp     al, 0C0h
     jne     no8bit
     or      operSizeFlag, 2
@@ -319,7 +311,8 @@ writeToBufferImm PROC
 
     or      disp8BPFlag, 0
     je      normal
-    lodsb
+    mov     cl, 1
+    call    readFile
     mov     disp8BPFlag, 0
     or      al, al
     jnz     saveSi
@@ -332,18 +325,19 @@ normal:
     je      byteImm
     cmp     dispCounter, 4
     je      wordImm
-    
-    lodsd
+    mov     cl, 4
+    call    readFile
     or      disp32Flag, 1
-    jmp         saveSi
+    jmp     saveSi
     
 wordImm:
-    lodsw
+    mov     cl, 2
+    call    readFile
     jmp     saveSi
 
 byteImm:
-    lodsb
-
+    mov     cl, 1
+    call    readFile
 saveSi:
     push    si
     mov     si, offset immBuffer
@@ -432,7 +426,8 @@ xaddTrue:
     mov     cx, xaddMnemLen
     call    writeToBuffer
 goToLodsb:
-    lodsb
+    mov     cl, 1
+    call    readFile
     push    ax
         
     movzx   bp, al
@@ -605,7 +600,8 @@ addressing32Bit ENDP
 
 
 SIB PROC
-    lodsb
+    mov     cl, 1 
+    call    readFile
     push    bp
     push    bx
 
@@ -630,7 +626,8 @@ SIB PROC
     mov     ax, ds:[bp + arraySIBIndexSS]
     mov     cx, ds:[bp + arraySIBIndexSSLen]
     call    writeToBuffer
-    lodsd
+    mov     cl, 4
+    call    readFile
     or      eax, eax
     jnz     haveDisp
     jmp     retRet
@@ -683,24 +680,36 @@ exit:
     int     21h
     mov     ah, 04Ch
     int     21h
-    end     Start
 
 
-getByte proc
-    mov         ax, numOfReadBytes
-    add         ax, offset dataBuffer
-    cmp         ax, si
-    ja          getBufByte
-    mov         ah, 3Fh
-    mov         cx, size dataBuffer
-    mov         dx, offset dataBuffer
-    mov         si, dx
-    mov         bx, comFileHandle
-    int         21h
-    or          ax, ax
-    jz          exit
-    mov         numOfReadBytes, ax 
-getBufByte:
+; cl is the number of bytes
+readFile proc
+    cmp     si, databytes
+    jnz     readBuffer
+    push    ax cx
+    mov     ah, 3Fh
+    mov     cx, size dataBuffer
+    mov     dx, offset dataBuffer
+    mov     si, dx
+    mov     bx, comFileHandle
+    int     21h
+    or      ax, ax
+    jz      exit
+    add     ax, si
+    mov     databytes, ax
+    pop     cx ax
+readBuffer:
+    cmp     cl, 2
+    ja      getDword
+    jb      getByte
+    lodsw   
+    ret
+getByte:
     lodsb
     ret
+getDword:
+    lodsd
+    ret
 endp
+
+    end     Start
