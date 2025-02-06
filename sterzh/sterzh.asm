@@ -245,7 +245,6 @@ byteOper:
 byteAddr:
     or      addrSizeOvr, 1
     jmp     findNextOpcode
-
 byteES:
     mov     segAddress, offset ESseg
     jmp     findNextOpcode
@@ -273,17 +272,22 @@ exit:
     mov     dx, offset exitMessage
     mov     ah, 9
     int     21h
-    mov     ah,04Ch
+    mov     ah, 4Ch
     int     21h
 
-
+writeToBuffer PROC
+    push    si
+    mov     si, ax
+    rep     movsb  
+    pop     si
+    ret
+ENDP
 
 writeToBufferImm PROC
     xor     dx, dx
     mov     bx, 16
     movzx   cx, immDispLen
     inc     cx
-
     or      isDisp8BitBp, 0
     je      normal
     lodsb
@@ -292,24 +296,19 @@ writeToBufferImm PROC
     jnz     saveSi
     dec     di
     jmp     skip    
-    
 normal:    
     cmp     immDispLen, 2
     je      byteImm
     cmp     immDispLen, 4
     je      wordImm
-    
     lodsd
     or      isDisp32Bit, 1
-    jmp         saveSi
-    
+    jmp     saveSi
 wordImm:
     lodsw
     jmp     saveSi
-
 byteImm:
     lodsb
-
 saveSi:
     push    si
     mov     si, offset immDispBuf
@@ -340,7 +339,6 @@ endCycleStore:
     dec     si
     mov     byte ptr [si], '0'
     inc     cx
-
 storeToBuffer:
     rep     movsb
     pop     si
@@ -349,18 +347,6 @@ skip:
     ret
 ENDP
 
-
-
-writeToBuffer PROC
-    push    si
-    mov     si, ax
-    rep     movsb  
-    pop     si
-    ret
-ENDP
-
-
-
 disasmFunction PROC
     mov     di, offset instrBuffer
     or      isXadd, 0
@@ -368,8 +354,7 @@ disasmFunction PROC
     mov     ax, offset shlMnem
     mov     cx, 7
     call    writeToBuffer
-    jmp     goToLodsb   
-
+    jmp     goToLodsb
 xaddTrue:
     mov     ax, offset xaddMnem
     mov     cx, 7
@@ -377,23 +362,19 @@ xaddTrue:
 goToLodsb:
     lodsb
     push    ax
-        
     movzx   bp, al
     mov     bx, bp
-    and     bp, 0000000011000000b
+    and     bp, 11000000b
     shr     bp, 6
     or      word ptr modrmMod, bp
-    and     bx, 0000000000000111b
-    
+    and     bl, 111b
     cmp     bp, 11b
     je      writeOperand
-    
     or      addrSizeOvr, 0
     je      nextNext
-    cmp     bx, 100b
+    cmp     bl, 100b
     jne     nextNext
-    or      sibByte, 1    
-    
+    or      sibByte, 1
 nextNext:    
     push    bx
     movzx   bx, operSizeOvr
@@ -423,7 +404,7 @@ notSeg:
     mov     immDispLen, 8
     jmp     writeOperand
 checkDisp8:
-    cmp     bp, 01b
+    cmp     bp, 1
     jne     disp32write
     cmp     bx, 101b
     jne     checkDisp8Next
@@ -437,14 +418,13 @@ disp32write:
     or      isDisp, 1
     jmp     writeOperand
 notAddressing32Bit:    
-    cmp     bp, 01b
+    cmp     bp, 1
     jne     disp16check
     or      isDisp, 1
     cmp     bx, 110b
     jne     writeOperand
     or      isDisp8BitBp, 1
     jmp     writeOperand
-    
 disp16check:
     cmp     bp, 10b
     je      disp16write
@@ -453,7 +433,6 @@ disp16check:
 disp16write:
     mov     immDispLen, 4
     or      isDisp, 1
-    
 writeOperand:
     cmp     bp, 11b
     jne     checkAddrSize
@@ -477,7 +456,6 @@ checkAddrSize:
     mov     bx, bp
     or      addrSizeOvr, 0
     je      wordSize
-    
     mov     ax, modrm32Bit[bx]
     mov     cx, modrm32BitLenStr[bx]
     or      segAddress, 0
@@ -568,7 +546,6 @@ continue:
     stosb  
 writeWrite:
     call    writeToBufferImm
-
 writeLastOperand:
     mov     ax, ",]"
     stosw
@@ -577,4 +554,4 @@ reting:
     ret
 ENDP
 
-    end     Start
+    End     Start
