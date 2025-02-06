@@ -28,7 +28,6 @@ SP_                         db      "SP,"
 BP_                         db      "BP,"
 SI_                         db      "SI,"
 DI_                         db      "DI,"
-regs16len                   EQU     3
 EAX_                        db      "EAX,"
 ECX_                        db      "ECX,"
 EDX_                        db      "EDX,"
@@ -37,22 +36,22 @@ ESP_                        db      "ESP,"
 EBP_                        db      "EBP,"
 ESI_                        db      "ESI,"
 EDI_                        db      "EDI,"
-arrayRegsByte               dw      AL_,  CL_,  DL_,  BL_,  AH_,  CH_,  DH_,  BH_                                                                           
-arrayRegsWord               dw      AX_,  CX_,  DX_,  BX_,  SP_,  BP_,  SI_,  DI_
-arrayRegsDword              dw      EAX_, ECX_, EDX_, EBX_, ESP_, EBP_, ESI_, EDI_
-BX_SI                       db      "DS:[BX+SI+"
-BX_DI                       db      "DS:[BX+DI+"
-BP_SI                       db      "SS:[BP+SI+"
-BP_DI                       db      "SS:[BP+DI+"
+byteRegs                    dw      AL_,  CL_,  DL_,  BL_,  AH_,  CH_,  DH_,  BH_                                                                           
+wordRegs                    dw      AX_,  CX_,  DX_,  BX_,  SP_,  BP_,  SI_,  DI_
+dwrdRegs                    dw      EAX_, ECX_, EDX_, EBX_, ESP_, EBP_, ESI_, EDI_
+BXSIrm                      db      "DS:[BX+SI+"
+BXDIrm                      db      "DS:[BX+DI+"
+BPSIrm                      db      "SS:[BP+SI+"
+BPDIrm                      db      "SS:[BP+DI+"
 SIrm                        db      "DS:[SI+"
 DIrm                        db      "DS:[DI+"
 disp_                       db      "DS:["
 BPrm                        db      "SS:[BP+"
 BXrm                        db      "DS:[BX+"
-array16BitModRM             dw      BX_SI, BX_DI, BP_SI, BP_DI, SIrm, DIrm, disp_, BXrm
-                            dw      BX_SI, BX_DI, BP_SI, BP_DI, SIrm, DIrm, BPrm,  BXrm
-                            dw      BX_SI, BX_DI, BP_SI, BP_DI, SIrm, DIrm, BPrm,  BXrm
-array16BitModRMLen          dw      9,   9,  9,  9, 6, 6, 4, 6
+modrm16Bit                  dw      BXSIrm, BXDIrm, BPSIrm, BPDIrm, SIrm, DIrm, disp_, BXrm
+                            dw      BXSIrm, BXDIrm, BPSIrm, BPDIrm, SIrm, DIrm, BPrm,  BXrm
+                            dw      BXSIrm, BXDIrm, BPSIrm, BPDIrm, SIrm, DIrm, BPrm,  BXrm
+modrm16BitLenStr            dw      9,   9,  9,  9, 6, 6, 4, 6
                             dw      10, 10, 10, 10, 7, 7, 7, 7
                             dw      10, 10, 10, 10, 7, 7, 7, 7
 EAXrm                       db      "DS:[EAX+"
@@ -62,10 +61,10 @@ EBXrm                       db      "DS:[EBX+"
 EBPrm                       db      "SS:[EBP+"
 ESIrm                       db      "DS:[ESI+"
 EDIrm                       db      "DS:[EDI+"
-array32BitModRM             dw      EAXrm, ECXrm, EDXrm, EBXrm, disp_, disp_, ESIrm, EDIrm
+modrm32Bit                  dw      EAXrm, ECXrm, EDXrm, EBXrm, disp_, disp_, ESIrm, EDIrm
                             dw      EAXrm, ECXrm, EDXrm, EBXrm, disp_, EBPrm, ESIrm, EDIrm
                             dw      EAXrm, ECXrm, EDXrm, EBXrm, disp_, EBPrm, ESIrm, EDIrm
-array32BitModRMLen          dw      7, 7, 7, 7, 4, 4, 7, 7
+modrm32BitLenStr            dw      7, 7, 7, 7, 4, 4, 7, 7
                             dw      8, 8, 8, 8, 4, 8, 8, 8
                             dw      8, 8, 8, 8, 4, 8, 8, 8
 EAX2                        db      "EAX*2"
@@ -89,29 +88,25 @@ EBX8                        db      "EBX*8"
 EBP8                        db      "EBP*8"
 ESI8                        db      "ESI*8"
 EDI8                        db      "EDI*8"
-arraySIBIndexSS             dw      EAX_, ECX_, EDX_, EBX_, 0, EBP_, ESI_, EDI_
+sibIndex                    dw      EAX_, ECX_, EDX_, EBX_, 0, EBP_, ESI_, EDI_
                             dw      EAX2, ECX2, EDX2, EBX2, 0, EBP2, ESI2, EDI2
                             dw      EAX4, ECX4, EDX4, EBX4, 0, EBP4, ESI4, EDI4
                             dw      EAX8, ECX8, EDX8, EBX8, 0, EBP8, ESI8, EDI8
-arraySIBIndexSSLen          dw      8   dup (3)
+sibIndexLenStr              dw      8   dup (3)
                             dw      3*8 dup (5)
-
-arrayRegBase                dw      EAX_, ECX_, EDX_, EBX_, ESP_, EBP_, ESI_, EDI_
-
+sibBase                     dw      EAX_, ECX_, EDX_, EBX_, ESP_, EBP_, ESI_, EDI_
 wordPtr                     db      "word ptr "
 dwordPtr                    db      "dword ptr "
 bytePtr                     db      "byte ptr "
-arrayPtrs                   dw      wordPtr, dwordPtr, bytePtr
-arrayPtrsLen                dw      9, 10, 9
-
+typeOvr                     dw      wordPtr, dwordPtr, bytePtr
+typeOvrLenStr               dw      9, 10, 9
 ESseg                       db      "ES"
 CSseg                       db      "CS"
 SSseg                       db      "SS"
 DSseg                       db      "DS"
 FSseg                       db      "FS"
 GSseg                       db      "GS"
-
-arrayOP                     dw      15 dup(findNextOpcode)
+opcodeTable                 dw      15 dup(findNextOpcode)
                             dw      byteXadd
                             dw      22 dup (findNextOpcode)
                             dw      byteES, 7 dup(findNextOpcode), byteCS, 7 dup(findNextOpcode)
@@ -123,22 +118,21 @@ arrayOP                     dw      15 dup(findNextOpcode)
                             dw      byteShlC0, byteShlC1
                             dw      14 dup(findNextOpcode)
                             dw      byteShlD0, byteShlD1, byteShlD2, byteShlD3 
-
-immBuffer                   db      '000000000h'
-dispCounter                 dw      ?
-operSizeFlag                dw      ?
-addrSizeFlag                dw      ?
-instrBuffer                 db      64 dup (?)
-SIBbyteFlag                 db      ?
-disp32Flag                  db      ?
-dataBytes                   dw      ?
-dispFlag                    db      ?
-disp8BPFlag                 db      ?
-nextIsSegFlag               db      ?
+immDispBuf                  db      '000000000h'
+immDispLen                  dw      ?
+operSizeOvr                 dw      ?
+addrSizeOvr                 dw      ?
+sibByte                     db      ?
+isDisp32Bit                 db      ?
+isDisp                      db      ?
+isDisp8BitBp                db      ?
+isSegNext                   db      ?
 segAddress                  dw      ?
-modd                        dw      ?
+modrmMod                    dw      ?
+instrBuffer                 db      64 dup (?)
 dataBuffer                  db      4096 dup (?)
-xaddFlag                    db      ?
+dataBytesNum                dw      ?
+isXadd                      db      ?
 resFileHandle               dw      ?
 comFileHandle               dw      ?
 
@@ -178,75 +172,83 @@ resNoError:
     mov     bx, comFileHandle
     int     21h
     add     ax, si
-    mov     dataBytes, ax
+    mov     dataBytesNum, ax
+    jmp     resetVals
+prepWriteFile:
+    mov     ax, 0A0Dh
+    stosw 
+    mov     dx, offset instrBuffer
+    mov     cx, di
+    sub     cx, dx
+writeFile:
+    mov     ah, 40h
+    mov     bx, resFileHandle
+    int     21h  
+resetVals:
+    mov     isDisp, 0
+    mov     operSizeOvr, 0
+    mov     addrSizeOvr, 0
+    mov     sibByte, 0
+    mov     isXadd, 0 
 findNextOpcode:    
-    cmp     si, databytes
+    cmp     si, databytesNum
     ja      exit
     lodsb
     movzx   bx, al
     shl     bx, 1
-    jmp     arrayOP[bx]
+    jmp     opcodeTable[bx]
 byteSahf:
     mov     dx, offset sahfMnem
     mov     cx, 6
-    call    writeToFile    
-    jmp     findNextOpcode
+    jmp     writeFile
 byteXadd:
-    mov     xaddFlag, 1
+    mov     isXadd, 1
     lodsb
     cmp     al, 0C0h
     jne     no8bit
-    or      operSizeFlag, 2
+    or      operSizeOvr, 2
 no8bit:
     call    disasmFunction
     movzx   bx, al
     and     bl, 111000b
     mov     cx, 2
     shr     bx, cl
-    mov     ax, arrayRegsWord[bx]
-    or      operSizeFlag, 0
+    mov     ax, wordRegs[bx]
+    or      operSizeOvr, 0
     je      xaddEnd
-    mov     ax, arrayRegsByte[bx]
-    cmp     operSizeFlag, 1
+    mov     ax, byteRegs[bx]
+    cmp     operSizeOvr, 1
     jne     xaddEnd
-    mov     ax, arrayRegsDword[bx]
+    mov     ax, dwrdRegs[bx]
     inc     cx
 xaddEnd:
     call    writeToBuffer
-    call    endAnswerBuffer
-    jmp     findNextOpcode
-    
+    jmp     prepWriteFile
 byteShlC0:
-    or      operSizeFlag, 2
+    or      operSizeOvr, 2
 byteShlC1:
     call    disasmFunction
     call    writeToBufferImm
-    call    endAnswerBuffer
-    jmp     findNextOpcode
-    
+    jmp     prepWriteFile   
 byteShlD0:
-    or      operSizeFlag, 2
+    or      operSizeOvr, 2
 byteShlD1:
     call    disasmFunction
     mov     al, "1"
     stosb
-    call    endAnswerBuffer
-    jmp     findNextOpcode
-    
+    jmp     prepWriteFile    
 byteShlD2:
-    or      operSizeFlag, 2
+    or      operSizeOvr, 2
 byteShlD3:
     call    disasmFunction
     mov     ax, "LC"
     stosw
-    call    endAnswerBuffer
-    jmp     findNextOpcode
-
+    jmp     prepWriteFile
 byteOper:
-    or      operSizeFlag, 1
+    or      operSizeOvr, 1
     jmp     findNextOpcode
 byteAddr:
-    or      addrSizeFlag, 1
+    or      addrSizeOvr, 1
     jmp     findNextOpcode
 
 byteES:
@@ -267,39 +269,43 @@ byteFS:
 byteGS:
     mov     segAddress, offset GSseg
     jmp     findNextOpcode
-
-writeToFile PROC 
-    mov     ah, 40h
+exit:
+    mov     ah, 3Eh
     mov     bx, resFileHandle
     int     21h
-    ret  
-writeToFile ENDP
+    mov     bx, comFileHandle
+    int     21h
+    mov     dx, offset exitMessage
+    mov     ah, 9
+    int     21h
+    mov     ah,04Ch
+    int     21h
 
 
 
 writeToBufferImm PROC
     xor     dx, dx
     mov     bx, 16
-    mov     cx, dispCounter
+    mov     cx, immDispLen
     inc     cx
 
-    or      disp8BPFlag, 0
+    or      isDisp8BitBp, 0
     je      normal
     lodsb
-    mov     disp8BPFlag, 0
+    mov     isDisp8BitBp, 0
     or      al, al
     jnz     saveSi
     dec     di
     jmp     skip    
     
 normal:    
-    cmp     dispCounter, 2
+    cmp     immDispLen, 2
     je      byteImm
-    cmp     dispCounter, 4
+    cmp     immDispLen, 4
     je      wordImm
     
     lodsd
-    or      disp32Flag, 1
+    or      isDisp32Bit, 1
     jmp         saveSi
     
 wordImm:
@@ -311,7 +317,7 @@ byteImm:
 
 saveSi:
     push    si
-    mov     si, offset immBuffer
+    mov     si, offset immDispBuf
     add     si, 8
 cycleStore:
     idiv    bx
@@ -323,17 +329,17 @@ digit:
     or      dl, 30h
 store:
     mov     [si], dl
-    dec     dispCounter
+    dec     immDispLen
     jz      endCycleStore
     xor     dl, dl
     dec     si
-    cmp     dispCounter, 4
+    cmp     immDispLen, 4
     jne     nextChar
     shr     eax, 16
 nextChar:
     jmp     cycleStore
 endCycleStore:
-    mov     disp32Flag, 0
+    mov     isDisp32Bit, 0
     cmp     dl, 39h
     jna     storeToBuffer
     dec     si
@@ -343,10 +349,10 @@ endCycleStore:
 storeToBuffer:
     rep     movsb
     pop     si
-    mov     dispCounter, 2
+    mov     immDispLen, 2
 skip:
     ret
-writeToBufferImm ENDP
+ENDP
 
 
 
@@ -355,7 +361,7 @@ writeToBuffer PROC
     
     or      segAddress, 0
     je      standartSeg
-    or      nextIsSegFlag, 0
+    or      isSegNext, 0
     jne     noStandartSeg
     
 standartSeg:
@@ -372,18 +378,18 @@ noStandartSeg:
     add     si, 2
     rep     movsb
     mov     segAddress, 0
-    mov     nextIsSegFlag, 0
+    mov     isSegNext, 0
     
 return:    
     pop     si
     ret
-writeToBuffer ENDP
+ENDP
 
 
 
 disasmFunction PROC
     mov     di, offset instrBuffer
-    or      xaddflag, 0
+    or      isXadd, 0
     jnz     xaddTrue 
     mov     ax, offset shlMnem
     mov     cx, 7
@@ -402,46 +408,63 @@ goToLodsb:
     movzx   bx, al
     and     bp, 0000000011000000b
     shr     bp, 6
-    mov     modd, bp
+    mov     modrmMod, bp
     and     bx, 0000000000000111b
     
     cmp     bp, 11b
     je      writeOperand
     
-    or      addrSizeFlag, 0
+    or      addrSizeOvr, 0
     je      nextNext
     cmp     bx, 100b
     jne     nextNext
-    or      SIBbyteFlag, 1    
+    or      sibByte, 1    
     
 nextNext:    
     push    bx
-    mov     bx, operSizeFlag
+    mov     bx, operSizeOvr
     shl     bx, 1
-    or      xaddflag, 0
+    or      isXadd, 0
     jnz     noTypeOvr
-    mov     ax, offset arrayPtrs[bx]
-    mov     cx, arrayPtrsLen[bx]
+    mov     ax, offset typeOvr[bx]
+    mov     cx, typeOvrLenStr[bx]
     call    writeToBuffer
 noTypeOvr:
     or      segAddress, 0
     je      notSeg
-    or      nextIsSegFlag, 1
+    or      isSegNext, 1
 notSeg:
     pop     bx
-    
-    or      addrSizeFlag, 0
+    or      addrSizeOvr, 0
     je      notAddressing32Bit
-    call    addressing32Bit
+    or      bp, 0
+    jne     checkDisp8
+    cmp     bx, 101b
+    jne     writeOperand
+    or      isDisp, 1
+    mov     immDispLen, 8
     jmp     writeOperand
-
+checkDisp8:
+    cmp     bp, 01b
+    jne     disp32write
+    cmp     bx, 101b
+    jne     checkDisp8Next
+    or      isDisp8BitBp, 1
+checkDisp8Next:
+    mov     immDispLen, 2
+    or      isDisp, 1
+    jmp     writeOperand
+disp32write:
+    mov     immDispLen, 8
+    or      isDisp, 1
+    jmp     writeOperand
 notAddressing32Bit:    
     cmp     bp, 01b
     jne     disp16check
-    or      dispFlag, 1
+    or      isDisp, 1
     cmp     bx, 110b
     jne     writeOperand
-    or      disp8BPFlag, 1
+    or      isDisp8BitBp, 1
     jmp     writeOperand
     
 disp16check:
@@ -450,20 +473,20 @@ disp16check:
     cmp     bx, 110b
     jne     writeOperand
 disp16write:
-    mov     dispCounter, 4
-    or      dispFlag, 1
+    mov     immDispLen, 4
+    or      isDisp, 1
     
 writeOperand:
     cmp     bp, 11b
     jne     checkAddrSize
     shl     bx, 1
     mov     cx, 3
-    mov     ax, arrayRegsByte[bx]
-    cmp     operSizeFlag, 1
+    mov     ax, byteRegs[bx]
+    cmp     operSizeOvr, 1
     ja      writeRegOperand
-    mov     ax, arrayRegsWord[bx]
+    mov     ax, wordRegs[bx]
     jne     writeRegOperand
-    mov     ax, arrayRegsDword[bx]
+    mov     ax, dwrdRegs[bx]
     inc     cx
 writeRegOperand:
     call    writeToBuffer
@@ -474,28 +497,82 @@ checkAddrSize:
     add     bp, bx
     shl     bp, 1
     mov     bx, bp
-    or      addrSizeFlag, 0
+    or      addrSizeOvr, 0
     je      wordSize
     
-    mov     ax, array32BitModRM[bx]
-    mov     cx, array32BitModRMLen[bx]
+    mov     ax, modrm32Bit[bx]
+    mov     cx, modrm32BitLenStr[bx]
     call    writeToBuffer
     pop     bp
-    or      SIBbyteFlag, 0
+    or      sibByte, 0
     jz      continue
-    call    SIB
-    jmp    continue
+    lodsb
+    push    bp 
+    movzx   bp, al
+    mov     bx, bp
+    and     bp, 11000000b
+    shr     bp, 6
+    and     bl, 111000b       
+    shr     bl, 3                       
+    push    bx
+    mov     bl, al
+    and     bl, 111b
+    cmp     bl, 101b
+    jne     not101Base
+    or      modrmMod, 0
+    jne     not101Base
+    pop     bx
+    shl     bp, 3
+    add     bp, bx
+    shl     bp, 1
+    mov     bx, bp
+    mov     ax, sibIndex[bx]
+    mov     cx, sibIndexLenStr[bx]
+    call    writeToBuffer
+    lodsd
+    or      eax, eax
+    jnz     haveDisp
+    jmp     retRet
+haveDisp:
+    sub     si, 4
+    mov     al, "+"
+    stosb  
+    push    immDispLen
+    mov     immDispLen, 8
+    call    writeToBufferImm
+    pop     immDispLen
+    jmp     retRet
+not101Base:
+    shl     bx, 1
+    mov     ax, sibBase[bx]
+    mov     cx, 3
+    call    writeToBuffer
+    pop     bx
+    cmp     bx, 100b
+    je      retRet
+    mov     al, "+"
+    stosb    
+    shl     bp, 3
+    add     bp, bx
+    shl     bp, 1
+    mov     bx, bp
+    mov     ax, sibIndex[bx]
+    mov     cx, sibIndexLenStr[bx]
+    call    writeToBuffer
+retRet:
+    pop     bp
+    jmp     continue
 wordSize:
-    mov     ax, array16BitModR[bx]
-    mov     cx, array16BitModRMLen[bx]
+    mov     ax, modrm16Bit[bx]
+    mov     cx, modrm16BitLenStr[bx]
     call    writeToBuffer
     pop     bp
 continue:   
     cmp     bp, 11b
     je      reting
-    or      dispFlag, 0
+    or      isDisp, 0
     je      writeLastOperand
-    or      SIBbyteFlag, 0
+    or      sibByte, 0
     je      writeWrite
     mov     al, "+"
     stosb  
@@ -508,134 +585,6 @@ writeLastOperand:
 reting:
     pop     ax
     ret
-disasmFunction ENDP
-    
+ENDP
 
-
-endAnswerBuffer PROC
-    mov     ax, 0A0Dh
-    stosw 
-    mov     dx, offset instrBuffer
-    mov     cx, di
-    sub     cx, dx
-    call    writeToFile    
-    mov     dispFlag, 0
-    mov     operSizeFlag, 0
-    mov     addrSizeFlag, 0
-    mov     SIBbyteFlag, 0
-    mov     xaddFlag, 0 
-    ret
-endAnswerBuffer ENDP
-
-
-
-addressing32Bit PROC
-    or      bp, 0
-    jne     checkDisp8
-    cmp     bx, 101b
-    jne     retGo
-    or      dispFlag, 1
-    mov     dispCounter, 8
-    jmp     retGo
-    
-checkDisp8:
-    cmp     bp, 01b
-    jne     disp32write
-    cmp     bx, 101b
-    jne     checkDisp8Next
-    or      disp8BPFlag, 1
-checkDisp8Next:
-    mov     dispCounter, 2
-    or      dispFlag, 1
-    jmp     retGo
-    
-disp32write:
-    mov     dispCounter, 8
-    or      dispFlag, 1
-
-retGo:
-    ret
-addressing32Bit ENDP
-
-
-
-SIB PROC
-    lodsb
-    push    bp
-    push    bx
-
-    movzx   bp, al
-    movzx   bx, al
-    and     bp, 0000000011000000b       
-    shr     bp, 6                       
-    and     bx, 0000000000111000b       
-    shr     bx, 3                       
-    push    bx
-    movzx   bx, al
-    and     bx, 0000000000000111b       
-    
-    cmp     bx, 101b
-    jne     not101Base
-    or      modd, 0
-    jne     not101Base
-    pop     bx
-    shl     bp, 3
-    add     bp, bx
-    shl     bp, 1
-    mov     ax, ds:[bp + arraySIBIndexSS]
-    mov     cx, ds:[bp + arraySIBIndexSSLen]
-    call    writeToBuffer
-    lodsd
-    or      eax, eax
-    jnz     haveDisp
-    jmp     retRet
-   
-haveDisp:
-    sub     si, 4
-    mov     al, "+"
-    stosb  
-    push    dispCounter
-    mov     dispCounter, 8
-    call    writeToBufferImm
-    pop     dispCounter
-    jmp     retRet
-    
-not101Base:
-    shl     bx, 1
-    mov     ax, arrayRegBase[bx]
-    mov     cx, 3
-    call    writeToBuffer
-    pop     bx
-    cmp     bx, 100b
-    je      retRet
-    
-    mov     al, "+"
-    stosb    
-    shl     bp, 3
-    add     bp, bx
-    shl     bp, 1
-    mov     ax, ds:[bp + arraySIBIndexSS]
-    mov     cx, ds:[bp + arraySIBIndexSSLen]
-    call    writeToBuffer
-retRet:
-    pop     bx
-    pop     bp
-    ret
-SIB ENDP
-
-
-
-exit:
-    mov     ah, 3Eh
-    mov     bx, resFileHandle
-    int     21h
-    mov     bx, comFileHandle
-    int     21h
-    mov     dx, offset exitMessage
-    mov     ah, 9
-    int     21h
-    mov     ah,04Ch
-    int     21h
     end     Start
-
-endp
