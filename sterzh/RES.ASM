@@ -1,0 +1,105 @@
+SAHF
+SHL     AL,CL
+SHL     BX,CL
+SHL     ECX,CL
+SHL     DL,1
+SHL     SP,02H
+SHL     EBP,03H
+SHL     byte ptr DS:[SI],CL
+SHL     word ptr DS:[DI],1
+SHL     dword ptr SS:[BP],CL
+SHL     byte ptr DS:[BX+SI],1
+SHL     word ptr DS:[BX+DI],CL
+SHL     dword ptr SS:[BP+SI],02H
+SHL     byte ptr SS:[BP+DI],CL
+SHL     word ptr DS:[SI+1234H],1
+SHL     dword ptr DS:[DI+5678H],CL
+SHL     byte ptr DS:[BX+0AAAAH],0AAH
+SHL     word ptr SS:[BP+0BBBBH],CL
+SHL     dword ptr DS:[SI+12H],03H
+SHL     byte ptr DS:[DI+34H],1
+SHL     word ptr DS:[BX+1234H],CL
+SHL     dword ptr SS:[BP+5678H],02H
+SHL     byte ptr DS:[EAX],CL
+SHL     word ptr DS:[EBX],1
+SHL     dword ptr DS:[ECX],CL
+SHL     byte ptr DS:[EDX],00H
+SHL     word ptr DS:[ESI],CL
+SHL     dword ptr DS:[EDI],1
+SHL     byte ptr DS:[EAX+EBX],CL
+SHL     word ptr DS:[ECX+EDX],02H
+SHL     dword ptr DS:[ESI+EDI],CL
+SHL     byte ptr DS:[EAX+00001234H],1
+SHL     word ptr DS:[EBX+00005678H],CL
+SHL     dword ptr DS:[ECX+00001234H],02H
+SHL     byte ptr DS:[EDX+00005678H],CL
+SHL     word ptr DS:[ESI+00001234H],1
+SHL     dword ptr DS:[EDI+00005678H],CL
+SHL     byte ptr DS:[EAX+EBX*2],02H
+SHL     word ptr DS:[ECX+EDX*4],CL
+SHL     dword ptr DS:[ESI+EDI*8],1
+SHL     byte ptr DS:[EAX+EBX*2+10203040H],CL
+SHL     word ptr DS:[ECX+EDX*4+0AAAA5678H],02H
+SHL     dword ptr DS:[ESI+EDI*8+0BBBB1234H],CL
+SHL     byte ptr DS:[EAX+EBX*2+0ABCDABCDH],1
+SHL     word ptr DS:[ECX+EDX*4+00001234H],CL
+SHL     dword ptr DS:[ESI+EDI*8+00005678H],02H
+SHL     byte ptr DS:[EAX+EBX*2+00001234H],CL
+SHL     word ptr DS:[ECX+EDX*4+00005678H],1
+SHL     dword ptr DS:[ESI+EDI*8+00001234H],CL
+SHL     byte ptr DS:[EAX+EBX*2+00005678H],02H
+SHL     word ptr DS:[ECX+EDX*4+00001234H],CL
+SHL     dword ptr DS:[ESI+EDI*8+00005678H],1
+LOCK SHL     dword ptr DS:[ESP],1
+XADD    AL,BL
+XADD    AX,CX
+XADD    EAX,EDX
+XADD    BL,CL
+XADD    BX,DX
+XADD    EBX,ECX
+XADD    CL,DL
+XADD    CX,SI
+XADD    ECX,ESI
+XADD    DL,AH
+XADD    DX,DI
+XADD    EDX,EDI
+XADD    DS:[SI],AL
+XADD    DS:[DI],BX
+XADD    SS:[BP],ECX
+XADD    DS:[BX+SI],DL
+XADD    DS:[BX+DI],SI
+XADD    SS:[BP+SI],EDX
+XADD    SS:[BP+DI],BH
+XADD    DS:[SI+1234H],DI
+XADD    DS:[DI+5678H],EBP
+XADD    DS:[BX+0CCCCH],CL
+XADD    SS:[BP+00AAH],SP
+XADD    DS:[SI+12H],ESI
+XADD    DS:[DI+56H],DH
+XADD    DS:[BX+1234H],BP
+XADD    SS:[BP],EDI
+XADD    DS:[EAX],BL
+XADD    DS:[EBX],CX
+XADD    DS:[ECX],EDX
+XADD    DS:[EDX],AH
+XADD    DS:[ESI],DI
+XADD    DS:[EDI],ESP
+XADD    DS:[EAX+EBX],CL
+XADD    DS:[ECX+EDX],SI
+XADD    DS:[ESI+EDI],EBP
+XADD    DS:[EAX+0AAAABBBBH],DL
+XADD    DS:[EBX+00001000H],BP
+XADD    DS:[ECX+00001234H],ESI
+XADD    DS:[EDX+EDX],BH
+XADD    DS:[EBP+ESI+12345678H],DI
+XADD    DS:[EDI+00005678H],EBP
+XADD    DS:[EAX+EBX*2],CL
+XADD    DS:[ECX+EDX*4],SI
+XADD    DS:[ESI+EDI*8],EBP
+XADD    DS:[EAX+EBX*2+00001234H],DL
+XADD    DS:[ECX+EDX*4+00005678H],BP
+XADD    DS:[ESI+EDI*8+00001234H],ESI
+XADD    DS:[EAX+EBX*2+00005678H],BH
+XADD    DS:[ECX+EDX*4+00001234H],DI
+XADD    DS:[ESI+EDI*8+00005678H],EBP
+LOCK XADD    SS:[EBP],EBP
