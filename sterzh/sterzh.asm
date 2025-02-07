@@ -130,10 +130,10 @@ operSizeOvr         db      ?
 addrSizeOvr         db      ?
 sibByte             db      ?
 modrmMod            db      ?
+isXadd              db      ?
 instrBuffer         db      64 dup (?)
 dataBuffer          db      4096 dup (?)
 dataBytesNum        dw      ?
-isXadd              db      ?
 
 .code
 Start:
@@ -182,14 +182,21 @@ writeFile:
     mov     bx, resFileHandle
     int     21h  
 resetVals:
+    mov     di, offset instrBuffer
+    mov     cx, size instrBuffer
+    mov     al, " "
+    push    di
+    rep     stosb
+    pop     di
     mov     isDisp, 0
     mov     isDisp8BitBp, 0
     mov     isDisp32Bit, 0
     mov     operSizeOvr, 0
     mov     addrSizeOvr, 0
+    mov     segAddress, 0
     mov     sibByte, 0
+    mov     modrmMod, 0 
     mov     isXadd, 0
-    mov     di, offset instrBuffer
 findNextOpcode:    
     cmp     si, databytesNum
     ja      exit
@@ -223,7 +230,6 @@ no8bit:
     inc     cx
 xaddEnd:
     call    writeStrToBuffer
-    mov     isXadd, 0
     jmp     prepWriteFile
 byteShlC0:
     or      operSizeOvr, 2
@@ -381,7 +387,7 @@ continueDisasm:
     je      pushBx
     cmp     bl, 100b
     jne     pushBx
-    or      sibByte, 1
+    mov     sibByte, 1
 pushBx:    
     push    bx
     movzx   bx, operSizeOvr
@@ -546,9 +552,9 @@ continue:
     cmp     bp, 11b
     je      return
     or      isDisp, 0
-    je      writeClosingBracket
+    jz      writeClosingBracket
     or      sibByte, 0
-    je      callWriting
+    jz      callWriting
     mov     al, "+"
     stosb  
 callWriting:
