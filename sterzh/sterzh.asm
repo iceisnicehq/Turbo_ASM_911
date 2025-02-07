@@ -183,9 +183,12 @@ writeFile:
     int     21h  
 resetVals:
     mov     isDisp, 0
+    mov     isDisp8BitBp, 0
+    mov     isDisp32Bit, 0
     mov     operSizeOvr, 0
     mov     addrSizeOvr, 0
     mov     sibByte, 0
+    mov     isXadd, 0
     mov     di, offset instrBuffer
 findNextOpcode:    
     cmp     si, databytesNum
@@ -232,8 +235,8 @@ byteShlD0:
     or      operSizeOvr, 2
 byteShlD1:
     call    disasmFunction
-    mov     al, "1"
-    stosb
+    mov     ax, "H1"
+    stosw
     jmp     prepWriteFile    
 byteShlD2:
     or      operSizeOvr, 2
@@ -310,7 +313,7 @@ normalDisp:
     cmp     immDispLen, 4
     je      wordDisp
     lodsd
-    or      isDisp32Bit, 1
+    mov     isDisp32Bit, 1
     jmp     pushSi
 wordDisp:
     lodsw
@@ -412,7 +415,7 @@ disp8Check:
     jne     disp32
     cmp     bx, 101b
     jne     continueCheck
-    or      isDisp8BitBp, 1
+    mov      isDisp8BitBp, 1
 continueCheck:
     mov     immDispLen, 2
     or      isDisp, 1
@@ -427,7 +430,7 @@ noAddrOvr:
     or      isDisp, 1
     cmp     bx, 110b
     jne     putOperToBuffer
-    or      isDisp8BitBp, 1
+    mov     isDisp8BitBp, 1
     jmp     putOperToBuffer
 disp16Check:
     cmp     bp, 10b
