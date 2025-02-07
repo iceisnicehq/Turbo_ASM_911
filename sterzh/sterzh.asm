@@ -140,7 +140,6 @@ Start:
     mov     ax, @data
     mov     ds, ax
     mov     es, ax
-    cld
     mov     ax, 3D00h
     mov     dx, offset comFileName
     int     21h
@@ -182,6 +181,7 @@ writeFile:
     mov     bx, resFileHandle
     int     21h  
 resetVals:
+    cld
     mov     di, offset instrBuffer
     mov     cx, size instrBuffer
     mov     al, " "
