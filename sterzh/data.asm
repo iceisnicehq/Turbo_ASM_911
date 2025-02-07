@@ -2,56 +2,56 @@ SAHF
 SHL     AL,CL
 SHL     BX,CL
 SHL     ECX,CL
-SHL     DL,1
+SHL     DL,1H
 SHL     SP,02H
 SHL     EBP,03H
 SHL     byte ptr DS:[SI],CL
-SHL     word ptr DS:[DI],1
+SHL     word ptr DS:[DI],1H
 SHL     dword ptr SS:[BP],CL
-SHL     byte ptr DS:[BX+SI],1
+SHL     byte ptr DS:[BX+SI],1H
 SHL     word ptr DS:[BX+DI],CL
 SHL     dword ptr SS:[BP+SI],02H
 SHL     byte ptr SS:[BP+DI],CL
-SHL     word ptr DS:[SI+1234H],1
+SHL     word ptr DS:[SI+1234H],1H
 SHL     dword ptr DS:[DI+5678H],CL
 SHL     byte ptr DS:[BX+0AAAAH],0AAH
 SHL     word ptr SS:[BP+0BBBBH],CL
 SHL     dword ptr DS:[SI+12H],03H
-SHL     byte ptr DS:[DI+34H],1
+SHL     byte ptr DS:[DI+34H],1H
 SHL     word ptr DS:[BX+1234H],CL
 SHL     dword ptr SS:[BP+5678H],02H
 SHL     byte ptr DS:[EAX],CL
-SHL     word ptr DS:[EBX],1
+SHL     word ptr DS:[EBX],1H
 SHL     dword ptr DS:[ECX],CL
 SHL     byte ptr DS:[EDX],00H
 SHL     word ptr DS:[ESI],CL
-SHL     dword ptr DS:[EDI],1
+SHL     dword ptr DS:[EDI],1H
 SHL     byte ptr DS:[EAX+EBX],CL
 SHL     word ptr DS:[ECX+EDX],02H
 SHL     dword ptr DS:[ESI+EDI],CL
-SHL     byte ptr DS:[EAX+00001234H],1
+SHL     byte ptr DS:[EAX+00001234H],1H
 SHL     word ptr DS:[EBX+00005678H],CL
 SHL     dword ptr DS:[ECX+00001234H],02H
 SHL     byte ptr DS:[EDX+00005678H],CL
-SHL     word ptr DS:[ESI+00001234H],1
+SHL     word ptr DS:[ESI+00001234H],1H
 SHL     dword ptr DS:[EDI+00005678H],CL
 SHL     byte ptr DS:[EAX+EBX*2],02H
 SHL     word ptr DS:[ECX+EDX*4],CL
-SHL     dword ptr DS:[ESI+EDI*8],1
+SHL     dword ptr DS:[ESI+EDI*8],1H
 SHL     byte ptr DS:[EAX+EBX*2+10203040H],CL
 SHL     word ptr DS:[ECX+EDX*4+0AAAA5678H],02H
 SHL     dword ptr DS:[ESI+EDI*8+0BBBB1234H],CL
-SHL     byte ptr DS:[EAX+EBX*2+0ABCDABCDH],1
+SHL     byte ptr DS:[EAX+EBX*2+0ABCDABCDH],1H
 SHL     word ptr DS:[ECX+EDX*4+00001234H],CL
 SHL     dword ptr DS:[ESI+EDI*8+00005678H],02H
 SHL     byte ptr DS:[EAX+EBX*2+00001234H],CL
-SHL     word ptr DS:[ECX+EDX*4+00005678H],1
+SHL     word ptr DS:[ECX+EDX*4+00005678H],1H
 SHL     dword ptr DS:[ESI+EDI*8+00001234H],CL
 SHL     byte ptr DS:[EAX+EBX*2+00005678H],02H
 SHL     word ptr DS:[ECX+EDX*4+00001234H],CL
-SHL     dword ptr DS:[ESI+EDI*8+00005678H],1
-LOCK SHL     dword ptr DS:[ESP],1
-LOCK SHL     dword ptr DS:[ESP+EBP+10h],1
+SHL     dword ptr DS:[ESI+EDI*8+00005678H],1H
+LOCK SHL     dword ptr DS:[ESP],1H
+LOCK SHL     dword ptr DS:[ESP+EBP+10H],1H
 XADD    AL,BL
 XADD    AX,CX
 XADD    EAX,EDX
@@ -100,9 +100,8 @@ XADD    DS:[ESI+EDI*8],EBP
 XADD    DS:[EAX+EBX*2+0ABCD1234H],DL
 XADD    DS:[ECX+EDX*4+0ABCD5678H],BP
 XADD    DS:[ESI+EDI*8+0ABCD1234H],ESI
-XADD    DS:[EAX+EBX*2+01BCD5678H],BH
-XADD    DS:[ECX+EDX*4+02BCD1234H],DI
-XADD    DS:[ESI+EDI*8+03BCD5678H],EBP
+XADD    DS:[EAX+EBX*2+1BCD5678H],BH
+XADD    DS:[ECX+EDX*4+2BCD1234H],DI
+XADD    DS:[ESI+EDI*8+3BCD5678H],EBP
 LOCK XADD    SS:[EBP],EBP
-LOCK XADD    SS:[EBP*8+12121212h],EBP
-
+LOCK XADD    DS:[EBP+EBP*8+00H],EBP
