@@ -5,7 +5,7 @@ SHL     ECX,CL
 SHL     DL,1H
 SHL     SP,02H
 SHL     EBP,03H
-SHL     byte ptr Ú÷:[SI],CL
+SHL     byte ptr DS:[SI],CL
 SHL     word ptr DS:[DI],1H
 SHL     dword ptr SS:[BP],CL
 SHL     byte ptr DS:[BX+SI],1H
