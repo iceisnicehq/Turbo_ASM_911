@@ -1,16 +1,15 @@
 .model small
 .486
 .stack 100h
-
 .data
 comFileName         db      "COM.COM", 0
-resFileName         db      "RES.ASM", 0
-sahfMnem            db      "SAHF", 13, 10
-xaddMnem            db      "XADD   "
-shlMnem             db      "SHL    "
 comError            db      "Error with openning COM file", 13, 10, "$"
+resFileName         db      "RES.ASM", 0
 resError            db      "Error with creating RES file", 13, 10, "$"
 exitMessage         db      "Exiting...$"
+sahfMnem            db      "SAHF", 13, 10
+xaddMnem            db      "XADD    "
+shlMnem             db      "SHL     "
 AL_                 db      "AL,"
 CL_                 db      "CL,"
 DL_                 db      "DL,"
@@ -49,6 +48,7 @@ SSseg               db      "SS"
 DSseg               db      "DS"
 FSseg               db      "FS"
 GSseg               db      "GS"
+lockMnem            db      "LOCK "
 BXSIrm              db      "DS:[BX+SI+"
 BXDIrm              db      "DS:[BX+DI+"
 BPSIrm              db      "SS:[BP+SI+"
@@ -116,7 +116,9 @@ opcodeTable         dw      15 dup(findNextOpcode)
                     dw      byteShlC0, byteShlC1
                     dw      14 dup(findNextOpcode)
                     dw      byteShlD0, byteShlD1, byteShlD2, byteShlD3 
-immDispBuf          db      '000000000h'
+                    dw      28 dup(findNextOpcode)
+                    dw      byteLock
+immDispStr          db      '000000000H'
 immDispLen          db      2
 isDisp              db      ?
 isDisp8BitBp        db      ?
@@ -184,6 +186,7 @@ resetVals:
     mov     operSizeOvr, 0
     mov     addrSizeOvr, 0
     mov     sibByte, 0
+    mov     di, offset instrBuffer
 findNextOpcode:    
     cmp     si, databytesNum
     ja      exit
@@ -263,6 +266,11 @@ byteFS:
 byteGS:
     mov     segAddress, offset GSseg
     jmp     findNextOpcode
+byteLock:
+    mov     ax, offset lockMnem
+    mov     cx, 5
+    call    writeStrToBuffer
+    jmp     findNextOpcode
 exit:
     mov     ah, 3Eh
     mov     bx, resFileHandle
@@ -311,7 +319,7 @@ byteDisp:
     lodsb
 pushSi:
     push    si
-    mov     si, offset immDispBuf
+    mov     si, offset immDispStr
     add     si, 8
 division:
     idiv    bx
@@ -348,16 +356,12 @@ skip:
 endp
 
 disasmFunction proc
-    mov     di, offset instrBuffer
+    mov     cx, 8
+    mov     ax, offset xaddMnem
     or      isXadd, 0
     jnz     xaddTrue 
     mov     ax, offset shlMnem
-    mov     cx, 7
-    call    writeStrToBuffer
-    jmp     continueDisasm
 xaddTrue:
-    mov     ax, offset xaddMnem
-    mov     cx, 7
     call    writeStrToBuffer
 continueDisasm:
     lodsb
