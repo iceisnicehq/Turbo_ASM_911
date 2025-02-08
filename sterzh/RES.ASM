@@ -29,12 +29,12 @@ SHL     dword ptr DS:[ESP],1H
 SHL     byte ptr DS:[EAX+EBX],CL
 SHL     word ptr DS:[ECX+EDX],02H
 SHL     dword ptr DS:[ESI+EDI],CL
-SHL     byte ptr DS:[EAX+00001234H],1H
-SHL     word ptr DS:[EBX+00005678H],CL
-SHL     dword ptr DS:[ECX+00001234H],02H
-SHL     byte ptr DS:[EDX+00005678H],CL
-SHL     word ptr DS:[ESI+00001234H],1H
-SHL     dword ptr DS:[EDI+00005678H],CL
+SHL     byte ptr DS:[EAX+0ABCDABCDH],1H
+SHL     word ptr DS:[EBX+0FEDCBA00H],CL
+SHL     dword ptr DS:[ECX+12341234H],02H
+SHL     byte ptr DS:[EDX+56785678H],CL
+SHL     word ptr DS:[ESI+20201234H],1H
+SHL     dword ptr DS:[EDI+11115678H],CL
 SHL     byte ptr DS:[EAX+EBX*2],02H
 SHL     word ptr DS:[ECX+EDX*4],CL
 SHL     dword ptr DS:[ESI+EDI*8],1H
@@ -42,14 +42,14 @@ SHL     byte ptr DS:[EAX+EBX*2+10203040H],CL
 SHL     word ptr DS:[ECX+EDX*4+0AAAA5678H],02H
 SHL     dword ptr DS:[ESI+EDI*8+0BBBB1234H],CL
 SHL     byte ptr DS:[EAX+EBX*2+0ABCDABCDH],1H
-SHL     word ptr DS:[ECX+EDX*4+00001234H],CL
-SHL     dword ptr DS:[ESI+EDI*8+00005678H],02H
-SHL     byte ptr DS:[EAX+EBX*2+00001234H],CL
-SHL     word ptr DS:[ECX+EDX*4+00005678H],1H
-SHL     dword ptr DS:[ESI+EDI*8+00001234H],CL
-SHL     byte ptr DS:[EAX+EBX*2+00005678H],02H
-SHL     word ptr DS:[ECX+EDX*4+00001234H],CL
-SHL     dword ptr DS:[ESI+EDI*8+00005678H],1H
+SHL     word ptr DS:[ECX+EDX*4+10203040H],CL
+SHL     dword ptr DS:[ESI+EDI*8+12345678H],02H
+SHL     byte ptr DS:[EAX+EBX*2+56781234H],CL
+SHL     word ptr DS:[ECX+EDX*4+99995678H],1H
+SHL     dword ptr DS:[ESI+EDI*8+12341234H],CL
+SHL     byte ptr DS:[EAX+EBX*2+56785678H],02H
+SHL     word ptr DS:[ECX+EDX*4+98761234H],CL
+SHL     dword ptr DS:[ESI+EDI*8+98765678H],1H
 LOCK SHL     dword ptr DS:[ESP+EBP+10H],1H
 XADD    AL,BL
 XADD    AX,CX
@@ -88,11 +88,11 @@ XADD    DS:[EAX+EBX],CL
 XADD    DS:[ECX+EDX],SI
 XADD    DS:[ESI+EDI],EBP
 XADD    DS:[EAX+0AAAABBBBH],DL
-XADD    DS:[EBX+00111111H],BP
+XADD    DS:[EBX+11111111H],BP
 XADD    DS:[ECX+12341234H],ESI
 XADD    DS:[EDX+EDX],BH
 XADD    DS:[EBP+ESI+12345678H],DI
-XADD    DS:[EDI+00005678H],EBP
+XADD    DS:[EDI+12345678H],EBP
 XADD    DS:[EAX+EBX*2],CL
 XADD    DS:[ECX+EDX*4],SI
 XADD    DS:[ESI+EDI*8],EBP

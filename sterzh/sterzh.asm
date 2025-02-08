@@ -382,7 +382,7 @@ continueDisasm:
     or      word ptr modrmMod, bp
     and     bl, 111b
     cmp     bp, 11b
-    je      putOperToBuffer
+    je      modrmMod11
     or      addrSizeOvr, 0
     je      pushBx
     cmp     bl, 100b
@@ -390,6 +390,8 @@ continueDisasm:
     mov     sibByte, 1
 pushBx:    
     push    bx
+    or      isXadd, 0
+    jnz     noTypeOvr
     movzx   bx, operSizeOvr
     shl     bx, 1
     mov     ax, offset typeOvr[bx]
@@ -447,6 +449,7 @@ disp16:
 putOperToBuffer:
     cmp     bp, 11b
     jne     effectiveAddressing
+modrmMod11:
     shl     bx, 1
     mov     cx, 3
     mov     ax, byteRegs[bx]
@@ -492,6 +495,10 @@ notSegOvr:
     and     bl, 111b
     cmp     bl, 101b
     jne     baseNot101Ebp
+    cmp     modrmMod, 1
+    jne     notModrmMod1
+    mov     isDisp8BitBp, 1
+notModrmMod1:
     or      modrmMod, 0
     jne     baseNot101Ebp
     pop     bx
