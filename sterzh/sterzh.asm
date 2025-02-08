@@ -392,8 +392,6 @@ pushBx:
     push    bx
     movzx   bx, operSizeOvr
     shl     bx, 1
-    or      isXadd, 0
-    jnz     noTypeOvr
     mov     ax, offset typeOvr[bx]
     mov     cx, typeOvrLenStr[bx]
     call    writeStrToBuffer
