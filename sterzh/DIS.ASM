@@ -2,138 +2,107 @@
 .486
 .stack 100h
 .data
-comFileName         db  "COM.COM", 0
-comError            db  "Error with openning COM file", 13, 10, "$"
-resFileName         db  "RES.ASM", 0
-resError            db  "Error with creating RES file", 13, 10, "$"
-exitMessage         db  "Exiting...$"
-sahfMnem            db  "SAHF", 13, 10
-xaddMnem            db  "XADD    "
-shlMnem             db  "SHL     "
-AL_                 db  "AL,"
-CL_                 db  "CL,"
-DL_                 db  "DL,"
-BL_                 db  "BL,"
-AH_                 db  "AH,"
-CH_                 db  "CH,"
-DH_                 db  "DH,"
-BH_                 db  "BH,"
-AX_                 db  "AX,"
-CX_                 db  "CX,"
-DX_                 db  "DX,"
-BX_                 db  "BX,"
-SP_                 db  "SP,"
-BP_                 db  "BP,"
-SI_                 db  "SI,"
-DI_                 db  "DI,"
-EAX_                db  "EAX,"
-ECX_                db  "ECX,"
-EDX_                db  "EDX,"
-EBX_                db  "EBX,"
-ESP_                db  "ESP,"
-EBP_                db  "EBP,"
-ESI_                db  "ESI,"
-EDI_                db  "EDI,"
-byteRegs            dw  AL_,  CL_,  DL_,  BL_,  AH_,  CH_,  DH_,  BH_                                                                           
-wordRegs            dw  AX_,  CX_,  DX_,  BX_,  SP_,  BP_,  SI_,  DI_
-dwrdRegs            dw  EAX_, ECX_, EDX_, EBX_, ESP_, EBP_, ESI_, EDI_
-wordPtr             db  "word ptr "
-dwordPtr            db  "dword ptr "
-bytePtr             db  "byte ptr "
-typeOvr             dw  wordPtr, dwordPtr, bytePtr
-typeOvrLenStr       dw  9, 10, 9
-ESseg               db  "ES"
-CSseg               db  "CS"
-SSseg               db  "SS"
-DSseg               db  "DS"
-FSseg               db  "FS"
-GSseg               db  "GS"
-lockMnem            db  "LOCK "
-BXSIrm              db  "DS:[BX+SI+"
-BXDIrm              db  "DS:[BX+DI+"
-BPSIrm              db  "SS:[BP+SI+"
-BPDIrm              db  "SS:[BP+DI+"
-SIrm                db  "DS:[SI+"
-DIrm                db  "DS:[DI+"
-disp_               db  "DS:["
-BPrm                db  "SS:[BP+"
-BXrm                db  "DS:[BX+"
-modrm16Bit          dw  BXSIrm, BXDIrm, BPSIrm, BPDIrm, SIrm, DIrm, disp_, BXrm
-                    dw  BXSIrm, BXDIrm, BPSIrm, BPDIrm, SIrm, DIrm, BPrm,  BXrm
-                    dw  BXSIrm, BXDIrm, BPSIrm, BPDIrm, SIrm, DIrm, BPrm,  BXrm
-modrm16BitLenStr    dw  9,   9,  9,  9, 6, 6, 4, 6
-                    dw  10, 10, 10, 10, 7, 7, 7, 7
-                    dw  10, 10, 10, 10, 7, 7, 7, 7
-EAXrm               db  "DS:[EAX+"
-ECXrm               db  "DS:[ECX+"
-EDXrm               db  "DS:[EDX+"
-EBXrm               db  "DS:[EBX+"
-EBPrm               db  "SS:[EBP+"
-ESIrm               db  "DS:[ESI+"
-EDIrm               db  "DS:[EDI+"
-modrm32Bit          dw  EAXrm, ECXrm, EDXrm, EBXrm, disp_, disp_, ESIrm, EDIrm
-                    dw  EAXrm, ECXrm, EDXrm, EBXrm, disp_, EBPrm, ESIrm, EDIrm
-                    dw  EAXrm, ECXrm, EDXrm, EBXrm, disp_, EBPrm, ESIrm, EDIrm
-modrm32BitLenStr    dw  7, 7, 7, 7, 4, 4, 7, 7
-                    dw  8, 8, 8, 8, 4, 8, 8, 8
-                    dw  8, 8, 8, 8, 4, 8, 8, 8
-EAX2                db  "EAX*2"
-ECX2                db  "ECX*2"
-EDX2                db  "EDX*2"
-EBX2                db  "EBX*2"
-EBP2                db  "EBP*2"
-ESI2                db  "ESI*2"
-EDI2                db  "EDI*2"
-EAX4                db  "EAX*4"
-ECX4                db  "ECX*4"
-EDX4                db  "EDX*4"
-EBX4                db  "EBX*4"
-EBP4                db  "EBP*4"
-ESI4                db  "ESI*4"
-EDI4                db  "EDI*4"
-EAX8                db  "EAX*8"
-ECX8                db  "ECX*8"
-EDX8                db  "EDX*8"
-EBX8                db  "EBX*8"
-EBP8                db  "EBP*8"
-ESI8                db  "ESI*8"
-EDI8                db  "EDI*8"
-sibIndex            dw  EAX_, ECX_, EDX_, EBX_, 0, EBP_, ESI_, EDI_
-                    dw  EAX2, ECX2, EDX2, EBX2, 0, EBP2, ESI2, EDI2
-                    dw  EAX4, ECX4, EDX4, EBX4, 0, EBP4, ESI4, EDI4
-                    dw  EAX8, ECX8, EDX8, EBX8, 0, EBP8, ESI8, EDI8
-sibIndexLenStr      dw  8   dup (3)
-                    dw  3*8 dup (5)
-opcodeTable         dw  15 dup(findNextOpcode)
-                    dw  byteXadd
-                    dw  22 dup (findNextOpcode)
-                    dw  byteES, 7 dup(findNextOpcode), byteCS, 7 dup(findNextOpcode)
-                    dw  byteSS, 7 dup(findNextOpcode), byteDS, 37 dup(findNextOpcode)
-                    dw  byteFS, byteGS, byteOper, byteAddr 
-                    dw  54 dup(findNextOpcode)
-                    dw  byteSahf          
-                    dw  33 dup(findNextOpcode)
-                    dw  byteShlC0, byteShlC1
-                    dw  14 dup(findNextOpcode)
-                    dw  byteShlD0, byteShlD1, byteShlD2, byteShlD3 
-                    dw  28 dup(findNextOpcode)
-                    dw  byteLock
-immDispStr          db  '000000000H'
-immDispLen          db  2
-isDisp              db  ?
-isDisp8BitBp        db  ?
-isDisp32Bit         db  ?
-segAddress          dw  ?
-resFileHandle       dw  ?
-comFileHandle       dw  ?
-operSizeOvr         db  ?
-addrSizeOvr         db  ?
-sibByte             db  ?
-modrmMod            db  ?
-isXadd              db  ?
-instrBuffer         db  64 dup (?)
-dataBuffer          db  4096 dup (?)
-dataBytesNum        dw  ?
+comFileName         db    "COM.COM", 0
+comError            db    "Error with openning COM file", 13, 10, "$"
+resFileName         db    "RES.ASM", 0
+resError            db    "Error with creating RES file", 13, 10, "$"
+exitMessage         db    "Exiting...$"
+sahfMnem            db    "SAHF", 13, 10
+xaddMnem            db    "XADD    "
+shlMnem             db    "SHL     "
+AL_                 db    "AL"
+CL_                 db    "CL"
+DL_                 db    "DL"
+BL_                 db    "BL"
+AH_                 db    "AH"
+CH_                 db    "CH"
+DH_                 db    "DH"
+BH_                 db    "BH"
+AX_                 db    "AX"
+CX_                 db    "CX"
+DX_                 db    "DX"
+BX_                 db    "BX"
+SP_                 db    "SP"
+BP_                 db    "BP"
+SI_                 db    "SI"
+DI_                 db    "DI"
+EAX_                db    "EAX"
+ECX_                db    "ECX"
+EDX_                db    "EDX"
+EBX_                db    "EBX"
+ESP_                db    "ESP"
+EBP_                db    "EBP"
+ESI_                db    "ESI"
+EDI_                db    "EDI"
+byteRegs            dw    AL_,  CL_,  DL_,  BL_,  AH_,  CH_,  DH_,  BH_                                                                           
+wordRegs            dw    AX_,  CX_,  DX_,  BX_,  SP_,  BP_,  SI_,  DI_
+dwrdRegs            dw    EAX_, ECX_, EDX_, EBX_, ESP_, EBP_, ESI_, EDI_
+wordPtr             db    "word ptr "
+dwordPtr            db    "dword ptr "
+bytePtr             db    "byte ptr "
+typeOvr             dw    wordPtr, dwordPtr, bytePtr
+typeOvrLenStr       dw    9, 10, 9
+ESpref              db    "E"
+CSpref              db    "C"
+SSpref              db    "S"
+DSpref              db    "D"
+FSpref              db    "F"
+GSpref              db    "G"
+lockMnem            db    "LOCK "
+BXSIrm              db    "DS:[BX+SI+"
+BXDIrm              db    "DS:[BX+DI+"
+BPSIrm              db    "SS:[BP+SI+"
+BPDIrm              db    "SS:[BP+DI+"
+SIrm                db    "DS:[SI+"
+DIrm                db    "DS:[DI+"
+disp_               db    "DS:["
+BPrm                db    "SS:[BP+"
+BXrm                db    "DS:[BX+"
+modrm16             dw    BXSIrm, BXDIrm, BPSIrm, BPDIrm, SIrm, DIrm, disp_, BXrm
+                    dw    2 dup (BXSIrm, BXDIrm, BPSIrm, BPDIrm, SIrm, DIrm, BPrm,  BXrm)
+modrm16LenStr       dw    9,   9,  9,  9, 6, 6, 4, 6
+                    dw    2 dup (10, 10, 10, 10, 7, 7, 7, 7)
+EAXrm               db    "DS:[EAX+"
+ECXrm               db    "DS:[ECX+"
+EDXrm               db    "DS:[EDX+"
+EBXrm               db    "DS:[EBX+"
+EBPrm               db    "SS:[EBP+"
+ESIrm               db    "DS:[ESI+"
+EDIrm               db    "DS:[EDI+"
+modrm32             dw    EAXrm, ECXrm, EDXrm, EBXrm, disp_, disp_, ESIrm, EDIrm
+                    dw    2 dup (EAXrm, ECXrm, EDXrm, EBXrm, disp_, EBPrm, ESIrm, EDIrm)
+modrm32LenStr       dw    7, 7, 7, 7, 4, 4, 7, 7
+                    dw    2 dup (8, 8, 8, 8, 4, 8, 8, 8)
+opcodeTable         dw    15 dup(findNextOpcode)
+                    dw    byteXadd
+                    dw    22 dup (findNextOpcode)
+                    dw    byteES, 7 dup(findNextOpcode), byteCS, 7 dup(findNextOpcode)
+                    dw    byteSS, 7 dup(findNextOpcode), byteDS, 37 dup(findNextOpcode)
+                    dw    byteFS, byteGS, byteOper, byteAddr 
+                    dw    54 dup(findNextOpcode)
+                    dw    byteSahf          
+                    dw    33 dup(findNextOpcode)
+                    dw    byteShlC0, byteShlC1
+                    dw    14 dup(findNextOpcode)
+                    dw    byteShlD0, byteShlD1, byteShlD2, byteShlD3 
+                    dw    28 dup(findNextOpcode)
+                    dw    byteLock
+immDispStr          db    '000000000H'
+immDispLen          db    ?
+isDisp              db    ?
+isDisp8BitBp        db    ?
+isDisp32Bit         db    ?
+resFileHandle       dw    ?
+comFileHandle       dw    ?
+segOvr              dw    ?
+operSizeOvr         db    ?
+addrSizeOvr         db    ?
+isSibByte           db    ?
+modrmMod            db    ?
+isXadd              db    ?
+instrBuffer         db    64 dup (?)
+dataBuffer          db    4096 dup (?)
+dataBytesNum        dw    ?
 
 .code
 Start:
@@ -147,7 +116,7 @@ Start:
     mov     dx, offset comError
     mov     ah, 9
     int     21h
-    jmp     exit
+    jmp     errorExit
 comNoError:
     mov     comFileHandle, ax
     mov     ah, 3Ch
@@ -158,7 +127,7 @@ comNoError:
     mov     dx, offset resError
     mov     ah, 9
     int     21h
-    jmp     exit
+    jmp     errorExit
 resNoError:
     mov     resFileHandle, ax
     mov     si, offset dataBuffer
@@ -191,10 +160,11 @@ resetVals:
     mov     isDisp, 0
     mov     isDisp8BitBp, 0
     mov     isDisp32Bit, 0
+    mov     immDispLen, 2
     mov     operSizeOvr, 0
     mov     addrSizeOvr, 0
-    mov     segAddress, 0
-    mov     sibByte, 0
+    mov     segOvr, 0
+    mov     isSibByte, 0
     mov     modrmMod, 0 
     mov     isXadd, 0
 findNextOpcode:    
@@ -258,22 +228,22 @@ byteAddr:
     or      addrSizeOvr, 1
     jmp     findNextOpcode
 byteES:
-    mov     segAddress, offset ESseg
+    mov     segOvr, offset ESpref
     jmp     findNextOpcode
 byteCS:
-    mov     segAddress, offset CSseg
+    mov     segOvr, offset CSpref
     jmp     findNextOpcode
 byteSS:
-    mov     segAddress, offset SSseg
+    mov     segOvr, offset SSpref
     jmp     findNextOpcode
 byteDS:
-    mov     segAddress, offset DSseg
+    mov     segOvr, offset DSpref
     jmp     findNextOpcode
 byteFS:
-    mov     segAddress, offset FSseg
+    mov     segOvr, offset FSpref
     jmp     findNextOpcode
 byteGS:
-    mov     segAddress, offset GSseg
+    mov     segOvr, offset GSpref
     jmp     findNextOpcode
 byteLock:
     mov     ax, offset lockMnem
@@ -286,6 +256,7 @@ exit:
     int     21h
     mov     bx, comFileHandle
     int     21h
+errorExit:
     mov     dx, offset exitMessage
     mov     ah, 9
     int     21h
@@ -387,7 +358,7 @@ continueDisasm:
     je      pushBx
     cmp     bl, 100b
     jne     pushBx
-    mov     sibByte, 1
+    mov     isSibByte, 1
 pushBx:    
     push    bx
     or      isXadd, 0
@@ -398,11 +369,10 @@ pushBx:
     mov     cx, typeOvrLenStr[bx]
     call    writeStrToBuffer
 noTypeOvr:
-    or      segAddress, 0
+    or      segOvr, 0
     jz      defaultSegment
     push    si
-    mov     si, segAddress
-    movsb
+    mov     si, segOvr
     movsb
     pop     si
 defaultSegment:
@@ -451,7 +421,7 @@ putOperToBuffer:
     jne     effectiveAddressing
 modrmMod11:
     shl     bx, 1
-    mov     cx, 3
+    mov     cx, 2
     mov     ax, byteRegs[bx]
     cmp     operSizeOvr, 1
     ja      writeRegOperand
@@ -461,6 +431,8 @@ modrmMod11:
     inc     cx
 writeRegOperand:
     call    writeStrToBuffer
+    mov     al, ","
+    stosb
     jmp     continue
 effectiveAddressing:
     push    bp
@@ -470,17 +442,17 @@ effectiveAddressing:
     mov     bx, bp
     or      addrSizeOvr, 0
     je      wordSize
-    mov     ax, modrm32Bit[bx]
-    mov     cx, modrm32BitLenStr[bx]
-    or      segAddress, 0
+    mov     ax, modrm32[bx]
+    mov     cx, modrm32LenStr[bx]
+    or      segOvr, 0
     jz      notSegOvr
-    add     ax, 2
-    sub     cx, 2
-    mov     segAddress, 0
+    inc     ax
+    dec     cx
+    mov     segOvr, 0
 notSegOvr:
     call    writeStrToBuffer
     pop     bp
-    or      sibByte, 0
+    or      isSibByte, 0
     jz      continue
     lodsb
     push    bp 
@@ -502,13 +474,21 @@ notModrmMod1:
     or      modrmMod, 0
     jne     baseNot101Ebp
     pop     bx
-    shl     bp, 3
-    add     bp, bx
-    shl     bp, 1
-    mov     bx, bp
-    mov     ax, sibIndex[bx]
-    mov     cx, sibIndexLenStr[bx]
+    shl     bx, 1
+    mov     ax, dwrdRegs[bx]
+    mov     cx, 3
     call    writeStrToBuffer
+    shl     bp, 1
+    jz      sibZeroSS
+    cmp     bp, 110b
+    jne     sibIndexNot11
+    mov     bp, 1000b
+sibIndexNot11:
+    mov     ax, "*0"
+    or      ax, bp
+    xchg    al, ah
+    stosw
+sibZeroSS:
     lodsd
     or      eax, eax
     jnz     sibWithDisp
@@ -532,24 +512,32 @@ baseNot101Ebp:
     je      popBp
     mov     al, "+"
     stosb    
-    shl     bp, 3
-    add     bp, bx
-    shl     bp, 1
-    mov     bx, bp
-    mov     ax, sibIndex[bx]
-    mov     cx, sibIndexLenStr[bx]
+    shl     bx, 1
+    mov     ax, dwrdRegs[bx]
+    mov     cx, 3
     call    writeStrToBuffer
+    shl     bp, 1
+    jz      sibZeroSSS
+    cmp     bp, 110b
+    jne     sibIndexNot11S
+    mov     bp, 1000b
+sibIndexNot11S:
+    mov     ax, "*0"
+    or      ax, bp
+    xchg    al, ah
+    stosw
+sibZeroSSS:
 popBp:
     pop     bp
     jmp     continue
 wordSize:
-    mov     ax, modrm16Bit[bx]
-    mov     cx, modrm16BitLenStr[bx]
-    or      segAddress, 0
+    mov     ax, modrm16[bx]
+    mov     cx, modrm16LenStr[bx]
+    or      segOvr, 0
     jz      defSeg
-    add     ax, 2
-    sub     cx, 2
-    mov     segAddress, 0
+    inc     ax
+    dec     cx
+    mov     segOvr, 0
 defSeg:
     call    writeStrToBuffer
     pop     bp
@@ -558,7 +546,7 @@ continue:
     je      return
     or      isDisp, 0
     jz      writeClosingBracket
-    or      sibByte, 0
+    or      isSibByte, 0
     jz      callWriting
     mov     al, "+"
     stosb  
