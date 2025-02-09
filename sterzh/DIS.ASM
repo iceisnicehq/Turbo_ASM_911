@@ -61,7 +61,7 @@ BPrm             db    "SS:[BP"
 BXrm             db    "DS:[BX"
 modrm16          dw    BXSIrm, BXDIrm, BPSIrm, BPDIrm, SIrm, DIrm, disp_, BXrm
                  dw    2 dup (BXSIrm, BXDIrm, BPSIrm, BPDIrm, SIrm, DIrm, BPrm,  BXrm)
-modrm16LenStr    dw    9,   9,  9,  9, 6, 6, 4, 6
+modrm16LenStr    dw    9, 9, 9, 9, 6, 6, 4, 6
                  dw    2 dup (9, 9, 9, 9, 6, 6, 6, 6)
 EAXrm            db    "DS:[EAX"
 ECXrm            db    "DS:[ECX"
