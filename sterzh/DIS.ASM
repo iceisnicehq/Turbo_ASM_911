@@ -19,6 +19,7 @@ AH_              db    "AH"
 CH_              db    "CH"
 DH_              db    "DH"
 BH_              db    "BH"
+byteRegs         dw    AL_,  CL_,  DL_,  BL_,  AH_,  CH_,  DH_,  BH_
 AX_              db    "AX"
 CX_              db    "CX"
 DX_              db    "DX"
@@ -27,6 +28,7 @@ SP_              db    "SP"
 BP_              db    "BP"
 SI_              db    "SI"
 DI_              db    "DI"
+wordRegs         dw    AX_,  CX_,  DX_,  BX_,  SP_,  BP_,  SI_,  DI_
 EAX_             db    "EAX"
 ECX_             db    "ECX"
 EDX_             db    "EDX"
@@ -35,20 +37,11 @@ ESP_             db    "ESP"
 EBP_             db    "EBP"
 ESI_             db    "ESI"
 EDI_             db    "EDI"
-byteRegs         dw    AL_,  CL_,  DL_,  BL_,  AH_,  CH_,  DH_,  BH_                                                                           
-wordRegs         dw    AX_,  CX_,  DX_,  BX_,  SP_,  BP_,  SI_,  DI_
 dwrdRegs         dw    EAX_, ECX_, EDX_, EBX_, ESP_, EBP_, ESI_, EDI_
 wordPtr          db    "word ptr "
-dwordPtr         db    "dword ptr "
+dwrdPtr          db    "dword ptr "
 bytePtr          db    "byte ptr "
-typeOvr          dw    wordPtr, dwordPtr, bytePtr
-typeOvrLenStr    dw    9, 10, 9
-ESpref           db    "E"
-CSpref           db    "C"
-SSpref           db    "S"
-DSpref           db    "D"
-FSpref           db    "F"
-GSpref           db    "G"
+typeOvr          dw    wordPtr, dwrdPtr, bytePtr
 lockMnem         db    "LOCK "
 disp_            db    "DS:["
 immDispStr       db    "000000000H"
@@ -62,8 +55,8 @@ BPrm             db    "SS:[BP"
 BXrm             db    "DS:[BX"
 modrm16          dw    BXSIrm, BXDIrm, BPSIrm, BPDIrm, SIrm, DIrm, disp_, BXrm
                  dw    2 dup (BXSIrm, BXDIrm, BPSIrm, BPDIrm, SIrm, DIrm, BPrm,  BXrm)
-modrm16LenStr    dw    9, 9, 9, 9, 6, 6, 4, 6
-                 dw    2 dup (9, 9, 9, 9, 6, 6, 6, 6)
+modrm16LenStr    db    9, 9, 9, 9, 6, 6, 4, 6
+                 db    2 dup (9, 9, 9, 9, 6, 6, 6, 6)
 EAXrm            db    "DS:[EAX"
 ECXrm            db    "DS:[ECX"
 EDXrm            db    "DS:[EDX"
@@ -73,8 +66,8 @@ ESIrm            db    "DS:[ESI"
 EDIrm            db    "DS:[EDI"
 modrm32          dw    EAXrm, ECXrm, EDXrm, EBXrm, disp_, disp_, ESIrm, EDIrm
                  dw    2 dup (EAXrm, ECXrm, EDXrm, EBXrm, disp_, EBPrm, ESIrm, EDIrm)
-modrm32LenStr    dw    7, 7, 7, 7, 4, 4, 7, 7
-                 dw    2 dup (7, 7, 7, 7, 4, 7, 7, 7)
+modrm32LenStr    db    7, 7, 7, 7, 4, 4, 7, 7
+                 db    2 dup (7, 7, 7, 7, 4, 7, 7, 7)
 opcodeTable      dw    15 dup(findNextOpcode)
                  dw    byteXadd
                  dw    22 dup (findNextOpcode)
@@ -94,7 +87,7 @@ isDisp           db    ?
 checkZeroDisp    db    ?
 resFileHandle    dw    ?
 comFileHandle    dw    ?
-segOvr           dw    ?
+segOvr           db    ?
 operSizeOvr      db    ?
 addrSizeOvr      db    ?
 isSibByte        db    ?
@@ -227,22 +220,24 @@ byteAddr:
     mov     addrSizeOvr, 1
     jmp     findNextOpcode
 byteES:
-    mov     segOvr, offset ESpref
-    jmp     findNextOpcode
+    mov     al, "E"
+    jmp     saveSeg
 byteCS:
-    mov     segOvr, offset CSpref
-    jmp     findNextOpcode
+    mov     al, "C"
+    jmp     saveSeg
 byteSS:
-    mov     segOvr, offset SSpref
-    jmp     findNextOpcode
+    mov     al, "S"
+    jmp     saveSeg
 byteDS:
-    mov     segOvr, offset DSpref
-    jmp     findNextOpcode
+    mov     al, "D"
+    jmp     saveSeg
 byteFS:
-    mov     segOvr, offset FSpref
-    jmp     findNextOpcode
+    mov     al, "F"
+    jmp     saveSeg
 byteGS:
-    mov     segOvr, offset GSpref
+    mov     al, "G"
+saveSeg:
+    mov     segOvr, al
     jmp     findNextOpcode
 byteLock:
     mov     ax, offset lockMnem
@@ -303,16 +298,18 @@ pushBx:
     jnz     noTypeOvr
     movzx   bx, operSizeOvr
     shl     bx, 1
+    mov     cx, 9
     mov     ax, offset typeOvr[bx]
-    mov     cx, typeOvrLenStr[bx]
+    cmp     ax, offset dwrdptr
+    jne     notDwrdPtr
+    inc     cx
+notDwrdPtr:
     call    writeStrToBuffer
 noTypeOvr:
     or      segOvr, 0
     jz      defaultSegment
-    push    si
-    mov     si, segOvr
-    movsb
-    pop     si
+    mov     al, segOvr
+    stosb
 defaultSegment:
     pop     bx
     or      addrSizeOvr, 0
@@ -381,7 +378,8 @@ effectiveAddressing:
     or      addrSizeOvr, 0
     je      wordSize
     mov     ax, modrm32[bx]
-    mov     cx, modrm32LenStr[bx]
+    shr     bx, 1
+    movzx   cx, modrm32LenStr[bx]
     or      segOvr, 0
     jz      notSegOvr
     inc     ax
@@ -470,7 +468,8 @@ popBp:
     jmp     continue
 wordSize:
     mov     ax, modrm16[bx]
-    mov     cx, modrm16LenStr[bx]
+    shr     bx, 1
+    movzx   cx, modrm16LenStr[bx]
     or      segOvr, 0
     jz      defSeg
     inc     ax
