@@ -49,30 +49,31 @@ DSpref           db    "D"
 FSpref           db    "F"
 GSpref           db    "G"
 lockMnem         db    "LOCK "
-BXSIrm           db    "DS:[BX+SI+"
-BXDIrm           db    "DS:[BX+DI+"
-BPSIrm           db    "SS:[BP+SI+"
-BPDIrm           db    "SS:[BP+DI+"
-SIrm             db    "DS:[SI+"
-DIrm             db    "DS:[DI+"
 disp_            db    "DS:["
-BPrm             db    "SS:[BP+"
-BXrm             db    "DS:[BX+"
+immDispStr       db    "000000000H"
+BXSIrm           db    "DS:[BX+SI"
+BXDIrm           db    "DS:[BX+DI"
+BPSIrm           db    "SS:[BP+SI"
+BPDIrm           db    "SS:[BP+DI"
+SIrm             db    "DS:[SI"
+DIrm             db    "DS:[DI"
+BPrm             db    "SS:[BP"
+BXrm             db    "DS:[BX"
 modrm16          dw    BXSIrm, BXDIrm, BPSIrm, BPDIrm, SIrm, DIrm, disp_, BXrm
                  dw    2 dup (BXSIrm, BXDIrm, BPSIrm, BPDIrm, SIrm, DIrm, BPrm,  BXrm)
 modrm16LenStr    dw    9,   9,  9,  9, 6, 6, 4, 6
-                 dw    2 dup (10, 10, 10, 10, 7, 7, 7, 7)
-EAXrm            db    "DS:[EAX+"
-ECXrm            db    "DS:[ECX+"
-EDXrm            db    "DS:[EDX+"
-EBXrm            db    "DS:[EBX+"
-EBPrm            db    "SS:[EBP+"
-ESIrm            db    "DS:[ESI+"
-EDIrm            db    "DS:[EDI+"
+                 dw    2 dup (9, 9, 9, 9, 6, 6, 6, 6)
+EAXrm            db    "DS:[EAX"
+ECXrm            db    "DS:[ECX"
+EDXrm            db    "DS:[EDX"
+EBXrm            db    "DS:[EBX"
+EBPrm            db    "SS:[EBP"
+ESIrm            db    "DS:[ESI"
+EDIrm            db    "DS:[EDI"
 modrm32          dw    EAXrm, ECXrm, EDXrm, EBXrm, disp_, disp_, ESIrm, EDIrm
                  dw    2 dup (EAXrm, ECXrm, EDXrm, EBXrm, disp_, EBPrm, ESIrm, EDIrm)
 modrm32LenStr    dw    7, 7, 7, 7, 4, 4, 7, 7
-                 dw    2 dup (8, 8, 8, 8, 4, 8, 8, 8)
+                 dw    2 dup (7, 7, 7, 7, 4, 7, 7, 7)
 opcodeTable      dw    15 dup(findNextOpcode)
                  dw    byteXadd
                  dw    22 dup (findNextOpcode)
@@ -87,11 +88,9 @@ opcodeTable      dw    15 dup(findNextOpcode)
                  dw    byteShlD0, byteShlD1, byteShlD2, byteShlD3 
                  dw    28 dup(findNextOpcode)
                  dw    byteLock
-immDispStr       db    '000000000H'
 immDispLen       db    ?
 isDisp           db    ?
-isDisp8BitBp     db    ?
-isDisp32Bit      db    ?
+checkZeroDisp    db    ?
 resFileHandle    dw    ?
 comFileHandle    dw    ?
 segOvr           dw    ?
@@ -158,14 +157,13 @@ resetVals:
     rep     stosb
     pop     di
     mov     isDisp, 0
-    mov     isDisp8BitBp, 0
-    mov     isDisp32Bit, 0
+    mov     checkZeroDisp, 0
     mov     immDispLen, 2
     mov     operSizeOvr, 0
     mov     addrSizeOvr, 0
     mov     segOvr, 0
     mov     isSibByte, 0
-    mov     modrmMod, 0 
+    mov     modrmMod, 0
     mov     isXadd, 0
 findNextOpcode:    
     cmp     si, databytesNum
@@ -222,10 +220,10 @@ byteShlD3:
     stosw
     jmp     prepWriteFile
 byteOper:
-    or      operSizeOvr, 1
+    mov     operSizeOvr, 1
     jmp     findNextOpcode
 byteAddr:
-    or      addrSizeOvr, 1
+    mov     addrSizeOvr, 1
     jmp     findNextOpcode
 byteES:
     mov     segOvr, offset ESpref
@@ -273,13 +271,13 @@ endp
 
 writeImmDispToBuffer proc
     xor     dx, dx
-    mov     bx, 16
+    mov     bx, 10h
     movzx   cx, immDispLen
     inc     cx
-    or      isDisp8BitBp, 0
+    or      checkZeroDisp, 0
     jz      normalDisp
     lodsb
-    mov     isDisp8BitBp, 0
+    mov     checkZeroDisp, 0
     or      al, al
     jnz     pushSi
     dec     di
@@ -290,7 +288,6 @@ normalDisp:
     cmp     immDispLen, 4
     je      wordDisp
     lodsd
-    mov     isDisp32Bit, 1
     jmp     pushSi
 wordDisp:
     lodsw
@@ -321,7 +318,6 @@ save:
 nextChar:
     jmp     division
 stopDivision:
-    mov     isDisp32Bit, 0
     cmp     dl, 39h
     jna     notLetter
     dec     si
@@ -383,30 +379,30 @@ defaultSegment:
     jne     disp8Check
     cmp     bx, 101b
     jne     putOperToBuffer
-    or      isDisp, 1
     mov     immDispLen, 8
+    mov     isDisp, 1
     jmp     putOperToBuffer
 disp8Check:
     cmp     bp, 1b
     jne     disp32
     cmp     bx, 101b
     jne     continueCheck
-    mov      isDisp8BitBp, 1
+    mov     checkZeroDisp, 1
 continueCheck:
     mov     immDispLen, 2
-    or      isDisp, 1
+    mov     isDisp, 1
     jmp     putOperToBuffer
 disp32:
     mov     immDispLen, 8
-    or      isDisp, 1
+    mov     isDisp, 1
     jmp     putOperToBuffer
 noAddrOvr:    
     cmp     bp, 1b
     jne     disp16Check
-    or      isDisp, 1
+    mov     isDisp, 1
     cmp     bx, 110b
     jne     putOperToBuffer
-    mov     isDisp8BitBp, 1
+    mov     checkZeroDisp, 1
     jmp     putOperToBuffer
 disp16Check:
     cmp     bp, 10b
@@ -415,7 +411,7 @@ disp16Check:
     jne     putOperToBuffer
 disp16:
     mov     immDispLen, 4
-    or      isDisp, 1
+    mov     isDisp, 1
 putOperToBuffer:
     cmp     bp, 11b
     jne     effectiveAddressing
@@ -466,13 +462,13 @@ notSegOvr:
     mov     bl, al
     and     bl, 111b
     cmp     bl, 101b
-    jne     baseNot101Ebp
+    jne     sibBaseNot101Ebp
     cmp     modrmMod, 1
     jne     notModrmMod1
-    mov     isDisp8BitBp, 1
+    mov     checkZeroDisp, 1
 notModrmMod1:
     or      modrmMod, 0
-    jne     baseNot101Ebp
+    jne     sibBaseNot101Ebp
     pop     bx
     shl     bx, 1
     mov     ax, dwrdRegs[bx]
@@ -502,7 +498,7 @@ sibWithDisp:
     call    writeImmDispToBuffer
     pop     word ptr immDispLen
     jmp     popBp
-baseNot101Ebp:
+sibBaseNot101Ebp:
     shl     bx, 1
     mov     ax, dwrdRegs[bx]
     mov     cx, 3
@@ -546,8 +542,6 @@ continue:
     je      return
     or      isDisp, 0
     jz      writeClosingBracket
-    or      isSibByte, 0
-    jz      callWriting
     mov     al, "+"
     stosb  
 callWriting:
