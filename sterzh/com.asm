@@ -19,43 +19,43 @@ Start:
     SHL     byte ptr SS:[BP+DI],CL
     SHL     word ptr DS:[SI+1234H],1H
     SHL     dword ptr DS:[DI+5678H],CL
-    SHL     byte ptr DS:[BX+0AAAAH],0AAH
-    SHL     word ptr SS:[BP+0BBBBH],CL
+    SHL     byte ptr ES:[BX+0AAAAH],0AAH
+    SHL     word ptr CS:[BP+0BBBBH],CL
     SHL     dword ptr DS:[SI+12H],03H
-    SHL     byte ptr DS:[DI+34H],1H
-    SHL     word ptr DS:[BX+1234H],CL
-    SHL     dword ptr SS:[BP+5678H],02H
-    SHL     byte ptr DS:[EAX],CL
-    SHL     word ptr DS:[EBX],1H
+    SHL     byte ptr SS:[DI+34H],1H
+    SHL     word ptr FS:[BX+1234H],CL
+    SHL     dword ptr GS:[BP+5678H],02H
+    SHL     byte ptr ES:[EAX],CL
+    SHL     word ptr CS:[EBX],1H
     SHL     dword ptr DS:[ECX],CL
-    SHL     byte ptr DS:[EDX],00H
-    SHL     word ptr DS:[ESI],CL
-    SHL     dword ptr DS:[ESP],1H
+    SHL     byte ptr SS:[EDX],00H
+    SHL     word ptr FS:[ESI],CL
+    SHL     dword ptr GS:[ESP],1H
     SHL     byte ptr DS:[EAX+EBX],CL
     SHL     word ptr DS:[ECX+EDX],02H
     SHL     dword ptr DS:[ESI+EDI],CL
-    SHL     byte ptr DS:[EAX+0ABCDABCDH],1H
-    SHL     word ptr DS:[EBX+0FEDCBA00H],CL
-    SHL     dword ptr DS:[ECX+12341234H],02H
-    SHL     byte ptr DS:[EDX+56785678H],CL
-    SHL     word ptr DS:[ESI+20201234H],1H
-    SHL     dword ptr DS:[EDI+11115678H],CL
-    SHL     byte ptr DS:[EAX+EBX*2],02H
-    SHL     word ptr DS:[ECX+EDX*4],CL
-    SHL     dword ptr DS:[ESI+EDI*8],1H
+    SHL     byte ptr FS:[EAX+0ABCDABCDH],1H
+    SHL     word ptr FS:[EBX+0FEDCBA00H],CL
+    SHL     dword ptr FS:[ECX+12341234H],02H
+    SHL     byte ptr FS:[EDX+56785678H],CL
+    SHL     word ptr FS:[ESI+20201234H],1H
+    SHL     dword ptr FS:[EDI+11115678H],CL
+    SHL     byte ptr FS:[EAX+EBX*2],02H
+    SHL     word ptr FS:[ECX+EDX*4],CL
+    SHL     dword ptr FS:[ESI+EDI*8],1H
     SHL     byte ptr DS:[EAX+EBX*2+10203040H],CL
     SHL     word ptr DS:[ECX+EDX*4+0AAAA5678H],02H
     SHL     dword ptr DS:[ESI+EDI*8+0BBBB1234H],CL
     SHL     byte ptr DS:[EAX+EBX*2+0ABCDABCDH],1H
     SHL     word ptr DS:[ECX+EDX*4+10203040H],CL
-    SHL     dword ptr DS:[ESI+EDI*8+12345678H],02H
-    SHL     byte ptr DS:[EAX+EBX*2+56781234H],CL
-    SHL     word ptr DS:[ECX+EDX*4+99995678H],1H
-    SHL     dword ptr DS:[ESI+EDI*8+12341234H],CL
-    SHL     byte ptr DS:[EAX+EBX*2+56785678H],02H
-    SHL     word ptr DS:[ECX+EDX*4+98761234H],CL
-    SHL     dword ptr DS:[ESI+EDI*8+98765678H],1H
-    LOCK SHL     dword ptr DS:[ESP+EBP+10H],1H
+    SHL     dword ptr ES:[ESI+EDI*8+12345678H],02H
+    SHL     byte ptr ES:[EAX+EBX*2+56781234H],CL
+    SHL     word ptr ES:[ECX+EDX*4+99995678H],1H
+    SHL     dword ptr ES:[ESI+EDI*8+12341234H],CL
+    SHL     byte ptr ES:[EAX+EBX*2+56785678H],02H
+    SHL     word ptr ES:[ECX+EDX*4+98761234H],CL
+    SHL     dword ptr ES:[ESI+EDI*8+98765678H],1H
+    LOCK SHL     dword ptr ES:[ESP+EBP+10H],1H
     XADD    AL,BL
     XADD    AX,CX
     XADD    EAX,EDX
@@ -76,12 +76,12 @@ Start:
     XADD    SS:[BP+SI],EDX
     XADD    SS:[BP+DI],BH
     XADD    DS:[SI+1234H],DI
-    XADD    DS:[DI+5678H],EBP
-    XADD    DS:[BX+0CCCCH],CL
+    XADD    CS:[DI+5678H],EBP
+    XADD    CS:[BX+0CCCCH],CL
     XADD    SS:[BP+00AAH],SP
-    XADD    DS:[SI+12H],ESI
-    XADD    DS:[DI+56H],DH
-    XADD    DS:[BX+1234H],BP
+    XADD    CS:[SI+12H],ESI
+    XADD    CS:[DI+56H],DH
+    XADD    CS:[BX+1234H],BP
     XADD    SS:[BP],EDI
     XADD    DS:[EAX],BL
     XADD    DS:[EBX],CX
@@ -89,23 +89,23 @@ Start:
     XADD    DS:[EDX],AH
     XADD    DS:[ESI],DI
     XADD    DS:[ESP],ESP
-    XADD    DS:[EAX+EBX],CL
-    XADD    DS:[ECX+EDX],SI
-    XADD    DS:[ESI+EDI],EBP
-    XADD    DS:[EAX+0AAAABBBBH],DL
-    XADD    DS:[EBX+11111111H],BP
-    XADD    DS:[ECX+12341234H],ESI
-    XADD    DS:[EDX+EDX],BH
+    XADD    SS:[EAX+EBX],CL
+    XADD    SS:[ECX+EDX],SI
+    XADD    SS:[ESI+EDI],EBP
+    XADD    SS:[EAX+0AAAABBBBH],DL
+    XADD    SS:[EBX+11111111H],BP
+    XADD    SS:[ECX+12341234H],ESI
+    XADD    SS:[EDX+EDX],BH
     XADD    DS:[EBP+ESI+12345678H],DI
     XADD    DS:[EDI+12345678H],EBP
     XADD    DS:[EAX+EBX*2],CL
     XADD    DS:[ECX+EDX*4],SI
     XADD    DS:[ESI+EDI*8],EBP
-    XADD    DS:[EAX+EBX*2+0ABCD1234H],DL
-    XADD    DS:[ECX+EDX*4+0ABCD5678H],BP
+    XADD    CS:[EAX+EBX*2+0ABCD1234H],DL
+    XADD    ES:[ECX+EDX*4+0ABCD5678H],BP
     XADD    DS:[ESI+EDI*8+0ABCD1234H],ESI
-    XADD    DS:[EAX+EBX*2+1BCD5678H],BH
-    XADD    DS:[ECX+EDX*4+2BCD1234H],DI
-    XADD    DS:[ESI+EDI*8+3BCD5678H],EBP
+    XADD    SS:[EAX+EBX*2+1BCD5678H],BH
+    XADD    FS:[ECX+EDX*4+2BCD1234H],DI
+    XADD    GS:[ESI+EDI*8+3BCD5678H],EBP
     LOCK XADD    DS:[EBP+EBP*8],EBP
 end Start
