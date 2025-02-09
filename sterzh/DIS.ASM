@@ -6,6 +6,7 @@ comFileName      db    "COM.COM", 0
 comError         db    "Error with openning COM file", 13, 10, "$"
 resFileName      db    "RES.ASM", 0
 resError         db    "Error with creating RES file", 13, 10, "$"
+noError          db    "No error.", 13, 10, "$"
 exitMessage      db    "Exiting...$"
 sahfMnem         db    "SAHF", 13, 10
 xaddMnem         db    "XADD    "
@@ -249,6 +250,9 @@ byteLock:
     call    writeStrToBuffer
     jmp     findNextOpcode
 exit:
+    mov     dx, offset noError
+    mov     ah, 9 
+    int     21h
     mov     ah, 3Eh
     mov     bx, resFileHandle
     int     21h
@@ -266,68 +270,6 @@ writeStrToBuffer proc
     mov     si, ax
     rep     movsb  
     pop     si
-    ret
-endp
-
-writeImmDispToBuffer proc
-    xor     dx, dx
-    mov     bx, 10h
-    movzx   cx, immDispLen
-    inc     cx
-    or      checkZeroDisp, 0
-    jz      normalDisp
-    lodsb
-    mov     checkZeroDisp, 0
-    or      al, al
-    jnz     pushSi
-    dec     di
-    jmp     skip    
-normalDisp:    
-    cmp     immDispLen, 2
-    je      byteDisp
-    cmp     immDispLen, 4
-    je      wordDisp
-    lodsd
-    jmp     pushSi
-wordDisp:
-    lodsw
-    jmp     pushSi
-byteDisp:
-    lodsb
-pushSi:
-    push    si
-    mov     si, offset immDispStr
-    add     si, 8
-division:
-    idiv    bx
-    cmp     dl, 9
-    jbe     numberAscii
-    add     dl, 37h
-    jmp     save
-numberAscii:
-    or      dl, 30h
-save:
-    mov     [si], dl
-    dec     immDispLen
-    jz      stopDivision
-    xor     dl, dl
-    dec     si
-    cmp     immDispLen, 4
-    jne     nextChar
-    shr     eax, 16
-nextChar:
-    jmp     division
-stopDivision:
-    cmp     dl, 39h
-    jna     notLetter
-    dec     si
-    mov     byte ptr [si], "0"
-    inc     cx
-notLetter:
-    rep     movsb
-    pop     si
-    mov     immDispLen, 2
-skip:
     ret
 endp
 
@@ -551,6 +493,68 @@ writeClosingBracket:
     stosw
 return:
     pop     ax
+    ret
+endp
+
+writeImmDispToBuffer proc
+    xor     dx, dx
+    mov     bx, 10h
+    movzx   cx, immDispLen
+    inc     cx
+    or      checkZeroDisp, 0
+    jz      normalDisp
+    lodsb
+    mov     checkZeroDisp, 0
+    or      al, al
+    jnz     pushSi
+    dec     di
+    jmp     skip    
+normalDisp:    
+    cmp     immDispLen, 2
+    je      byteDisp
+    cmp     immDispLen, 4
+    je      wordDisp
+    lodsd
+    jmp     pushSi
+wordDisp:
+    lodsw
+    jmp     pushSi
+byteDisp:
+    lodsb
+pushSi:
+    push    si
+    mov     si, offset immDispStr
+    add     si, 8
+division:
+    idiv    bx
+    cmp     dl, 9
+    jbe     numberAscii
+    add     dl, 37h
+    jmp     save
+numberAscii:
+    or      dl, 30h
+save:
+    mov     [si], dl
+    dec     immDispLen
+    jz      stopDivision
+    xor     dl, dl
+    dec     si
+    cmp     immDispLen, 4
+    jne     nextChar
+    shr     eax, 16
+nextChar:
+    jmp     division
+stopDivision:
+    cmp     dl, 39h
+    jna     notLetter
+    dec     si
+    mov     byte ptr [si], "0"
+    inc     cx
+notLetter:
+    rep     movsb
+    pop     si
+    mov     immDispLen, 2
+skip:
     ret
 endp
 
