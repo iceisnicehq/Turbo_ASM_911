@@ -2,107 +2,107 @@
 .486
 .stack 100h
 .data
-comFileName         db    "COM.COM", 0
-comError            db    "Error with openning COM file", 13, 10, "$"
-resFileName         db    "RES.ASM", 0
-resError            db    "Error with creating RES file", 13, 10, "$"
-exitMessage         db    "Exiting...$"
-sahfMnem            db    "SAHF", 13, 10
-xaddMnem            db    "XADD    "
-shlMnem             db    "SHL     "
-AL_                 db    "AL"
-CL_                 db    "CL"
-DL_                 db    "DL"
-BL_                 db    "BL"
-AH_                 db    "AH"
-CH_                 db    "CH"
-DH_                 db    "DH"
-BH_                 db    "BH"
-AX_                 db    "AX"
-CX_                 db    "CX"
-DX_                 db    "DX"
-BX_                 db    "BX"
-SP_                 db    "SP"
-BP_                 db    "BP"
-SI_                 db    "SI"
-DI_                 db    "DI"
-EAX_                db    "EAX"
-ECX_                db    "ECX"
-EDX_                db    "EDX"
-EBX_                db    "EBX"
-ESP_                db    "ESP"
-EBP_                db    "EBP"
-ESI_                db    "ESI"
-EDI_                db    "EDI"
-byteRegs            dw    AL_,  CL_,  DL_,  BL_,  AH_,  CH_,  DH_,  BH_                                                                           
-wordRegs            dw    AX_,  CX_,  DX_,  BX_,  SP_,  BP_,  SI_,  DI_
-dwrdRegs            dw    EAX_, ECX_, EDX_, EBX_, ESP_, EBP_, ESI_, EDI_
-wordPtr             db    "word ptr "
-dwordPtr            db    "dword ptr "
-bytePtr             db    "byte ptr "
-typeOvr             dw    wordPtr, dwordPtr, bytePtr
-typeOvrLenStr       dw    9, 10, 9
-ESpref              db    "E"
-CSpref              db    "C"
-SSpref              db    "S"
-DSpref              db    "D"
-FSpref              db    "F"
-GSpref              db    "G"
-lockMnem            db    "LOCK "
-BXSIrm              db    "DS:[BX+SI+"
-BXDIrm              db    "DS:[BX+DI+"
-BPSIrm              db    "SS:[BP+SI+"
-BPDIrm              db    "SS:[BP+DI+"
-SIrm                db    "DS:[SI+"
-DIrm                db    "DS:[DI+"
-disp_               db    "DS:["
-BPrm                db    "SS:[BP+"
-BXrm                db    "DS:[BX+"
-modrm16             dw    BXSIrm, BXDIrm, BPSIrm, BPDIrm, SIrm, DIrm, disp_, BXrm
-                    dw    2 dup (BXSIrm, BXDIrm, BPSIrm, BPDIrm, SIrm, DIrm, BPrm,  BXrm)
-modrm16LenStr       dw    9,   9,  9,  9, 6, 6, 4, 6
-                    dw    2 dup (10, 10, 10, 10, 7, 7, 7, 7)
-EAXrm               db    "DS:[EAX+"
-ECXrm               db    "DS:[ECX+"
-EDXrm               db    "DS:[EDX+"
-EBXrm               db    "DS:[EBX+"
-EBPrm               db    "SS:[EBP+"
-ESIrm               db    "DS:[ESI+"
-EDIrm               db    "DS:[EDI+"
-modrm32             dw    EAXrm, ECXrm, EDXrm, EBXrm, disp_, disp_, ESIrm, EDIrm
-                    dw    2 dup (EAXrm, ECXrm, EDXrm, EBXrm, disp_, EBPrm, ESIrm, EDIrm)
-modrm32LenStr       dw    7, 7, 7, 7, 4, 4, 7, 7
-                    dw    2 dup (8, 8, 8, 8, 4, 8, 8, 8)
-opcodeTable         dw    15 dup(findNextOpcode)
-                    dw    byteXadd
-                    dw    22 dup (findNextOpcode)
-                    dw    byteES, 7 dup(findNextOpcode), byteCS, 7 dup(findNextOpcode)
-                    dw    byteSS, 7 dup(findNextOpcode), byteDS, 37 dup(findNextOpcode)
-                    dw    byteFS, byteGS, byteOper, byteAddr 
-                    dw    54 dup(findNextOpcode)
-                    dw    byteSahf          
-                    dw    33 dup(findNextOpcode)
-                    dw    byteShlC0, byteShlC1
-                    dw    14 dup(findNextOpcode)
-                    dw    byteShlD0, byteShlD1, byteShlD2, byteShlD3 
-                    dw    28 dup(findNextOpcode)
-                    dw    byteLock
-immDispStr          db    '000000000H'
-immDispLen          db    ?
-isDisp              db    ?
-isDisp8BitBp        db    ?
-isDisp32Bit         db    ?
-resFileHandle       dw    ?
-comFileHandle       dw    ?
-segOvr              dw    ?
-operSizeOvr         db    ?
-addrSizeOvr         db    ?
-isSibByte           db    ?
-modrmMod            db    ?
-isXadd              db    ?
-instrBuffer         db    64 dup (?)
-dataBuffer          db    4096 dup (?)
-dataBytesNum        dw    ?
+comFileName      db    "COM.COM", 0
+comError         db    "Error with openning COM file", 13, 10, "$"
+resFileName      db    "RES.ASM", 0
+resError         db    "Error with creating RES file", 13, 10, "$"
+exitMessage      db    "Exiting...$"
+sahfMnem         db    "SAHF", 13, 10
+xaddMnem         db    "XADD    "
+shlMnem          db    "SHL     "
+AL_              db    "AL"
+CL_              db    "CL"
+DL_              db    "DL"
+BL_              db    "BL"
+AH_              db    "AH"
+CH_              db    "CH"
+DH_              db    "DH"
+BH_              db    "BH"
+AX_              db    "AX"
+CX_              db    "CX"
+DX_              db    "DX"
+BX_              db    "BX"
+SP_              db    "SP"
+BP_              db    "BP"
+SI_              db    "SI"
+DI_              db    "DI"
+EAX_             db    "EAX"
+ECX_             db    "ECX"
+EDX_             db    "EDX"
+EBX_             db    "EBX"
+ESP_             db    "ESP"
+EBP_             db    "EBP"
+ESI_             db    "ESI"
+EDI_             db    "EDI"
+byteRegs         dw    AL_,  CL_,  DL_,  BL_,  AH_,  CH_,  DH_,  BH_                                                                           
+wordRegs         dw    AX_,  CX_,  DX_,  BX_,  SP_,  BP_,  SI_,  DI_
+dwrdRegs         dw    EAX_, ECX_, EDX_, EBX_, ESP_, EBP_, ESI_, EDI_
+wordPtr          db    "word ptr "
+dwordPtr         db    "dword ptr "
+bytePtr          db    "byte ptr "
+typeOvr          dw    wordPtr, dwordPtr, bytePtr
+typeOvrLenStr    dw    9, 10, 9
+ESpref           db    "E"
+CSpref           db    "C"
+SSpref           db    "S"
+DSpref           db    "D"
+FSpref           db    "F"
+GSpref           db    "G"
+lockMnem         db    "LOCK "
+BXSIrm           db    "DS:[BX+SI+"
+BXDIrm           db    "DS:[BX+DI+"
+BPSIrm           db    "SS:[BP+SI+"
+BPDIrm           db    "SS:[BP+DI+"
+SIrm             db    "DS:[SI+"
+DIrm             db    "DS:[DI+"
+disp_            db    "DS:["
+BPrm             db    "SS:[BP+"
+BXrm             db    "DS:[BX+"
+modrm16          dw    BXSIrm, BXDIrm, BPSIrm, BPDIrm, SIrm, DIrm, disp_, BXrm
+                 dw    2 dup (BXSIrm, BXDIrm, BPSIrm, BPDIrm, SIrm, DIrm, BPrm,  BXrm)
+modrm16LenStr    dw    9,   9,  9,  9, 6, 6, 4, 6
+                 dw    2 dup (10, 10, 10, 10, 7, 7, 7, 7)
+EAXrm            db    "DS:[EAX+"
+ECXrm            db    "DS:[ECX+"
+EDXrm            db    "DS:[EDX+"
+EBXrm            db    "DS:[EBX+"
+EBPrm            db    "SS:[EBP+"
+ESIrm            db    "DS:[ESI+"
+EDIrm            db    "DS:[EDI+"
+modrm32          dw    EAXrm, ECXrm, EDXrm, EBXrm, disp_, disp_, ESIrm, EDIrm
+                 dw    2 dup (EAXrm, ECXrm, EDXrm, EBXrm, disp_, EBPrm, ESIrm, EDIrm)
+modrm32LenStr    dw    7, 7, 7, 7, 4, 4, 7, 7
+                 dw    2 dup (8, 8, 8, 8, 4, 8, 8, 8)
+opcodeTable      dw    15 dup(findNextOpcode)
+                 dw    byteXadd
+                 dw    22 dup (findNextOpcode)
+                 dw    byteES, 7 dup(findNextOpcode), byteCS, 7 dup(findNextOpcode)
+                 dw    byteSS, 7 dup(findNextOpcode), byteDS, 37 dup(findNextOpcode)
+                 dw    byteFS, byteGS, byteOper, byteAddr 
+                 dw    54 dup(findNextOpcode)
+                 dw    byteSahf          
+                 dw    33 dup(findNextOpcode)
+                 dw    byteShlC0, byteShlC1
+                 dw    14 dup(findNextOpcode)
+                 dw    byteShlD0, byteShlD1, byteShlD2, byteShlD3 
+                 dw    28 dup(findNextOpcode)
+                 dw    byteLock
+immDispStr       db    '000000000H'
+immDispLen       db    ?
+isDisp           db    ?
+isDisp8BitBp     db    ?
+isDisp32Bit      db    ?
+resFileHandle    dw    ?
+comFileHandle    dw    ?
+segOvr           dw    ?
+operSizeOvr      db    ?
+addrSizeOvr      db    ?
+isSibByte        db    ?
+modrmMod         db    ?
+isXadd           db    ?
+instrBuffer      db    64 dup (?)
+dataBuffer       db    4096 dup (?)
+dataBytesNum     dw    ?
 
 .code
 Start:
