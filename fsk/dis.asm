@@ -44,6 +44,7 @@ ss_seg    db    "SS:[", 0
 ds_seg    db    "DS:[", 0
 fs_seg    db    "FS:[", 0
 gs_seg    db    "GS:[", 0
+ovr_ptrs     dw    word_ptr, dword_ptr
 segs    ENUM    zero, es_num, cs_num, ss_num, ds_num, fs_num, gs_num
 segments    dw    es_seg, cs_seg, ss_seg, ds_seg, fs_seg, gs_seg
 regs8    dw    ALstr, CLstr, DLstr, BLstr, AHstr, CHstr, DHstr, BHstr
@@ -142,10 +143,10 @@ gs_byte:
     mov     [seg_ovr], gs_num
     jmp     scan_bytes
 size66_byte:
-    mov     [is_size_66], 1
+    mov     [is_size_66], 2
     jmp     scan_bytes
 is_addr_67:
-    mov     [is_addr_67], 1
+    mov     [is_addr_67], 2
     jmp     scan_bytes
 lock_byte:
     mov     si, offset lock_str
@@ -162,6 +163,13 @@ jump_byte:
 
     ; TO-DO
 imul_byte:
+    cmp     [opcode], 0F6h
+    jb      no_ptr
+    mov     ax, offset byte_ptr
+    je      opcode_f6
+    mov     ax, [ovr_ptrs+is_size_66]
+    mov     [ptr_ovr], ax 
+no_ptr:
     ; TO-DO
 
 byteXadd:
