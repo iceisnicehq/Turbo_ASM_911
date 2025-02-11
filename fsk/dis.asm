@@ -71,7 +71,7 @@ sib_s     db     0
 sib_i     db     0
 sib_b     db     0
 file_descr    dw    0
-ptr_ovr    dw    0
+; ptr_ovr    dw    0
 seg_ovr     dw    0
 is_size_66    db    0
 is_addr_67    db    0
@@ -163,15 +163,33 @@ jump_byte:
 
     ; TO-DO
 imul_byte:
+    mov     ax, offset imul_str
+    call    write_to_buffer
+    cmp     [opcode], 0Fh
+    jne     not_2byte_imul
+    lodsb
+    mov     [opcode], al
+not_2byte_imul:
+    lodsb
+    call    get_mod_reg_rm
+    cmp     [mode], 11000000b
+    je      print_reg_reg ; print_reg_reg
     cmp     [opcode], 0F6h
     jb      no_ptr
     mov     ax, offset byte_ptr
-    je      opcode_f6
+    je      write_ptr
     mov     ax, [ovr_ptrs+is_size_66]
-    mov     [ptr_ovr], ax 
+    ; mov     [ptr_ovr], ax
+write_ptr:
+    call    write_to_buffer
 no_ptr:
+    cmp 
+print_reg_reg:
+    cmp    [opcode], 0F6h
+    jb     not_one_operand
+    
     ; TO-DO
-
+not_one_operand:
 byteXadd:
     mov     isXadd, 1
     lodsb
@@ -557,6 +575,30 @@ skip:
     ret
 endp
 
+
+
+get_mod_reg_rm proc
+    mov     ah, al
+    and     ah, 11000000b
+    mov    [mode], ah
+    mov     ah, al
+    shr     ah, 2
+    and     ah, 1110b
+    mov     [reg], ah
+    and     al, 111b
+    shl     al, 1
+    mov     [rm], al
+endp
+
+write_to_buffer proc
+    push    si
+    mov     si, ax
+    call    get_str_len
+    rep     movsb
+    pop     si
+    ret
+endp
+
 get_str_len proc
     push    di
     mov     cx, 0ffffh
@@ -586,7 +628,7 @@ write_to_file proc
     push    di
     rep     stosb
     pop     di
-    mov     ptr_ovr, 0
+    ; mov     ptr_ovr, 0
     mov     seg_ovr, 0
     mov     is_size_66, 0
     mov     is_addr_67, 0
@@ -594,6 +636,15 @@ write_to_file proc
     ret
 endp
 
+write_seg proc
+    mov    ax, [seg_ovr]
+    or     ax, ax
+    jnz    not_default_seg
+    mov    ax, 
+not_default_seg: 
+    call    write_to_buffer
+    ret
+endp
 write_hex_num proc
     cmp     is_imm, 1
     je      no_zero_disp
