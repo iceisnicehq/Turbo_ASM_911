@@ -4,9 +4,9 @@
 .data
 ; OPCODES are: 0F, 26, 2E, 36, 3E, 64, 65, 66, 67, 69, 6B, F6, F7, (0F) AF, E9, EA, EB, FF(r4), FF(r5)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-com_file    db    "com.com", 0
+com_file    db    "input.com", 0
 com_error    db    "com file error", 13, 10, "$"
-dest_file    db    "result.asm", 0
+dest_file    db    "output.asm", 0
 dest_error    db    "destination file error", 13, 10, "$"
 success    db    "success", 13, 10, "$"
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -30,8 +30,16 @@ ESPstr    db    "ESP", 0
 EBPstr    db    "EBP", 0
 ESIstr    db    "ESI", 0
 EDIstr    db    "EDI", 0
+AXstr    equ    offset EAXstr + 1
+CXstr    equ    offset ECXstr + 1
+DXstr    equ    offset EDXstr + 1
+BXstr    equ    offset EBXstr + 1
+SPstr    equ    offset ESPstr + 1
+BPstr    equ    offset EBPstr + 1
+SIstr    equ    offset ESIstr + 1
+DIstr    equ    offset EDIstr + 1
 dword_ptr    db    "dword ptr ", 0
-word_ptr    equ   dword_ptr+1
+word_ptr    equ   offset dword_ptr + 1
 byte_ptr    db    "byte ptr ", 0
 lock_str    db    "LOCK ", 0
 BX_SIstr    db    "BX+SI", 0
@@ -44,26 +52,23 @@ ss_seg    db    "SS:[", 0
 ds_seg    db    "DS:[", 0
 fs_seg    db    "FS:[", 0
 gs_seg    db    "GS:[", 0
-ovr_ptrs     dw    word_ptr, dword_ptr
-segs    ENUM    zero, es_num, cs_num, ss_num, ds_num, fs_num, gs_num
-segments    dw    es_seg, cs_seg, ss_seg, ds_seg, fs_seg, gs_seg
+; ovr_ptrs     dw    word_ptr, dword_ptr
 regs8    dw    ALstr, CLstr, DLstr, BLstr, AHstr, CHstr, DHstr, BHstr
-regs16    dw    EAXstr+1, ECXstr+1, EDXstr+1, EBXstr+1, ESPstr+1, EBPstr+1, ESIstr+1, EDIstr+1 ; тут адрес+1, то есть EAX + 1 = AX, то на один байт дальше просто
+regs16    dw    AXstr, CXstr, DXstr, BXstr, SPstr, BPstr, SIstr, DIstr ; тут адрес+1, то есть EAX + 1 = AX, то на один байт дальше просто
 regs32    dw    EAXstr, ECXstr, EDXstr, EBXstr, ESPstr, EBPstr, ESIstr, EDIstr
-mod00_16    dw    BXSIrm, BXDIrm, BPSIrm, BPDIrm, ESIstr+1, EDIstr+1, 110h, EBXstr+1
+mod00_16    dw    BXSIrm, BXDIrm, BPSIrm, BPDIrm, SIstr, DIstr, 110h, BXstr
 mod00_16_def_seg    dw    ds_seg, ds_seg, ss_seg, ss_seg, ds_seg, ds_seg, ds_seg, ds_seg
-mod01_16    dw    BXSIrm, BXDIrm, BPSIrm, BPDIrm, ESIstr+1, EDIstr+1, EBPstr+1,  EBXstr+1
+rm16    dw    BXSIrm, BXDIrm, BPSIrm, BPDIrm, SIstr, DIstr, BPstr,  BXstr
 
 mod00_32    dw    EAXstr, ECXstr, EDXstr, EBXstr, 100h, 101h, ESIstr, EDIstr
-mod00_32_def_seg    dw    ds_seg, ds_seg, ds_seg, ds_seg, ds_seg, ds_seg, ds_seg, ds_seg
 mod01_32    dw    EAXstr, ECXstr, EDXstr, EBXstr, 100h, EBPstr, ESIstr, EDIstr
 ; OPCODES are: 0F, 26, 2E, 36, 3E, 64, 65, 66, 67, 69, 6B, 99, (0F) AF, E9, EA, EB, F0, F6, F7, FF(r4), FF(r5)
 ; 0=NOTHING, 1=ES, 2=CS, 3=DS, 4=SS, 5=FS, 6=GS, 7=size66, 8=addr67, 9=lock, 10=cdq, 11=jmp, 12=imul
-indexes    ENUM    iend, iEs, iCs, iSs, iDs, iFs, iGs, isize66, iaddr67, ilock, icdq, ijump, iimul
-jmp_table    dw   exit, es_byte, cs_byte, ss_byte, ds_byte, fs_byte, gs_byte, size66_byte, addr67_byte, lock_byte, cdq_byte, jump_byte, imul_byte
-byte_table  db    15 dup(iend), iimul, 22 dup(iend), iEs, 7 dup (iend), iCs, 7 dup (iend), iSs, 7 dup (iend), iDs
-            db    37 dup(iend), iFs, iGs, isize66, iaddr67, iend, iimul, iend, iimul, 45 dup(iend), icdq, 79 dup(iend)
-            db    ijmp, ijmp, ijmp, 4 dup(iend), ilock, 5 dup(iend), iimul, iimul, 7 dup(iend), ijmp, ijmp
+indexes    ENUM   iexit, iEs, iCs, iSs, iDs, iFs, iGs, isize66, iaddr67, ilock, icdq, ijump, iimul
+jmp_table    dw   success_exit, es_byte, cs_byte, ss_byte, ds_byte, fs_byte, gs_byte, size66_byte, addr67_byte, lock_byte, cdq_byte, jump_byte, imul_byte
+byte_table  db    15 dup(iexit), iimul, 22 dup(iexit), iEs, 7 dup (iexit), iCs, 7 dup (iexit), iSs, 7 dup (iexit), iDs
+            db    37 dup(iexit), iFs, iGs, isize66, iaddr67, iexit, iimul, iexit, iimul, 45 dup(iexit), icdq, 79 dup(iexit)
+            db    ijmp, ijmp, ijmp, 4 dup(iexit), ilock, 5 dup(iexit), iimul, iimul, 7 dup(iexit), ijmp, ijmp
 mode    db    0
 rm    db    0
 reg     db    0
@@ -117,7 +122,7 @@ dest_success:
 scan_bytes:
 ; OPCODES are: 0F, 26, 2E, 36, 3E, 64, 65, 66, 67, 69, 6B, F6, F7, (0F) AF, E9, EA, EB, FF(r4), FF(r5)
     lodsb
-    lea     bx, byte_table
+    mov     bx, offset byte_table
     mov     [opcode], al
     xlat    
     mov     bl, al
@@ -125,28 +130,30 @@ scan_bytes:
     shl     bx, 1
     jmp     jmp_table[bx]
 es_byte:
-    mov     [seg_ovr], es_num
-    jmp     scan_bytes
+    mov     ax, offset es_seg
+    jmp     save_segment
 cs_byte:
-    mov     [seg_ovr], cs_num
-    jmp     scan_bytes
+    mov     ax, offset cs_seg
+    jmp     save_segment
 ss_byte:
-    mov     [seg_ovr], ss_num
-    jmp     scan_bytes
+    mov     ax, offset ss_seg
+    jmp     save_segment
 ds_byte:
-    mov     [seg_ovr], ds_num
-    jmp     scan_bytes
+    mov     ax, offset ds_seg
+    jmp     save_segment
 fs_byte:
-    mov     [seg_ovr], fs_num
-    jmp     scan_bytes
+    mov     ax, offset fs_seg
+    jmp     save_segment
 gs_byte:
-    mov     [seg_ovr], gs_num
+    mov     ax, offset gs_seg
+save_segment:
+    mov     [seg_ovr], ax
     jmp     scan_bytes
 size66_byte:
-    mov     [is_size_66], 2
+    mov     [is_size_66], 1
     jmp     scan_bytes
 is_addr_67:
-    mov     [is_addr_67], 2
+    mov     [is_addr_67], 1
     jmp     scan_bytes
 lock_byte:
     mov     si, offset lock_str
@@ -157,115 +164,69 @@ cdq_byte:
     mov     si, offset lock_str
     call    get_str_len
     rep     movsb
-    call    write_to_file
+    call    print_to_file
     jmp     scan_bytes
 jump_byte:
-
     ; TO-DO
+    jmp     scan_bytes
+    ; TO-DO
+one_operand_rm:
+    cmp     [mode], 11000000b
+    jne     one_op_eff_addr
+    call    print_rm
+    jmp     end_one_op
+one_op_eff_addr:
+    cmp     [opcode], 0F6h
+    jne     word_dword_ptr
+    mov     bx, offset byte_ptr
+    jmp     print_ptr
+word_dword_ptr:
+    mov     bx, word_ptr
+    sub     bl, is_size_66
+    sbb     bh, 0
+print_ptr:
+    call    print_to_buffer
+    call    print_seg
+    call    print_rm
+end_one_op:
+    call    print_to_file
+    jmp     scan_bytes
+
 imul_byte:
     mov     ax, offset imul_str
-    call    write_to_buffer
+    call    print_to_buffer
     cmp     [opcode], 0Fh
-    jne     not_2byte_imul
+    jne     not_2_opcode_byte_imul
     lodsb
     mov     [opcode], al
-not_2byte_imul:
+not_2_opcode_byte_imul:
     lodsb
     call    get_mod_reg_rm
-    cmp     [mode], 11000000b
-    je      print_reg_reg ; print_reg_reg
     cmp     [opcode], 0F6h
-    jb      no_ptr
-    mov     ax, offset byte_ptr
-    je      write_ptr
-    mov     ax, [ovr_ptrs+is_size_66]
-    ; mov     [ptr_ovr], ax
-write_ptr:
-    call    write_to_buffer
-no_ptr:
-    cmp 
-print_reg_reg:
-    cmp    [opcode], 0F6h
-    jb     not_one_operand
-    
-    ; TO-DO
-not_one_operand:
-byteXadd:
-    mov     isXadd, 1
+    jae     one_operand_rm
+    call    print_reg
+    call    print_rm
+    cmp     [opcode], 6Bh
+    ja      end_imul
+    mov     [is_imm], 1
+    xor     eax, eax
+    jb      byte_imm
+    or      [is_size_66], 0
+    jz      word_imm
+    lodsd
+    jmp     print_imm
+word_imm:
+    lodsw
+    jmp     print_imm
+byte_imm:
     lodsb
-    cmp     al, 0C0h
-    jne     no8bit
-    or      operSizeOvr, 2
-no8bit:
-    call    decodeCommand
-    movzx   bx, al
-    and     bl, 111000b
-    mov     cx, 2
-    shr     bx, cl
-    mov     ax, wordRegs[bx]
-    or      operSizeOvr, 0
-    je      xaddEnd
-    mov     ax, byteRegs[bx]
-    cmp     operSizeOvr, 1
-    jne     xaddEnd
-    mov     ax, dwrdRegs[bx]
-    inc     cx
-xaddEnd:
-    call    writeStrToBuffer
-    jmp     prepWriteFile
-byteShlC0:
-    or      operSizeOvr, 2
-byteShlC1:
-    call    decodeCommand
-    call    writeImmDispToBuffer
-    jmp     prepWriteFile   
-byteShlD0:
-    or      operSizeOvr, 2
-byteShlD1:
-    call    decodeCommand
-    mov     ax, "H1"
-    stosw
-    jmp     prepWriteFile    
-byteShlD2:
-    or      operSizeOvr, 2
-byteShlD3:
-    call    decodeCommand
-    mov     ax, "LC"
-    stosw
-    jmp     prepWriteFile
-byteOper:
-    mov     operSizeOvr, 1
-    jmp     scan_bytes
-byteAddr:
-    mov     addrSizeOvr, 1
-    jmp     scan_bytes
-byteES:
-    mov     al, "E"
-    jmp     saveSeg
-byteCS:
-    mov     al, "C"
-    jmp     saveSeg
-byteSS:
-    mov     al, "S"
-    jmp     saveSeg
-byteDS:
-    mov     al, "D"
-    jmp     saveSeg
-byteFS:
-    mov     al, "F"
-    jmp     saveSeg
-byteGS:
-    mov     al, "G"
-saveSeg:
-    mov     segOvr, al
-    jmp     scan_bytes
-byteLock:
-    mov     ax, offset lock_str
-    mov     cx, 5
-    call    writeStrToBuffer
+print_imm:
+    call    print_hex_num
+end_imul:
+    call    print_to_file
     jmp     scan_bytes
 
-exit:
+success_exit:
     mov     dx, offset noError
     mov     ah, 9 
     int     21h
@@ -278,309 +239,10 @@ exit:
     mov     ah, 4Ch
     int     21h
 
-writeStrToBuffer proc
-    push    si
-    mov     si, ax
-    rep     movsb  
-    pop     si
-    ret
-endp
-
-decodeCommand proc
-    mov     cx, 8
-    mov     ax, offset xaddMnem
-    or      isXadd, 0
-    jnz     xaddTrue 
-    mov     ax, offset shlMnem
-xaddTrue:
-    call    writeStrToBuffer
-continueDisasm:
-    lodsb
-    push    ax
-    movzx   bp, al
-    mov     bx, bp
-    and     bp, 11000000b
-    shr     bp, 6
-    or      word ptr modrmMod, bp
-    and     bl, 111b
-    cmp     bp, 11b
-    je      modrmMod11
-    or      addrSizeOvr, 0
-    je      pushBx
-    cmp     bl, 100b
-    jne     pushBx
-    mov     isSibByte, 1
-pushBx:    
-    push    bx
-    or      isXadd, 0
-    jnz     noTypeOvr
-    movzx   bx, operSizeOvr
-    shl     bx, 1
-    mov     cx, 9
-    mov     ax, offset typeOvr[bx]
-    cmp     ax, offset dwrdptr
-    jne     notDwrdPtr
-    inc     cx
-notDwrdPtr:
-    call    writeStrToBuffer
-noTypeOvr:
-    or      segOvr, 0
-    jz      defaultSegment
-    mov     al, segOvr
-    stosb
-defaultSegment:
-    pop     bx
-    or      addrSizeOvr, 0
-    jz      noAddrOvr
-    or      bp, 0
-    jne     disp8Check
-    cmp     bx, 101b
-    jne     putOperToBuffer
-    mov     immDispLen, 8
-    mov     isDisp, 1
-    jmp     putOperToBuffer
-disp8Check:
-    cmp     bp, 1b
-    jne     disp32
-    cmp     bx, 101b
-    jne     continueCheck
-    mov     checkZeroDisp, 1
-continueCheck:
-    mov     immDispLen, 2
-    mov     isDisp, 1
-    jmp     putOperToBuffer
-disp32:
-    mov     immDispLen, 8
-    mov     isDisp, 1
-    jmp     putOperToBuffer
-noAddrOvr:    
-    cmp     bp, 1b
-    jne     disp16Check
-    mov     isDisp, 1
-    cmp     bx, 110b
-    jne     putOperToBuffer
-    mov     checkZeroDisp, 1
-    jmp     putOperToBuffer
-disp16Check:
-    cmp     bp, 10b
-    je      disp16
-    cmp     bx, 110b
-    jne     putOperToBuffer
-disp16:
-    mov     immDispLen, 4
-    mov     isDisp, 1
-putOperToBuffer:
-    cmp     bp, 11b
-    jne     effectiveAddressing
-modrmMod11:
-    shl     bx, 1
-    mov     cx, 2
-    mov     ax, byteRegs[bx]
-    cmp     operSizeOvr, 1
-    ja      writeRegOperand
-    mov     ax, wordRegs[bx]
-    jne     writeRegOperand
-    mov     ax, dwrdRegs[bx]
-    inc     cx
-writeRegOperand:
-    call    writeStrToBuffer
-    mov     al, ","
-    stosb
-    jmp     continue
-effectiveAddressing:
-    push    bp
-    shl     bp, 3
-    add     bp, bx
-    shl     bp, 1
-    mov     bx, bp
-    or      addrSizeOvr, 0
-    je      wordSize
-    mov     ax, modrm32[bx]
-    shr     bx, 1
-    movzx   cx, modrm32LenStr[bx]
-    or      segOvr, 0
-    jz      notSegOvr
-    inc     ax
-    dec     cx
-    mov     segOvr, 0
-notSegOvr:
-    call    writeStrToBuffer
-    pop     bp
-    or      isSibByte, 0
-    jz      continue
-    lodsb
-    push    bp 
-    movzx   bp, al
-    mov     bx, bp
-    and     bp, 11000000b
-    shr     bp, 6
-    and     bl, 111000b       
-    shr     bl, 3                       
-    push    bx
-    mov     bl, al
-    and     bl, 111b
-    cmp     bl, 101b
-    jne     sibBaseNot101Ebp
-    cmp     modrmMod, 1
-    jne     notModrmMod1
-    mov     checkZeroDisp, 1
-notModrmMod1:
-    or      modrmMod, 0
-    jne     sibBaseNot101Ebp
-    pop     bx
-    shl     bx, 1
-    mov     ax, dwrdRegs[bx]
-    mov     cx, 3
-    call    writeStrToBuffer
-    shl     bp, 1
-    jz      sibZeroSS
-    cmp     bp, 110b
-    jne     sibIndexNot11
-    mov     bp, 1000b
-sibIndexNot11:
-    mov     ax, "*0"
-    or      ax, bp
-    xchg    al, ah
-    stosw
-sibZeroSS:
-    lodsd
-    or      eax, eax
-    jnz     sibWithDisp
-    jmp     popBp
-sibWithDisp:
-    sub     si, 4
-    mov     al, "+"
-    stosb  
-    push    word ptr immDispLen
-    mov     immDispLen, 8
-    call    writeImmDispToBuffer
-    pop     word ptr immDispLen
-    jmp     popBp
-sibBaseNot101Ebp:
-    shl     bx, 1
-    mov     ax, dwrdRegs[bx]
-    mov     cx, 3
-    call    writeStrToBuffer
-    pop     bx
-    cmp     bx, 100b
-    je      popBp
-    mov     al, "+"
-    stosb    
-    shl     bx, 1
-    mov     ax, dwrdRegs[bx]
-    mov     cx, 3
-    call    writeStrToBuffer
-    shl     bp, 1
-    jz      sibZeroSSS
-    cmp     bp, 110b
-    jne     sibIndexNot11S
-    mov     bp, 1000b
-sibIndexNot11S:
-    mov     ax, "*0"
-    or      ax, bp
-    xchg    al, ah
-    stosw
-sibZeroSSS:
-popBp:
-    pop     bp
-    jmp     continue
-wordSize:
-    mov     ax, modrm16[bx]
-    shr     bx, 1
-    movzx   cx, modrm16LenStr[bx]
-    or      segOvr, 0
-    jz      defSeg
-    inc     ax
-    dec     cx
-    mov     segOvr, 0
-defSeg:
-    call    writeStrToBuffer
-    pop     bp
-continue:   
-    cmp     bp, 11b
-    je      return
-    or      isDisp, 0
-    jz      writeClosingBracket
-    mov     al, "+"
-    stosb  
-callWriting:
-    call    writeImmDispToBuffer
-writeClosingBracket:
-    mov     ax, ",]"
-    stosw
-return:
-    pop     ax
-    ret
-endp
-
-writeImmDispToBuffer proc
-    xor     dx, dx
-    mov     bx, 10h
-    movzx   cx, immDispLen
-    inc     cx
-    or      checkZeroDisp, 0
-    jz      normalDisp
-    lodsb
-    mov     checkZeroDisp, 0
-    or      al, al
-    jnz     pushSi
-    dec     di
-    jmp     skip    
-normalDisp:    
-    cmp     immDispLen, 2
-    je      byteDisp
-    cmp     immDispLen, 4
-    je      wordDisp
-    lodsd
-    jmp     pushSi
-wordDisp:
-    lodsw
-    jmp     pushSi
-byteDisp:
-    lodsb
-pushSi:
-    push    si
-    mov     si, offset immDispStr
-    add     si, 8
-division:
-    idiv    bx
-    cmp     dl, 9
-    jbe     numberAscii
-    add     dl, 37h
-    jmp     save
-numberAscii:
-    or      dl, 30h
-save:
-    mov     [si], dl
-    dec     immDispLen
-    jz      stopDivision
-    xor     dl, dl
-    dec     si
-    cmp     immDispLen, 4
-    jne     nextChar
-    shr     eax, 16
-nextChar:
-    jmp     division
-stopDivision:
-    cmp     dl, 39h
-    jna     notLetter
-    dec     si
-    mov     byte ptr [si], "0"
-    inc     cx
-notLetter:
-    rep     movsb
-    pop     si
-    mov     immDispLen, 2
-skip:
-    ret
-endp
-
-
-
 get_mod_reg_rm proc
     mov     ah, al
     and     ah, 11000000b
-    mov    [mode], ah
+    mov     [mode], ah
     mov     ah, al
     shr     ah, 2
     and     ah, 1110b
@@ -590,7 +252,136 @@ get_mod_reg_rm proc
     mov     [rm], al
 endp
 
-write_to_buffer proc
+print_reg proc
+    push    bx
+    mov     bx, offset regs8
+    cmp     [opcode], 0F6h
+    je      go_print
+    mov     bx, offset regs16
+    or      [is_size_66], 0
+    jz      go_print
+    mov     bx, offset regs32
+go_print:
+    mov     ax, [bx + reg]
+    call    print_to_buffer
+    pop     bx
+    ret
+endp
+
+print_rm proc
+    cmp     [mode], 11000000b
+    jne     not11mod
+    mov     al, rm
+    mov     reg, al
+    call    print_reg
+    jmp     return
+not11mod:
+    or      [is_addr_67], 0
+    jnz     bit32_addr
+    or      [mode], 0
+    jnz     not_00_mod_16
+    cmp     [rm], 1100b
+    jne     not_00_mod_16
+    xor     eax, eax
+    lodsw
+    call    print_hex_num
+    jmp     return
+not_00_mod_16:
+    mov     bx, offset rm16
+    mov     ax, [bx + rm]
+    call    print_to_buffer
+    xor     eax, eax
+    cmp     [mode], 1
+    jne     not_01_mod_16
+    lodsb
+    jmp     print_disp_byte_word
+not_01_mod_16:
+    lodsw
+print_disp_byte_word:
+    call    print_hex_num
+    jmp     return
+bit32_addr:
+    cmp     [rm], 1000b             ; это сиб байт
+    jne     no_sib_byte             
+    lodsb                           ; вытягиваем сиб и разбираем на скейл, индекс, базу
+    mov     ah, al
+    and     ah, 11000000b
+    mov     [sib_s], ah
+    mov     ah, al
+    shr     ah, 2
+    and     ah, 1110b
+    mov     [sib_i], ah
+    and     al, 111b
+    shl     al, 1
+    mov     [sib_b], al
+    mov     bx, offset regs32
+    mov     ax, [bx + sib_b]        ; пишем базу в буффер
+    call    print_to_buffer
+    mov     al, "+"                 ; дальше пишем индекс, поэтому '+'
+    stosb
+    cmp     [sib_b], 1010b          ; проверяем базу 101 (ebp)
+    jne     no_base_101
+    or      [mode], 0               ; если база 101, и мод в модрм=0, то..
+    jnz     no_base_101
+    mov     si, [bx + sib_b]        ; то тогда в сибе только индекс, и нужно удалить базу (ebp)
+    call    get_str_len 
+    sub     di, cx                  ; двигаем di до начала, то есть до места перед "+"
+    dec     di                      ; это из-за плюса, теперь di указывает на адрес за "["
+no_base_101:
+    cmp     [sib_i], 1000b          ; проверяем индекс 100, то есть NONE
+    je      index_none              ; если индекс NONE, то не пишем индекс
+    mov     bx, offset regs32       ; запись индекса
+    mov     ax, [bx + sib_i]
+    call    print_to_buffer
+    mov     ah, [sib_s]
+    or      ah, ah
+    jz      index_none
+    shr     ah, 5
+    jnp     not_scale_8             ; jp - прыжок, если четное число битов, в 7 и 6 бите al может быть 11, 10, 01, 00
+    mov     ah, 8                   ;      тогда если после сдвига на 5, битов четное, то это 11, то есть масштаб "8"
+not_scale_8:                        ;          
+    add     ah, "0"
+    mov     al, "*"
+    stosw
+index_none:
+    cmp     [sib_b], 1010b          ; проверяем базу 101 (ebp)
+    jne     return                  ; если база не 101, то выходим
+    mov     al, "+"
+    stosb
+    or      [mode], 0
+    jz      disp32
+    jmp     check_disp_8_32              ; если база 101, то проверяем смещение (оно точно есть)
+no_sib_byte:
+    cmp     [rm], 1010b
+    jne     print_rm32             ; check_disp_8_32
+    or      [mode], 0
+    jnz     print_rm32
+disp32:
+    xor     eax, eax
+    lodsd
+    call    print_hex_num
+    jmp     return
+print_rm32:
+    mov     bx, regs32
+    mov     ax, [bx + rm]
+    call    print_to_buffer
+    or      [mode], 0
+    jz      return
+    mov     al, "+"
+    stosb
+check_disp_8_32:
+    cmp     [mode], 10000000b
+    je      disp32
+    xor     eax, eax
+    lodsb
+    call    print_hex_num
+return:
+    mov     al, "]"
+    stosb
+    ret
+endp
+
+print_to_buffer proc
     push    si
     mov     si, ax
     call    get_str_len
@@ -611,7 +402,7 @@ get_str_len proc
     pop     di
 endp
 
-write_to_file proc
+print_to_file proc
     mov     si, offset cr_lf
     call    get_str_len
     rep     movsb
@@ -636,16 +427,39 @@ write_to_file proc
     ret
 endp
 
-write_seg proc
+print_seg proc
+    push   bx
     mov    ax, [seg_ovr]
     or     ax, ax
-    jnz    not_default_seg
-    mov    ax, 
-not_default_seg: 
-    call    write_to_buffer
+    jnz    print_seg_str
+    or     [is_addr_67], 0
+    jnz     modrm32
+    mov     bx, offset mod00_16_def_seg
+    ; mov     ax, [bx + rm]
+    cmp     rm, 1110b
+    jne     print_default_seg
+    or      [mode], 0
+    jnz     print_ss
+    jmp     print_default_seg
+modrm32:
+    mov     ax, offset ds_seg
+    cmp     rm, 1010b
+    jne     print_seg_str
+    or      [mode], 0
+    jz      print_seg_str
+print_ss:
+    mov     ax, offset ss_seg
+    jmp     print_seg_str
+print_default_seg:
+    mov     ax, [bx + rm]
+print_seg_str:
+    call    print_to_buffer
+    pop     bx
     ret
 endp
-write_hex_num proc
+
+print_hex_num proc
+    push    bx
     cmp     is_imm, 1
     je      no_zero_disp
     or      eax, eax
@@ -678,5 +492,6 @@ digit:
     mov     al, "H"
     stosb
 return:
+    pop     bx
     ret
     End     Start
