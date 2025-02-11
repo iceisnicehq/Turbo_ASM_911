@@ -13,7 +13,7 @@ success    db    "success", 13, 10, "$"
 cdq_str    db    "CDQ", 0
 imul_str    db    "IMUL   ", 0
 jmp_str    db    "JMP    ", 0
-crlf    db    13, 10, 0
+cr_lf    db    13, 10, 0
 ALstr    db    "AL", 0
 CLstr    db    "CL", 0
 DLstr    db    "DL", 0
@@ -22,7 +22,6 @@ AHstr    db    "AH", 0
 CHstr    db    "CH", 0 
 DHstr    db    "DH", 0 
 BHstr    db    "BH", 0
-regs8    dw    ALstr, CLstr, DLstr, BLstr, AHstr, CHstr, DHstr, BHstr
 EAXstr    db    "EAX", 0
 ECXstr    db    "ECX", 0
 EDXstr    db    "EDX", 0
@@ -31,24 +30,25 @@ ESPstr    db    "ESP", 0
 EBPstr    db    "EBP", 0
 ESIstr    db    "ESI", 0
 EDIstr    db    "EDI", 0
-regs32    dw    EAXstr, ECXstr, EDXstr, EBXstr, ESPstr, EBPstr, ESIstr, EDIstr
-regs8    dw    EAXstr+1, ECXstr+1, EDXstr+1, EBXstr+1, ESPstr+1, EBPstr+1, ESIstr+1, EDIstr+1 ; тут адрес+1, то есть EAX + 1 = AX, то на один байт дальше просто
-
 dword_ptr    db    "dword ptr ", 0
 word_ptr    equ   dword_ptr+1
 byte_ptr    db    "byte ptr ", 0
-
 lock_str    db    "LOCK ", 0
 BX_SIstr    db    "BX+SI", 0
 BX_DIstr    db    "BX+DI", 0
 BP_SIstr    db    "BP+SI", 0
 BP_DIstr    db    "BP+DI", 0
-ds_seg    db    "DS:[", 0
-cs_seg    db    "CS:[", 0
 es_seg    db    "ES:[", 0
+cs_seg    db    "CS:[", 0
 ss_seg    db    "SS:[", 0
+ds_seg    db    "DS:[", 0
 fs_seg    db    "FS:[", 0
 gs_seg    db    "GS:[", 0
+segs    ENUM    zero, es_num, cs_num, ss_num, ds_num, fs_num, gs_num
+segments    dw    es_seg, cs_seg, ss_seg, ds_seg, fs_seg, gs_seg
+regs8    dw    ALstr, CLstr, DLstr, BLstr, AHstr, CHstr, DHstr, BHstr
+regs16    dw    EAXstr+1, ECXstr+1, EDXstr+1, EBXstr+1, ESPstr+1, EBPstr+1, ESIstr+1, EDIstr+1 ; тут адрес+1, то есть EAX + 1 = AX, то на один байт дальше просто
+regs32    dw    EAXstr, ECXstr, EDXstr, EBXstr, ESPstr, EBPstr, ESIstr, EDIstr
 mod00_16    dw    BXSIrm, BXDIrm, BPSIrm, BPDIrm, ESIstr+1, EDIstr+1, 110h, EBXstr+1
 mod00_16_def_seg    dw    ds_seg, ds_seg, ss_seg, ss_seg, ds_seg, ds_seg, ds_seg, ds_seg
 mod01_16    dw    BXSIrm, BXDIrm, BPSIrm, BPDIrm, ESIstr+1, EDIstr+1, EBPstr+1,  EBXstr+1
@@ -63,24 +63,20 @@ jmp_table    dw   exit, es_byte, cs_byte, ss_byte, ds_byte, fs_byte, gs_byte, si
 byte_table  db    15 dup(iend), iimul, 22 dup(iend), iEs, 7 dup (iend), iCs, 7 dup (iend), iSs, 7 dup (iend), iDs
             db    37 dup(iend), iFs, iGs, isize66, iaddr67, iend, iimul, iend, iimul, 45 dup(iend), icdq, 79 dup(iend)
             db    ijmp, ijmp, ijmp, 4 dup(iend), ilock, 5 dup(iend), iimul, iimul, 7 dup(iend), ijmp, ijmp
-num_buffer    db    9 dup("0"), 0
 mode    db    0
 rm    db    0
 reg     db    0
 sib_s     db     0
 sib_i     db     0
 sib_b     db     0
-disp_len     db     0
-imm_len     db     0
 file_descr    dw    0
-ptr_ovr    db    0
+ptr_ovr    dw    0
 seg_ovr     dw    0
 is_size_66    db    0
 is_addr_67    db    0
-is_69_opcode    db    0
-data_size   dw    0
+is_imm    db    0
 opcode    db    0
-command_buffer    db    128 dup (" ")
+command_buffer    db    128 dup (0)
 data_buffer    db    4096 dup (0)
 
 .code
@@ -114,33 +110,60 @@ com_success:
     int     21h
     jmp     exit
 dest_success:
-    mov     file_descr, ax
-    mov     di, offset command_buffer
+    mov     [file_descr], ax
     mov     si, offset data_buffer
+    mov     di, offset command_buffer
 scan_bytes:
 ; OPCODES are: 0F, 26, 2E, 36, 3E, 64, 65, 66, 67, 69, 6B, F6, F7, (0F) AF, E9, EA, EB, FF(r4), FF(r5)
     lodsb
     lea     bx, byte_table
+    mov     [opcode], al
     xlat    
     mov     bl, al
     xor     bh, bh
     shl     bx, 1
     jmp     jmp_table[bx]
-    cmp     al, 0fh
-    je      imul_af
-    cmp     al, 67h
-    ja      commands
-    jb      not_addr67
-    mov     is_addr_67, 1
-    cmp     al, 65h
-    
-    movzx   bx, al
-    shl     bx, 1
-    jmp     opcodeTable[bx]
-byteSahf:
-    mov     dx, offset sahfMnem
-    mov     cx, 6
-    jmp     writeFile
+es_byte:
+    mov     [seg_ovr], es_num
+    jmp     scan_bytes
+cs_byte:
+    mov     [seg_ovr], cs_num
+    jmp     scan_bytes
+ss_byte:
+    mov     [seg_ovr], ss_num
+    jmp     scan_bytes
+ds_byte:
+    mov     [seg_ovr], ds_num
+    jmp     scan_bytes
+fs_byte:
+    mov     [seg_ovr], fs_num
+    jmp     scan_bytes
+gs_byte:
+    mov     [seg_ovr], gs_num
+    jmp     scan_bytes
+size66_byte:
+    mov     [is_size_66], 1
+    jmp     scan_bytes
+is_addr_67:
+    mov     [is_addr_67], 1
+    jmp     scan_bytes
+lock_byte:
+    mov     si, offset lock_str
+    call    get_str_len
+    rep     movsb
+    jmp     scan_bytes
+cdq_byte:
+    mov     si, offset lock_str
+    call    get_str_len
+    rep     movsb
+    call    write_to_file
+    jmp     scan_bytes
+jump_byte:
+
+    ; TO-DO
+imul_byte:
+    ; TO-DO
+
 byteXadd:
     mov     isXadd, 1
     lodsb
@@ -537,4 +560,64 @@ get_str_len proc
     dec     cx
     pop     di
 endp
+
+write_to_file proc
+    mov     si, offset cr_lf
+    call    get_str_len
+    rep     movsb
+    mov     dx, offset command_buffer
+    mov     cx, di
+    sub     cx, dx
+    mov     di, dx
+    mov     ah, 40h
+    mov     bx, file_descr
+    push    cx
+    int     21h
+    pop     cx
+    xor     al, al
+    push    di
+    rep     stosb
+    pop     di
+    mov     ptr_ovr, 0
+    mov     seg_ovr, 0
+    mov     is_size_66, 0
+    mov     is_addr_67, 0
+    mov     is_imm, 0
+    ret
+endp
+
+write_hex_num proc
+    cmp     is_imm, 1
+    je      no_zero_disp
+    or      eax, eax
+    dec     di
+    jz      return
+no_zero_disp:
+    mov     ebx, eax
+clean_leading_zeros:
+    test    ebx, 0F0000000h   
+    jnz     storing
+    shl     ebx, 4
+    jmp     clean_leading_zeros
+storing:
+    bswap   ebx
+    cmp     bl, 9
+    bswap   ebx
+    jna     digit_first
+    mov     al, "0"
+    stosb
+digit_first:
+    shld    eax, ebx, 4
+    cmp     al, 9
+    jna     digit
+    add     al, 7
+digit: 
+    add     al, "0"
+    stosb
+    or      ebx, ebx
+    jnz     digit_first
+    mov     al, "H"
+    stosb
+return:
+    ret
     End     Start
