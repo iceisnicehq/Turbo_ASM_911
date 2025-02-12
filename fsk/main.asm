@@ -65,7 +65,7 @@ mod00_16_def_seg    dw    ds_seg, ds_seg, ss_seg, ss_seg, ds_seg, ds_seg, ds_seg
 ; OPCODES are: 0F, 26, 2E, 36, 3E, 64, 65, 66, 67, 69, 6B, 99, (0F) AF, E9, EA, EB, F0, F6, F7, FF(r4), FF(r5)
 ; 0=NOTHING, 1=ES, 2=CS, 3=DS, 4=SS, 5=FS, 6=GS, 7=size66, 8=addr67, 9=lock, 10=cdq, 11=jmp, 12=imul
 indexes    ENUM   iexit, iEs, iCs, iSs, iDs, iFs, iGs, isize66, iaddr67, ilock, icdq, ijmp, iimul
-jmp_table    dw   success_exit, es_label, cs_label, ss_label, ds_label, fs_label, gs_label, size66_label, addr67_label, lock_label, cdq_label, jmp_label, imul_label
+jmp_table    dw   scan_bytes, es_label, cs_label, ss_label, ds_label, fs_label, gs_label, size66_label, addr67_label, lock_label, cdq_label, jmp_label, imul_label
 label_table    db    15 dup(iexit), iimul, 22 dup(iexit), iEs, 7 dup (iexit), iCs, 7 dup (iexit), iSs, 7 dup (iexit), iDs
             db    37 dup(iexit), iFs, iGs, isize66, iaddr67, iexit, iimul, iexit, iimul, 45 dup(iexit), icdq, 79 dup(iexit)
             db    ijmp, ijmp, ijmp, 4 dup(iexit), ilock, 5 dup(iexit), iimul, iimul, 7 dup(iexit), ijmp, ijmp
@@ -76,7 +76,6 @@ sib_s     db     0
 sib_i     db     0
 sib_b     db     0
 file_descr    dw    0
-; ptr_ovr    dw    0
 seg_ovr     dw    0
 is_size_66    db    0
 is_addr_67    db    0
@@ -84,6 +83,7 @@ is_imm    db    0
 opcode    db    0
 command_buffer    db    128 dup (0)
 data_buffer    db    4096 dup (0)
+end_of_data    dw    ?
 
 .code
 Start:
@@ -104,6 +104,8 @@ com_success:
     mov     cx, 4096
     mov     ah, 3fh
     int     21h
+    add     ax, dx
+    mov     [end_of_data], ax
     mov     ah, 3Eh
     int     21h
     mov     ah, 3Ch
@@ -120,6 +122,8 @@ dest_success:
     mov     si, offset data_buffer
     mov     di, offset command_buffer
 scan_bytes:
+    cmp     si, [end_of_data]
+    je      success_exit
 ; OPCODES are: 0F, 26, 2E, 36, 3E, 64, 65, 66, 67, 69, 6B, F6, F7, (0F) AF, E9, EA, EB, FF(r4), FF(r5)
     lodsb
     mov     bx, offset label_table
@@ -165,29 +169,70 @@ cdq_label:
     call    print_to_file
     jmp     scan_bytes
 jmp_label:
+    mov     ax, "+$"
+    cmp     [opcode], 0E9h
+    jne     not_rel16
+    stosw
+    mov     [is_imm], 1
+    lodsw
+    add     ax, 3
+    jnz     non_zero_rel16
+    dec     di
+    jmp     jmp_to_print_to_file
+non_zero_rel16:
+    jns     rel16_plus
+put_minus:
+    mov     byte ptr [di-1], "-"
+rel16_plus:
+    jmp     print_imm
+not_rel16:
+    cmp     [opcode], 0EBh
+    jne     not_rel_8_16
+    stosw
+    mov     [is_imm], 1
+    lodsb
+    inc     al
+    inc     al
+    jnz     non_zero_rel8   
+    dec     di
+non_zero_rel8:
+    js      put_minus
+    jmp     print_imm
+not_rel_8_16:
+    cmp     [opcode], 0FFh
+    jne     jmp_ptr
+    call    get_mod_reg_rm
+    cmp     [reg], 1000b
+    jne     jmp_memory
+    call    print_rm
+    jmp     jmp_to_print_to_file
+jmp_memory:
+
+jmp_ptr:
     ; TO-DO
     jmp     scan_bytes
     ; TO-DO
+end_jmp:
+    call    print_to_file
+    jmp     scan_bytes
 one_operand_rm:
     cmp     [mode], 11000000b
     jne     one_op_eff_addr
     call    print_rm
-    jmp     end_one_op
+    jmp     jmp_to_print_to_file
 one_op_eff_addr:
     cmp     [opcode], 0F6h
     jne     word_dword_ptr
-    mov     bx, offset byte_ptr
+    mov     ax, offset byte_ptr
     jmp     print_ptr
 word_dword_ptr:
-    mov     bx, word_ptr
-    sub     bl, is_size_66
-    sbb     bh, 0
+    mov     ax, word_ptr
+    sub     al, is_size_66
+    sbb     ah, 0
 print_ptr:
     call    print_to_buffer
     call    print_rm
-end_one_op:
-    call    print_to_file
-    jmp     scan_bytes
+    jmp     jmp_to_print_to_file
 
 imul_label:
     mov     ax, offset imul_str
@@ -206,7 +251,7 @@ not_2_opcode_byte_imul:
     stosb
     call    print_rm
     cmp     [opcode], 6Bh
-    ja      end_imul
+    ja      jmp_to_print_to_file
     pushf
     cmp     [mode], 11000000b
     jne     not_reg_reg
@@ -236,7 +281,7 @@ byte_imm:
     lodsb
 print_imm:
     call    print_hex_num
-end_imul:
+jmp_to_print_to_file:
     call    print_to_file
     jmp     scan_bytes
 
@@ -312,7 +357,7 @@ not_00_mod_16:
     or      [mode], 0
     jz      return
     xor     eax, eax
-    cmp     [mode], 1
+    cmp     [mode], 1000000b
     jne     not_01_mod_16
     lodsb
     jmp     print_disp_byte_word
@@ -339,8 +384,6 @@ bit32_addr:
     movzx   bx, sib_b
     mov     ax, [bx + regs32]        ; пишем базу в буффер
     call    print_to_buffer
-    mov     al, "+"                 ; дальше пишем индекс, поэтому '+'
-    stosb
     cmp     [sib_b], 1010b          ; проверяем базу 101 (ebp)
     jne     no_base_101
     or      [mode], 0               ; если база 101, и мод в модрм=0, то..
@@ -352,12 +395,14 @@ bit32_addr:
 no_base_101:
     cmp     [sib_i], 1000b          ; проверяем индекс 100, то есть NONE
     je      index_none              ; если индекс NONE, то не пишем индекс
+    mov     al, "+"                 ; дальше пишем индекс, поэтому '+'
+    stosb
     movzx   bx, sib_i       ; запись индекса
     mov     ax, [bx + regs32]
     call    print_to_buffer
     mov     ah, [sib_s]
     or      ah, ah
-    jz      index_none
+    jz      no_scale
     shr     ah, 5
     jnp     not_scale_8             ; jp - прыжок, если четное число битов, в 7 и 6 бите al может быть 11, 10, 01, 00
     mov     ah, 8                   ;      тогда если после сдвига на 5, битов четное, то это 11, то есть масштаб "8"
@@ -365,11 +410,13 @@ not_scale_8:                        ;
     add     ah, "0"
     mov     al, "*"
     stosw
+no_scale:
+    or      [mode], 0 
+    jz      return
+    jmp     check_disp_8_32
 index_none:
     cmp     [sib_b], 1010b          ; проверяем базу 101 (ebp)
     jne     return                  ; если база не 101, то выходим
-    mov     al, "+"
-    stosb
     or      [mode], 0
     jz      disp32
     jmp     check_disp_8_32              ; если база 101, то проверяем смещение (оно точно есть)
@@ -389,8 +436,8 @@ print_rm32:
     call    print_to_buffer
     or      [mode], 0
     jz      return
-    mov     al, "+"
-    stosb
+    ; mov     al, "+"
+    ; stosb
 check_disp_8_32:
     cmp     [mode], 10000000b
     je      disp32
@@ -457,18 +504,18 @@ print_seg proc
     mov    ax, [seg_ovr]
     or     ax, ax
     jnz    print_seg_str
+    movzx   bx, rm
     or     [is_addr_67], 0
     jnz     modrm32
-    movzx   bx, rm
     ; mov     ax, [bx + rm]
-    cmp     rm, 1110b
+    cmp     bl, 1100b
     jne     print_default_seg
     or      [mode], 0
     jnz     print_ss
     jmp     print_default_seg
 modrm32:
     mov     ax, offset ds_seg
-    cmp     rm, 1010b
+    cmp     bl, 1010b
     jne     print_seg_str
     or      [mode], 0
     jz      print_seg_str
@@ -487,7 +534,7 @@ print_hex_num proc
     push    bx
     cmp     is_imm, 1
     je      no_zero_disp
-    dec     di
+    mov     byte ptr [di], "+"
     or      eax, eax
     jz      end_printing
     inc     di
