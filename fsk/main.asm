@@ -56,17 +56,17 @@ gs_seg    db    "GS:[", 0
 regs8    dw    ALstr, CLstr, DLstr, BLstr, AHstr, CHstr, DHstr, BHstr
 regs16    dw    AXstr, CXstr, DXstr, BXstr, SPstr, BPstr, SIstr, DIstr ; тут адрес+1, то есть EAX + 1 = AX, то на один байт дальше просто
 regs32    dw    EAXstr, ECXstr, EDXstr, EBXstr, ESPstr, EBPstr, ESIstr, EDIstr
-mod00_16    dw    BXSIrm, BXDIrm, BPSIrm, BPDIrm, SIstr, DIstr, 110h, BXstr
+; mod00_16    dw    BX_SIstr, BX_DIstr, BP_SIstr, BP_DIstr, SIstr, DIstr, 110h, BXstr
+rm16    dw    BX_SIstr, BX_DIstr, BP_SIstr, BP_DIstr, SIstr, DIstr, BPstr,  BXstr
 mod00_16_def_seg    dw    ds_seg, ds_seg, ss_seg, ss_seg, ds_seg, ds_seg, ds_seg, ds_seg
-rm16    dw    BXSIrm, BXDIrm, BPSIrm, BPDIrm, SIstr, DIstr, BPstr,  BXstr
 
-mod00_32    dw    EAXstr, ECXstr, EDXstr, EBXstr, 100h, 101h, ESIstr, EDIstr
-mod01_32    dw    EAXstr, ECXstr, EDXstr, EBXstr, 100h, EBPstr, ESIstr, EDIstr
+; mod00_32    dw    EAXstr, ECXstr, EDXstr, EBXstr, 100h, 101h, ESIstr, EDIstr
+; mod01_32    dw    EAXstr, ECXstr, EDXstr, EBXstr, 100h, EBPstr, ESIstr, EDIstr
 ; OPCODES are: 0F, 26, 2E, 36, 3E, 64, 65, 66, 67, 69, 6B, 99, (0F) AF, E9, EA, EB, F0, F6, F7, FF(r4), FF(r5)
 ; 0=NOTHING, 1=ES, 2=CS, 3=DS, 4=SS, 5=FS, 6=GS, 7=size66, 8=addr67, 9=lock, 10=cdq, 11=jmp, 12=imul
-indexes    ENUM   iexit, iEs, iCs, iSs, iDs, iFs, iGs, isize66, iaddr67, ilock, icdq, ijump, iimul
-jmp_table    dw   success_exit, es_byte, cs_byte, ss_byte, ds_byte, fs_byte, gs_byte, size66_byte, addr67_byte, lock_byte, cdq_byte, jump_byte, imul_byte
-byte_table  db    15 dup(iexit), iimul, 22 dup(iexit), iEs, 7 dup (iexit), iCs, 7 dup (iexit), iSs, 7 dup (iexit), iDs
+indexes    ENUM   iexit, iEs, iCs, iSs, iDs, iFs, iGs, isize66, iaddr67, ilock, icdq, ijmp, iimul
+jmp_table    dw   success_exit, es_label, cs_label, ss_label, ds_label, fs_label, gs_label, size66_label, addr67_label, lock_label, cdq_label, jmp_label, imul_label
+label_table    db    15 dup(iexit), iimul, 22 dup(iexit), iEs, 7 dup (iexit), iCs, 7 dup (iexit), iSs, 7 dup (iexit), iDs
             db    37 dup(iexit), iFs, iGs, isize66, iaddr67, iexit, iimul, iexit, iimul, 45 dup(iexit), icdq, 79 dup(iexit)
             db    ijmp, ijmp, ijmp, 4 dup(iexit), ilock, 5 dup(iexit), iimul, iimul, 7 dup(iexit), ijmp, ijmp
 mode    db    0
@@ -101,7 +101,7 @@ Start:
 com_success:
     mov     bx, ax
     mov     dx, offset data_buffer
-    mov     cx, 4096d
+    mov     cx, 4096
     mov     ah, 3fh
     int     21h
     mov     ah, 3Eh
@@ -122,51 +122,49 @@ dest_success:
 scan_bytes:
 ; OPCODES are: 0F, 26, 2E, 36, 3E, 64, 65, 66, 67, 69, 6B, F6, F7, (0F) AF, E9, EA, EB, FF(r4), FF(r5)
     lodsb
-    mov     bx, offset byte_table
+    mov     bx, offset label_table
     mov     [opcode], al
     xlat    
     mov     bl, al
     xor     bh, bh
     shl     bx, 1
     jmp     jmp_table[bx]
-es_byte:
+es_label:
     mov     ax, offset es_seg
     jmp     save_segment
-cs_byte:
+cs_label:
     mov     ax, offset cs_seg
     jmp     save_segment
-ss_byte:
+ss_label:
     mov     ax, offset ss_seg
     jmp     save_segment
-ds_byte:
+ds_label:
     mov     ax, offset ds_seg
     jmp     save_segment
-fs_byte:
+fs_label:
     mov     ax, offset fs_seg
     jmp     save_segment
-gs_byte:
+gs_label:
     mov     ax, offset gs_seg
 save_segment:
     mov     [seg_ovr], ax
     jmp     scan_bytes
-size66_byte:
+size66_label:
     mov     [is_size_66], 1
     jmp     scan_bytes
-is_addr_67:
+addr67_label:
     mov     [is_addr_67], 1
     jmp     scan_bytes
-lock_byte:
-    mov     si, offset lock_str
-    call    get_str_len
-    rep     movsb
+lock_label:
+    mov     ax, offset lock_str
+    call    print_to_buffer
     jmp     scan_bytes
-cdq_byte:
-    mov     si, offset lock_str
-    call    get_str_len
-    rep     movsb
+cdq_label:
+    mov     ax, offset cdq_str
+    call    print_to_buffer
     call    print_to_file
     jmp     scan_bytes
-jump_byte:
+jmp_label:
     ; TO-DO
     jmp     scan_bytes
     ; TO-DO
@@ -186,13 +184,12 @@ word_dword_ptr:
     sbb     bh, 0
 print_ptr:
     call    print_to_buffer
-    call    print_seg
     call    print_rm
 end_one_op:
     call    print_to_file
     jmp     scan_bytes
 
-imul_byte:
+imul_label:
     mov     ax, offset imul_str
     call    print_to_buffer
     cmp     [opcode], 0Fh
@@ -205,12 +202,29 @@ not_2_opcode_byte_imul:
     cmp     [opcode], 0F6h
     jae     one_operand_rm
     call    print_reg
+    mov     al, ","
+    stosb
     call    print_rm
     cmp     [opcode], 6Bh
     ja      end_imul
-    mov     [is_imm], 1
+    pushf
+    cmp     [mode], 11000000b
+    jne     not_reg_reg
+    mov     al, [reg]
+    cmp     al, [rm]
+    jne     not_reg_reg
+move_to_comma:
+    cmp     byte ptr [di], ","
+    je      not_reg_reg
+    dec     di
+    jmp     move_to_comma
+not_reg_reg:
+    mov     al, ","
+    stosb
     xor     eax, eax
-    jb      byte_imm
+    mov     [is_imm], 1
+    popf
+    jnb     byte_imm
     or      [is_size_66], 0
     jz      word_imm
     lodsd
@@ -227,13 +241,11 @@ end_imul:
     jmp     scan_bytes
 
 success_exit:
-    mov     dx, offset noError
-    mov     ah, 9 
+    mov     dx, offset success
+    mov     ah, 9
     int     21h
     mov     ah, 3Eh
-    mov     bx, resFileHandle
-    int     21h
-    mov     bx, comFileHandle
+    mov     bx, [file_descr]
     int     21h
 exit:
     mov     ah, 4Ch
@@ -250,10 +262,11 @@ get_mod_reg_rm proc
     and     al, 111b
     shl     al, 1
     mov     [rm], al
+    ret
 endp
 
 print_reg proc
-    push    bx
+    push    bx si
     mov     bx, offset regs8
     cmp     [opcode], 0F6h
     je      go_print
@@ -262,9 +275,10 @@ print_reg proc
     jz      go_print
     mov     bx, offset regs32
 go_print:
-    mov     ax, [bx + reg]
+    movzx   si, reg
+    mov     ax, [bx + si]
     call    print_to_buffer
-    pop     bx
+    pop     si bx
     ret
 endp
 
@@ -272,10 +286,15 @@ print_rm proc
     cmp     [mode], 11000000b
     jne     not11mod
     mov     al, rm
+    mov     bl, al
+    mov     bh, reg
     mov     reg, al
     call    print_reg
-    jmp     return
+    mov     reg, bh
+    mov     rm, bl
+    jmp     ret_reg
 not11mod:
+    call    print_seg
     or      [is_addr_67], 0
     jnz     bit32_addr
     or      [mode], 0
@@ -287,9 +306,11 @@ not11mod:
     call    print_hex_num
     jmp     return
 not_00_mod_16:
-    mov     bx, offset rm16
-    mov     ax, [bx + rm]
+    movzx   bx, rm
+    mov     ax, [bx + rm16]
     call    print_to_buffer
+    or      [mode], 0
+    jz      return
     xor     eax, eax
     cmp     [mode], 1
     jne     not_01_mod_16
@@ -314,8 +335,9 @@ bit32_addr:
     and     al, 111b
     shl     al, 1
     mov     [sib_b], al
-    mov     bx, offset regs32
-    mov     ax, [bx + sib_b]        ; пишем базу в буффер
+    ; mov     bx, offset regs32
+    movzx   bx, sib_b
+    mov     ax, [bx + regs32]        ; пишем базу в буффер
     call    print_to_buffer
     mov     al, "+"                 ; дальше пишем индекс, поэтому '+'
     stosb
@@ -323,15 +345,15 @@ bit32_addr:
     jne     no_base_101
     or      [mode], 0               ; если база 101, и мод в модрм=0, то..
     jnz     no_base_101
-    mov     si, [bx + sib_b]        ; то тогда в сибе только индекс, и нужно удалить базу (ebp)
+    mov     si, [bx + regs32]        ; то тогда в сибе только индекс, и нужно удалить базу (ebp)
     call    get_str_len 
     sub     di, cx                  ; двигаем di до начала, то есть до места перед "+"
     dec     di                      ; это из-за плюса, теперь di указывает на адрес за "["
 no_base_101:
     cmp     [sib_i], 1000b          ; проверяем индекс 100, то есть NONE
     je      index_none              ; если индекс NONE, то не пишем индекс
-    mov     bx, offset regs32       ; запись индекса
-    mov     ax, [bx + sib_i]
+    movzx   bx, sib_i       ; запись индекса
+    mov     ax, [bx + regs32]
     call    print_to_buffer
     mov     ah, [sib_s]
     or      ah, ah
@@ -362,8 +384,8 @@ disp32:
     call    print_hex_num
     jmp     return
 print_rm32:
-    mov     bx, regs32
-    mov     ax, [bx + rm]
+    movzx   bx, rm
+    mov     ax, [bx + regs32]
     call    print_to_buffer
     or      [mode], 0
     jz      return
@@ -378,6 +400,7 @@ check_disp_8_32:
 return:
     mov     al, "]"
     stosb
+ret_reg:
     ret
 endp
 
@@ -398,11 +421,12 @@ get_str_len proc
     repnz   scasb
     not     cx
     dec     cx
-    dec     cx
     pop     di
+    ret
 endp
 
 print_to_file proc
+    push    si
     mov     si, offset cr_lf
     call    get_str_len
     rep     movsb
@@ -424,6 +448,7 @@ print_to_file proc
     mov     is_size_66, 0
     mov     is_addr_67, 0
     mov     is_imm, 0
+    pop     si
     ret
 endp
 
@@ -434,7 +459,7 @@ print_seg proc
     jnz    print_seg_str
     or     [is_addr_67], 0
     jnz     modrm32
-    mov     bx, offset mod00_16_def_seg
+    movzx   bx, rm
     ; mov     ax, [bx + rm]
     cmp     rm, 1110b
     jne     print_default_seg
@@ -451,7 +476,7 @@ print_ss:
     mov     ax, offset ss_seg
     jmp     print_seg_str
 print_default_seg:
-    mov     ax, [bx + rm]
+    mov     ax, [bx + mod00_16_def_seg]
 print_seg_str:
     call    print_to_buffer
     pop     bx
@@ -462,36 +487,52 @@ print_hex_num proc
     push    bx
     cmp     is_imm, 1
     je      no_zero_disp
-    or      eax, eax
     dec     di
-    jz      return
+    or      eax, eax
+    jz      end_printing
+    inc     di
 no_zero_disp:
+    or      eax, eax
+    jnz     non_zero_imm    
+    xor     al, al
+    stosb
+    jmp     put_hex
+non_zero_imm:
     mov     ebx, eax
-clean_leading_zeros:
-    test    ebx, 0F0000000h   
-    jnz     storing
-    shl     ebx, 4
-    jmp     clean_leading_zeros
-storing:
-    bswap   ebx
-    cmp     bl, 9
-    bswap   ebx
-    jna     digit_first
+    mov     cl, 32
+    jmp     test_first
+deleting_zeros:
+    sub     cl, 4
+    rol     ebx, 4
+test_first:
+    test    ebx, 0F0000000h
+    jz      deleting_zeros
+    shld    eax, ebx, 4
+    and     eax, 0Fh
+    cmp     al, 9
+    jna     not_a_letter
     mov     al, "0"
     stosb
-digit_first:
+not_a_letter:
+    xor     al, al
+hex_to_ascii:
     shld    eax, ebx, 4
+    shl     ebx, 4
     cmp     al, 9
     jna     digit
     add     al, 7
 digit: 
     add     al, "0"
     stosb
-    or      ebx, ebx
-    jnz     digit_first
+    xor     al, al
+    sub     cl, 4
+    jnz     hex_to_ascii
+put_hex:
     mov     al, "H"
     stosb
-return:
+end_printing:
     pop     bx
     ret
+endp
+
     End     Start
