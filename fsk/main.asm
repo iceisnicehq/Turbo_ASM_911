@@ -123,7 +123,7 @@ dest_success:
     mov     di, offset command_buffer
 scan_bytes:
     cmp     si, [end_of_data]
-    je      success_exit
+    ja      success_exit
 ; OPCODES are: 0F, 26, 2E, 36, 3E, 64, 65, 66, 67, 69, 6B, F6, F7, (0F) AF, E9, EA, EB, FF(r4), FF(r5)
     lodsb
     mov     bx, offset label_table
@@ -132,7 +132,7 @@ scan_bytes:
     mov     bl, al
     xor     bh, bh
     shl     bx, 1
-    jmp     jmp_table[bx]
+    jmp     word ptr [bx + jmp_table]
 es_label:
     mov     ax, offset es_seg
     jmp     save_segment
@@ -169,69 +169,96 @@ cdq_label:
     call    print_to_file
     jmp     scan_bytes
 jmp_label:
-    mov     ax, "+$"
+    mov     ax, offset jmp_str
+    call    print_to_buffer
     cmp     [opcode], 0E9h
-    jne     not_rel16
-    stosw
-    mov     [is_imm], 1
-    lodsw
-    add     ax, 3
-    jnz     non_zero_rel16
-    dec     di
-    jmp     jmp_to_print_to_file
-non_zero_rel16:
-    jns     rel16_plus
-put_minus:
-    mov     byte ptr [di-1], "-"
-rel16_plus:
-    jmp     print_imm
-not_rel16:
+    je      rel
     cmp     [opcode], 0EBh
     jne     not_rel_8_16
+rel:
+    mov     ax, "+$"
     stosw
+    xor     eax, eax
     mov     [is_imm], 1
+    cmp     [opcode], 0EBh
+    je      rel8
+    lodsw
+    add     ax, 3
+    jnz     not_zero_rel16
+remove_rel_sign:
+    dec     di
+    jmp     jmp_to_print_to_file
+not_zero_rel16:
+    jns     print_imm
+    neg     ax
+put_minus:
+    mov     byte ptr [di-1], "-"
+    jmp     print_imm
+rel8:
     lodsb
     inc     al
     inc     al
-    jnz     non_zero_rel8   
-    dec     di
-non_zero_rel8:
-    js      put_minus
-    jmp     print_imm
+    jz      remove_rel_sign
+    jns     print_imm
+    neg     al
+    jmp     put_minus
 not_rel_8_16:
     cmp     [opcode], 0FFh
     jne     jmp_ptr
     call    get_mod_reg_rm
     cmp     [reg], 1000b
     jne     jmp_memory
-    call    print_rm
+    mov     ax, word_ptr
+    cmp     [mode], 11000000b
+    jne     print_ptr_rm
+    mov     al, [rm]
+    mov     [reg], al
+    call    print_reg
     jmp     jmp_to_print_to_file
 jmp_memory:
-
+    mov     ax, offset dword_ptr
+    jmp     print_ptr_rm
 jmp_ptr:
-    ; TO-DO
-    jmp     scan_bytes
-    ; TO-DO
-end_jmp:
-    call    print_to_file
-    jmp     scan_bytes
+    mov     [is_imm], 1
+    xor     eax, eax
+    mov     bx, ax
+    lodsw
+    or      [is_size_66], 0
+    pushf
+    jz      no_ptr32
+    mov     bx, ax
+    lodsw
+    xchg    ax, bx
+no_ptr32:
+    push    ax
+    lodsw
+    call    print_hex_num
+    mov     al, ":"
+    stosb
+    pop     ax
+    popf
+    jz      print_imm
+    rol     eax, 16
+    mov     ax, bx
+    jmp     print_imm
 one_operand_rm:
     cmp     [mode], 11000000b
     jne     one_op_eff_addr
-    call    print_rm
-    jmp     jmp_to_print_to_file
+    jmp     print_rm
 one_op_eff_addr:
     cmp     [opcode], 0F6h
     jne     word_dword_ptr
     mov     ax, offset byte_ptr
-    jmp     print_ptr
+    jmp     print_ptr_rm
 word_dword_ptr:
     mov     ax, word_ptr
     sub     al, is_size_66
     sbb     ah, 0
-print_ptr:
+
+print_ptr_rm:
     call    print_to_buffer
-    call    print_rm
+print_rm:
+    call    print_rm_proc
     jmp     jmp_to_print_to_file
 
 imul_label:
@@ -242,14 +269,13 @@ imul_label:
     lodsb
     mov     [opcode], al
 not_2_opcode_byte_imul:
-    lodsb
     call    get_mod_reg_rm
     cmp     [opcode], 0F6h
     jae     one_operand_rm
     call    print_reg
     mov     al, ","
     stosb
-    call    print_rm
+    call    print_rm_proc
     cmp     [opcode], 6Bh
     ja      jmp_to_print_to_file
     pushf
@@ -297,6 +323,7 @@ exit:
     int     21h
 
 get_mod_reg_rm proc
+    lodsb
     mov     ah, al
     and     ah, 11000000b
     mov     [mode], ah
@@ -327,7 +354,7 @@ go_print:
     ret
 endp
 
-print_rm proc
+print_rm_proc  proc
     cmp     [mode], 11000000b
     jne     not11mod
     mov     al, rm
@@ -348,6 +375,7 @@ not11mod:
     jne     not_00_mod_16
     xor     eax, eax
     lodsw
+    mov     [is_imm], 1
     call    print_hex_num
     jmp     return
 not_00_mod_16:
@@ -425,6 +453,7 @@ no_sib_byte:
     jne     print_rm32             ; check_disp_8_32
     or      [mode], 0
     jnz     print_rm32
+    mov     [is_imm], 1
 disp32:
     xor     eax, eax
     lodsd
@@ -533,15 +562,15 @@ endp
 print_hex_num proc
     push    bx
     cmp     is_imm, 1
-    je      no_zero_disp
-    mov     byte ptr [di], "+"
+    je      check_zero
     or      eax, eax
     jz      end_printing
+    mov     byte ptr [di], "+"
     inc     di
-no_zero_disp:
+check_zero:
     or      eax, eax
-    jnz     non_zero_imm    
-    xor     al, al
+    jnz     non_zero_imm
+    mov     al, "0"
     stosb
     jmp     put_hex
 non_zero_imm:
