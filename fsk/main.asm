@@ -4,9 +4,9 @@
 .data
 com_file    db    "input.com", 0 ; тут 0 для функций, которые работают с файлами (0Dh)
 dest_file    db    "output.asm", 0
-cdq_str    db    "CDQ", 0 ; тут и далее ноль для процедуры get_str_len (считает длину строки до нуля)
-imul_str    db    "IMUL   ", 0
-jmp_str    db    "JMP    ", 0
+cdq_str    db    9, "CDQ", 0 ; тут и далее ноль для процедуры get_str_len (считает длину строки до нуля)
+imul_str    db    9, "IMUL   ", 0 ; 9 - ТАБ
+jmp_str    db    9, "JMP    ", 0
 com_error    db    "com file error", 13, 10, "$"
 dest_error    db    "destination file error", 13, 10, "$"
 success    db    "success", 13, 10, "$"
@@ -57,14 +57,14 @@ rm16    dw    BX_SIstr, BX_DIstr, BP_SIstr, BP_DIstr, SIstr, DIstr, BPstr,  BXst
 mod00_16_def_seg    dw    ds_seg, ds_seg, ss_seg, ss_seg, ds_seg, ds_seg, ds_seg, ds_seg ; дефолтные сегменты для памяти в РМ
 ; OPCODES are: 0F, 26, 2E, 36, 3E, 64, 65, 66, 67, 69, 6B, 99, (0F) AF, E9, EA, EB, F0, F6, F7, FF(r4), FF(r5)
 ; 0=NOTHING, 1=ES, 2=CS, 3=DS, 4=SS, 5=FS, 6=GS, 7=size66, 8=addr67, 9=lock, 10=cdq, 11=jmp, 12=imul
-; ENUM - нумерованный тип данных, тут просто идет iexit = 0, ies = 1 и тд, просто симовол=число
-indexes    ENUM   iexit, iEs, iCs, iSs, iDs, iFs, iGs, isize66, iaddr67, ilock, icdq, ijmp, iimul
+; ENUM - нумерованный тип данных, тут просто идет iscan = 0, ies = 1 и тд, просто симовол=число
+indexes    ENUM   iscan, iEs, iCs, iSs, iDs, iFs, iGs, isize66, iaddr67, ilock, icdq, ijmp, iimul
 ; массив адресов меток для прыжка
 jmp_table    dw   scan_bytes, es_label, cs_label, ss_label, ds_label, fs_label, gs_label, size66_label, addr67_label, lock_label, cdq_label, jmp_label, imul_label
 ; таблица от 00 до F0, в  которые находятся байты, со значениями индекса метки в jmp_table
-label_table    db    15 dup(iexit), iimul, 22 dup(iexit), iEs, 7 dup (iexit), iCs, 7 dup (iexit), iSs, 7 dup (iexit), iDs
-            db    37 dup(iexit), iFs, iGs, isize66, iaddr67, iexit, iimul, iexit, iimul, 45 dup(iexit), icdq, 79 dup(iexit)
-            db    ijmp, ijmp, ijmp, 4 dup(iexit), ilock, 5 dup(iexit), iimul, iimul, 7 dup(iexit), ijmp, ijmp
+label_table    db    15 dup(iscan), iimul, 22 dup(iscan), iEs, 7 dup (iscan), iCs, 7 dup (iscan), iSs, 7 dup (iscan), iDs
+            db    37 dup(iscan), iFs, iGs, isize66, iaddr67, iscan, iimul, iscan, iimul, 45 dup(iscan), icdq, 79 dup(iscan)
+            db    ijmp, ijmp, ijmp, 4 dup(iscan), ilock, 5 dup(iscan), iimul, iimul, 7 dup(iscan), ijmp, ijmp
 mode    db    0
 rm    db    0
 reg     db    0
@@ -432,7 +432,7 @@ bit32_addr:
     jmp     index                   ; пишем индекс и пропускаем проверку NONE и запись + после базы
 no_base_101:
     cmp     [sib_i], 1000b          ; проверяем индекс 100, то есть NONE
-    je      index_none              ; если индекс NONE, то не пишем индекс
+    je      no_scale                ; если индекс NONE, то не пишем индекс
     mov     al, "+"                 ; если не NONE дальше пишем индекс, поэтому '+'
     stosb
 index:
@@ -450,12 +450,8 @@ not_scale_8:                        ;
     mov     al, "*"                 
     stosw                           ; и пишем со звездочкой
 no_scale:
-    or      [mode], 0               ; если мод=0, то диспа нет
-    jz      return                  
-    jmp     check_disp_8_32         ; иначе есть дисп8/32
-index_none:
     cmp     [sib_b], 1010b          ; проверяем базу 101 (ebp)
-    jne     return                  ; если база не 101, то выходим
+    jne     check_disp_8_32         ; если база не 101, то провеярем дисп8/32
     or      [mode], 0               ; если база 101 и мод=0, то тогда база это дисп32
     jz      disp32
     jmp     check_disp_8_32         ; иначе дисп8/32
@@ -477,8 +473,9 @@ print_rm32:
     or      [mode], 0               ; если мод0, то выходим, если нет, то идем проверять дисп8/32
     jz      return
 check_disp_8_32:
-    cmp     [mode], 10000000b       ; мод=10 - дисп32
-    je      disp32
+    cmp     [mode], 1000000b       ; мод=10 - дисп32
+    ja      disp32
+    jb      return
     xor     eax, eax
     lodsb                           ; иначе дисп8
     call    print_hex_num

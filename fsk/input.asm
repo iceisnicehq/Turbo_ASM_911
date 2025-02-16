@@ -1,84 +1,150 @@
-.model tiny
+.MODEL TINY
 .486
-.code
-    org         100h
-Start:
-    IMUL        dword ptr [EAX*4]
-    IMUL        eax, fs:[10101010h]
-    IMUL        eax, fs:[EAX+ECX+1010h] 
-    IMUL        byte ptr [bp+si]
-    IMUL        bp
-    IMUL        word ptr [bp]
-    IMUL        esp
-    IMUL        dword ptr [esp]
-    IMUL        dword ptr [esp+ebp]
-    IMUL        dword ptr [esp+ebp*4+100h]
+.CODE
+    ORG         100H
+START:
     CDQ
-    ; 69
-    IMUL        ax, ax, 16h
-    IMUL        ax, bx, 16h
-    IMUL        eax, ebx, 16h
-    IMUL        eax, eax, 16h
-    IMUL        eax, ebx, 1h
-    IMUL        eax, [bx+si], 1h
-    IMUL        eax, [eax], 100h
-    IMUL        eax, [eax], 0AAAAh
-    IMUL        eax, [eax+ebx*8], 0AAAAh
-    IMUL        al
-    IMUL        byte ptr [bp+si]
-    IMUL        bp
-    IMUL        word ptr [bp]
-    IMUL        esp
-    IMUL        dword ptr [esp]
-    IMUL        dword ptr [esp+ebp]
-    IMUL        dword ptr [esp+ebp*4+100h]
-rel8:
-    jmp         rel8            ; EB
-JMP    $+7BH
-JMP    $-86H
-    jmp         Start   ; rel16 ; E9
-    jmp         bx              ; FF 4
-    jmp         [bx]            ; FF 4
-    jmp         ebx             ; 66 FF 4
-    jmp         word  ptr gs:[ebx]        ; 65 67 FF 4
-    jmp         word  ptr [bx]
-    jmp         dword ptr [bx]      ; FF 4
-    jmp         word  ptr [ebx]
-    jmp         dword ptr [ebx]     ; FF 4
-    jmp         word ptr fs:[bx]         ; FF 4
-    jmp         dword  ptr fs:[ebx]        ; 67 FF 4
-    jmp         word  ptr gs:[ebx]        ; 65 67 FF 4
-    DB      0EAh, 78h, 56h, 34h, 12h ; <=> jmp 1234h:5678h
-    DB      66h, 0EAh, 78h, 56h, 34h, 12h, 0CDh, 0ABh
-    jmp         word ptr BX
-    jmp         word ptr eBX
-    jmp         dword ptr [bx]
-    jmp         dword ptr [ebx]
-    ; jmp         1000h:1000h     ; EA
-    ; jmp         1000h:12341234h ; 66 EA
-    ; jmp         far [bx]        ; FF 2F
-    ; jmp         far [ebx]       ; 67 FF 2B
-    ; jmp         gs: far [ebx]   ; 65 67 FF 2B
-    ; jmp         
-    ; jmp         fs:[0100h]:[101010h]
-    ; JMP     JMP_LABEL                   ; Short direct jump
-    ; JMP     START                       ; Near direct jump
-    ; DB      0EAh, 78h, 56h, 34h, 12h    ; Workaround for far direct jump
-    ; JMP     WORD PTR CS:[0DDFFh]        ; Near indirect jump
-    ; JMP     DWORD PTR CS:[0FFh]         ; Far indirect jump
-           
-    ; JMP
-    ; IMUL
-; 69		r   					IMUL	r16/32	r/m16/32	imm16/32	
-; 6B		r						IMUL	r16/32	r/m16/32	imm8
-; 99								CDQ
-; E9								JMP	    rel16/32
-; EA								JMPF	ptr16:16/32 *66
-; EB								JMP	    rel8
-; 0F	AF	r		        		IMUL	r16/32	r/m16/32	
-; F6		5						IMUL	r/m8
-; F7		5						IMUL	r/m16/32	
-; FF		4						JMP	    r/m16/32    
-; FF		5						JMPF	m16:16/32   *67
-END Start 
-
+    IMUL    word ptr DS:[1H]
+    IMUL    AX,100H
+    IMUL    BX,CX,0ABCDH
+    IMUL    SP,BP,1H
+    IMUL    SI,DI,0H
+    IMUL    EAX,12345678H
+    IMUL    ESP,EBP,10101010H
+    IMUL    DX,SS:[BX+SI],0FH
+    IMUL    EDX,DS:[BP+SI],0H
+    IMUL    EDX,0H
+    IMUL    EDX,FS:[ESP+EAX*4+12345678H],12345H
+    IMUL    ECX,GS:[EDI*2],11H
+    IMUL    EAX,DS:[EAX+100H]
+    IMUL    ECX,EBX
+    IMUL    EDX,GS:[EBP]
+    IMUL    ESP,ES:[ESP]
+    IMUL    AL
+    IMUL    BH
+    IMUL    CL
+    IMUL    DH
+    IMUL    byte ptr SS:[SI]
+    IMUL    byte ptr DS:[BP]
+    IMUL    byte ptr DS:[EBP*8]
+	IMUL    word ptr CS:[ESP+EBP]
+	IMUL    dword ptr DS:[EBX+EDX+1H]
+	IMUL    EAX,FS:[10101010H]
+	IMUL    EAX,FS:[EAX+ECX+1010H]
+	IMUL    byte ptr SS:[BP+SI]
+	IMUL    BP
+	IMUL    word ptr SS:[BP]
+	IMUL    ESP
+	IMUL    dword ptr DS:[ESP]
+	IMUL    dword ptr DS:[ESP+EBP]
+	IMUL    dword ptr DS:[ESP+EBP*4+100H]
+	IMUL    AX,16H
+	IMUL    AX,BX,16H
+	IMUL    EAX,EBX,16H
+	IMUL    EAX,16H
+	IMUL    EAX,EBX,1H
+	IMUL    EAX,DS:[BX+SI],1H
+	IMUL    EAX,DS:[EAX],100H
+	IMUL    EAX,DS:[EAX],0AAAAH
+	IMUL    EAX,DS:[EAX+EBX*8],0AAAAH
+	IMUL    AL
+	IMUL    byte ptr SS:[BP+SI]
+	IMUL    BP
+	IMUL    word ptr SS:[BP]
+	IMUL    ESP
+	IMUL    dword ptr DS:[ESP]
+	IMUL    dword ptr DS:[ESP+EBP]
+	IMUL    dword ptr DS:[ESP+EBP*4+100H]
+    IMUL    AX,BX,1234H
+    IMUL    EAX,EBX,12345678H
+    IMUL    CX,DX,0ABCDH
+    IMUL    ECX,EDX,0FFFFFFFFH
+    IMUL    SI,DI,100H
+    IMUL    ESI,EDI,100H
+    IMUL    AX,BX,12H
+    IMUL    EAX,EBX,12H
+    IMUL    CX,DX,0ABH
+    IMUL    ECX,EDX,0FFH
+    IMUL    SI,DI,10H
+    IMUL    ESI,EDI,10H
+    IMUL    AX,BX
+    IMUL    EAX,EBX
+    IMUL    CX,[SI]
+    IMUL    ECX,[EDI]
+    IMUL    DX,[BP+SI]
+    IMUL    EDX,[EBP+ESI]
+    IMUL    AL
+    IMUL    BL
+    IMUL    byte ptr [SI]
+    IMUL    byte ptr [EDI]
+    IMUL    byte ptr [BP+DI]
+    IMUL    byte ptr [EBP+ESI]
+    IMUL    AX
+    IMUL    EAX
+    IMUL    word ptr [SI]
+    IMUL    dword ptr [EDI]
+    IMUL    word ptr [BP+DI]
+    IMUL    dword ptr [EBP+ESI]
+    IMUL    AX,DS:[BX+SI]
+    IMUL    EAX,FS:[EDI]
+    IMUL    CX,SS:[BP+DI]
+    IMUL    ECX,GS:[EBP+ESI]
+    IMUL    DX,ES:[SI]
+    IMUL    EDX,CS:[EDI]
+    IMUL    EAX,DS:[EBX+ECX*4]
+    IMUL    ECX,ES:[EDI+ESI]
+    IMUL    DX,CS:[BP+SI]
+    IMUL    EDX,FS:[EBP+EDI*8]
+    IMUL    AX,SS:[SI]
+    IMUL    EAX,ES:[EAX+EBX*4]
+    IMUL    AX,DS:[BX+1234H]
+    IMUL    EAX,SS:[EDI+5678H]
+    IMUL    CX,GS:[BP+100H]
+    IMUL    ECX,FS:[EBP+1000H]
+    IMUL    DX,CS:[SI+0ABCDH]
+    IMUL    EDX,CS:[ESI+0ABCDH]
+    IMUL    AX,DS:[BX+SI]
+    IMUL    EAX,FS:[EDI+ESI]
+    IMUL    CX,SS:[BP+DI]
+    IMUL    ECX,GS:[EBP+EDI*8]
+    IMUL    DX,ES:[DI]
+    IMUL    EDX,CS:[EAX+EBX*4]
+    IMUL    AX,DS:[BX+SI+1234H]
+    IMUL    EAX,FS:[EDI+ESI+5678H]
+    IMUL    CX,SS:[BP+DI+100H]
+    IMUL    ECX,GS:[EBP+EDI*8+1000H]
+    IMUL    DX,ES:[DI+0ABCDH]
+    IMUL    EDX,CS:[EAX+EBX*4+0ABCDH]
+REL8:
+	JMP     $
+	JMP     $-12H
+	JMP     $-1111H
+    JMP     $+1000H
+    JMP     $+1H
+    JMP     $+111H
+    JMP     REL8
+    JMP     $+12H
+    JMP     $-12H
+    JMP     BX
+    JMP     EBX
+    JMP     CX
+    JMP     ECX
+    JMP     word ptr CS:[BX]
+    JMP     dword ptr DS:[EBX]
+    JMP     word ptr DS:[BX]
+    JMP     dword ptr DS:[EBX]
+    JMP     word ptr FS:[BX]
+    JMP     dword ptr FS:[EBX]
+    JMP     word ptr GS:[EBX]
+    JMP     dword ptr GS:[EBX]
+    JMP     word ptr FS:[BX+SI]
+    JMP     dword ptr GS:[EBX+ESI]
+    JMP     word ptr DS:[BX+DI+100H]
+    JMP     dword ptr DS:[EBX+EDI*8+1000H]
+    JMP     word ptr FS:[BX+SI]
+    JMP     dword ptr GS:[EBX+ESI]
+    JMP     word ptr ES:[BX+DI+100H]
+    JMP     dword ptr CS:[EBX+EDI*8+1000H]
+    DB      0EAH,56H,78H,12H,34H
+    DB      066H,12H,34H,56H,78H,0ABH,0CDH
+END START
