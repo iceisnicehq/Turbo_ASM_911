@@ -5,7 +5,7 @@
 com_file    db    "input.com", 0 ; тут 0 для функций, которые работают с файлами (0Dh)
 dest_file    db    "output.asm", 0
 cdq_str    db    9, "CDQ", 0 ; тут и далее ноль для процедуры get_str_len (считает длину строки до нуля)
-imul_str    db    9, "IMUL   ", 0 ; 9 - ТАБ
+imul_str    db    9, "IMUL    ", 0 ; 9 - ТАБ
 jmp_str    db    9, "JMP    ", 0
 com_error    db    "com file error", 13, 10, "$"
 dest_error    db    "destination file error", 13, 10, "$"
