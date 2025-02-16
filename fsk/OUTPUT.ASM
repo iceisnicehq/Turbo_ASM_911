@@ -1,3 +1,4 @@
+IMUL   dword ptr DS:[EAX*4]
 IMUL   EAX,FS:[10101010H]
 IMUL   EAX,FS:[EAX+ECX+1010H]
 IMUL   byte ptr SS:[BP+SI]
@@ -28,7 +29,7 @@ IMUL   dword ptr DS:[ESP+EBP*4+100H]
 JMP    $
 JMP    $+7BH
 JMP    $-86H
-JMP    $-89H
+JMP    $-92H
 JMP    BX
 JMP    word ptr DS:[BX]
 JMP    EBX
@@ -41,4 +42,8 @@ JMP    word ptr FS:[BX]
 JMP    dword ptr FS:[EBX]
 JMP    word ptr GS:[EBX]
 JMP    1234H:5678H
-JMP    0H:56781234H
+JMP    0ABCDH:12345678H
+JMP    BX
+JMP    EBX
+JMP    dword ptr DS:[BX]
+JMP    dword ptr DS:[EBX]

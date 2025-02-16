@@ -3,6 +3,7 @@
 .code
     org         100h
 Start:
+    IMUL        dword ptr [EAX*4]
     IMUL        eax, fs:[10101010h]
     IMUL        eax, fs:[EAX+ECX+1010h] 
     IMUL        byte ptr [bp+si]
@@ -32,7 +33,6 @@ Start:
     IMUL        dword ptr [esp+ebp]
     IMUL        dword ptr [esp+ebp*4+100h]
 rel8:
-    ; NOP handling add SHORT
     jmp         rel8            ; EB
 JMP    $+7BH
 JMP    $-86H
@@ -49,7 +49,11 @@ JMP    $-86H
     jmp         dword  ptr fs:[ebx]        ; 67 FF 4
     jmp         word  ptr gs:[ebx]        ; 65 67 FF 4
     DB      0EAh, 78h, 56h, 34h, 12h ; <=> jmp 1234h:5678h
-    DB      66h, 0EAh, 78h, 56h, 34h, 12h
+    DB      66h, 0EAh, 78h, 56h, 34h, 12h, 0CDh, 0ABh
+    jmp         word ptr BX
+    jmp         word ptr eBX
+    jmp         dword ptr [bx]
+    jmp         dword ptr [ebx]
     ; jmp         1000h:1000h     ; EA
     ; jmp         1000h:12341234h ; 66 EA
     ; jmp         far [bx]        ; FF 2F
@@ -71,6 +75,7 @@ JMP    $-86H
 ; E9								JMP	    rel16/32
 ; EA								JMPF	ptr16:16/32 *66
 ; EB								JMP	    rel8
+; 0F	AF	r		        		IMUL	r16/32	r/m16/32	
 ; F6		5						IMUL	r/m8
 ; F7		5						IMUL	r/m16/32	
 ; FF		4						JMP	    r/m16/32    
