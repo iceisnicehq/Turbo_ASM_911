@@ -11,6 +11,8 @@
     TXT_BUFFER     DB    256 DUP(0)
 .CODE
 
+
+
 START:
     MOV    AX, @DATA
     MOV    DS, AX
@@ -86,13 +88,11 @@ FIND_REVERSE_WORD:
     DEC    BL
     JNZ    FIND_REVERSE_WORD    
     NOT    CX
-    TEST   CX, 1
-    JNZ    EVEN_LENGTH
-    DEC    CX
-EVEN_LENGTH:
     DEC    CX
     SHR    CX, 1
-    SUB    DI, 2
+    JZ     PRINT_OUTPUT
+    DEC    DI
+    DEC    DI
 REVERSE:
     LODSB                        ; LOAD BYTE FROM [SI] INTO AL, INCREMENT SI
     XCHG   AL, [DI]              ; SWAP AL WITH BYTE AT [DI]
