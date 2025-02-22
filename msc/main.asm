@@ -58,10 +58,9 @@ gs_seg    db    'GS$'
 sregs     dw    es_seg, cs_seg, ss_seg, ds_seg, fs_seg, gs_seg
 
 operands    ENUM {
-    no_operand,
     al_operand, cl_operand, dl_operand, bl_operand, ah_operand, ch_operand, dh_operand, bh_operand,
     ax_operand, cx_operand, dx_operand, bx_operand, sp_operand, bp_operand, si_operand, di_operand,
-    one_operand,
+    operand_1,
     imm8_operand, imm1632_operand,
     moffs_operand, moffs1632_operand,
     r8_operand, r16_operand,
@@ -88,8 +87,8 @@ opcodes        dw    26h dup(next_opcode)
                dw    mov_rm8_imm8, mov_rm1632_imm1632, 8 dup(next_opcode) 
                dw    sar_rm8_1, sar_rm1632_1, sar_rm8_cl, sar_rm1632_cl, 1Ch dup(next_opcode) 
                dw    lock_print
-operand1       db    no_operand
-operand2       db    no_operand
+operand1       db    0
+operand2       db    0
 modrm_mod      db    0
 modrm_rm       db    0
 modrm_reg      db    0
