@@ -416,6 +416,8 @@ ENDP
 PRINT_RM  PROC
     CMP     MOD_MOD, 11000000B      ; ЕСЛИ МОД=11 ПИШЕМ РЕГИСТР ПО ИНДЕКСУ ИЗ ПОЛЯ РМ
     JNE     NOT11MOD
+    PUSH    word ptr operand_seg    ; тут для MOV M16/R16/32, Sreg, нужно обнулить operand_seg, чтобы он не мешал в print_reg, потом этот флаг восстанавливается через pop
+    MOV     operand_seg, 0          ; иначе там это собъет всё, и MOV M16/R16/32, Sreg выведет первым операндом Sreg
     MOV     AL, MOD_RM
     MOV     BH, MOD_REG
     MOV     BL, AL
@@ -423,6 +425,7 @@ PRINT_RM  PROC
     CALL    PRINT_REG               ; ПОМЕНЯЛИ МЕСТАМИ РМ И РЕГ, ВЫЗВАЛИ ПРОЦЕДУРУ И ВЕРНУЛИ ВСЁ ОБРАТНО
     MOV     MOD_REG, BH 
     MOV     MOD_RM, BL
+    POP     word ptr operand_seg
     JMP     RET_REG
 NOT11MOD:   ; ЕСЛИ МОД НЕ 11
     OR      PTR_, 0                 ; СМОТРИМ ЕСТЬ ЛИ ПТР (ОН НУЖЕН КОГДА В ОПЕРАНДАХ НЕТ РЕГИСТРА, ЧТОБЫ УКАЗАТЬ ЯВНЫЙ РАЗМЕР)

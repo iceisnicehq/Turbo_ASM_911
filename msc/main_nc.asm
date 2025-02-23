@@ -1,586 +1,619 @@
-.model small
+.MODEL SMALL
 .386
-.stack 100h
-.data
-com_file    db    "input.com", 0
-dest_file    db    "output.asm", 0
-cdq_str    db    9, "CDQ", 0
-imul_str    db    9, "IMUL    ", 0
-jmp_str    db    9, "JMP    ", 0
-com_error    db    "com file error", 13, 10, "$"
-dest_error    db    "destination file error", 13, 10, "$"
-success    db    "success", 13, 10, "$"
-cr_lf    db    13, 10, 0
-ALstr    db    "AL", 0
-CLstr    db    "CL", 0
-DLstr    db    "DL", 0
-BLstr    db    "BL", 0
-AHstr    db    "AH", 0
-CHstr    db    "CH", 0
-DHstr    db    "DH", 0
-BHstr    db    "BH", 0
-EAXstr    db    "EAX", 0
-ECXstr    db    "ECX", 0
-EDXstr    db    "EDX", 0
-EBXstr    db    "EBX", 0
-ESPstr    db    "ESP", 0
-EBPstr    db    "EBP", 0
-ESIstr    db    "ESI", 0
-EDIstr    db    "EDI", 0
-AXstr    equ    EAXstr + 1
-CXstr    equ    ECXstr + 1
-DXstr    equ    EDXstr + 1
-BXstr    equ    EBXstr + 1
-SPstr    equ    ESPstr + 1
-BPstr    equ    EBPstr + 1
-SIstr    equ    ESIstr + 1
-DIstr    equ    EDIstr + 1
-dword_ptr    db    "dword ptr ", 0
-word_ptr    equ   dword_ptr + 1
-byte_ptr    db    "byte ptr ", 0
-lock_str    db    "LOCK ", 0
-BX_SIstr    db    "BX+SI", 0
-BX_DIstr    db    "BX+DI", 0
-BP_SIstr    db    "BP+SI", 0
-BP_DIstr    db    "BP+DI", 0
-es_seg    db    "ES:[", 0
-cs_seg    db    "CS:[", 0
-ss_seg    db    "SS:[", 0
-ds_seg    db    "DS:[", 0
-fs_seg    db    "FS:[", 0
-gs_seg    db    "GS:[", 0
-regs8    dw    ALstr, CLstr, DLstr, BLstr, AHstr, CHstr, DHstr, BHstr
-regs16    dw    AXstr, CXstr, DXstr, BXstr, SPstr, BPstr, SIstr, DIstr
-regs32    dw    EAXstr, ECXstr, EDXstr, EBXstr, ESPstr, EBPstr, ESIstr, EDIstr
-rm16    dw    BX_SIstr, BX_DIstr, BP_SIstr, BP_DIstr, SIstr, DIstr, BPstr,  BXstr
-mod00_16_def_seg    dw    ds_seg, ds_seg, ss_seg, ss_seg, ds_seg, ds_seg, ds_seg, ds_seg
-indexes    ENUM   iscan, iEs, iCs, iSs, iDs, iFs, iGs, isize66, iaddr67, ilock, icdq, ijmp, iimul
-jmp_table    dw   scan_bytes, es_label, cs_label, ss_label, ds_label, fs_label, gs_label, size66_label, addr67_label, lock_label, cdq_label, jmp_label, imul_label
-label_table    db    15 dup(iscan), iimul, 22 dup(iscan), iEs, 7 dup (iscan), iCs, 7 dup (iscan), iSs, 7 dup (iscan), iDs
-            db    37 dup(iscan), iFs, iGs, isize66, iaddr67, iscan, iimul, iscan, iimul, 45 dup(iscan), icdq, 79 dup(iscan)
-            db    ijmp, ijmp, ijmp, 4 dup(iscan), ilock, 5 dup(iscan), iimul, iimul, 7 dup(iscan), ijmp, ijmp
-mode    db    0
-rm    db    0
-reg     db    0
-sib_s     db     0
-sib_i     db     0
-sib_b     db     0
-file_descr    dw    0
-seg_ovr     dw    0
-is_size_66    db    0
-is_addr_67    db    0
-is_imm    db    0
-opcode    db    0
-command_buffer    db    128 dup (0)
-data_buffer    db    4096 dup (0)
-end_of_data    dw    ?
-.code
-Start:
-    mov     ax, @data
-    mov     ds, ax
-    mov     es, ax
-    mov     ax, 3D00h
-    mov     dx, offset com_file
-    int     21h
-    jnc     com_success
-    mov     dx, offset com_error
-    mov     ah, 9
-    int     21h
-    jmp     exit
-com_success:
-    mov     bx, ax
-    mov     dx, offset data_buffer
-    mov     cx, 4096
-    mov     ah, 3fh
-    int     21h
-    add     ax, dx
-    mov     [end_of_data], ax
-    mov     ah, 3Eh
-    int     21h
-    mov     ah, 3Ch
-    xor     cx, cx
-    mov     dx, offset dest_file
-    int     21h
-    jnc     dest_success
-    mov     dx, offset dest_error
-    mov     ah, 9
-    int     21h
-    jmp     exit
-dest_success:
-    mov     [file_descr], ax
-    mov     si, offset data_buffer
-    mov     di, offset command_buffer
-scan_bytes:
-    cmp     si, [end_of_data]
-    ja      success_exit
-    lodsb
-    mov     bx, offset label_table
-    mov     [opcode], al
-    xlat
-    mov     bl, al
-    xor     bh, bh
-    shl     bx, 1
-    jmp     word ptr [bx + jmp_table]
-es_label:
-    mov     ax, offset es_seg
-    jmp     save_segment
-cs_label:
-    mov     ax, offset cs_seg
-    jmp     save_segment
-ss_label:
-    mov     ax, offset ss_seg
-    jmp     save_segment
-ds_label:
-    mov     ax, offset ds_seg
-    jmp     save_segment
-fs_label:
-    mov     ax, offset fs_seg
-    jmp     save_segment
-gs_label:
-    mov     ax, offset gs_seg
-save_segment:
-    mov     [seg_ovr], ax
-    jmp     scan_bytes
-size66_label:
-    mov     [is_size_66], 1
-    jmp     scan_bytes
-addr67_label:
-    mov     [is_addr_67], 1
-    jmp     scan_bytes
-lock_label:
-    mov     ax, offset lock_str
-    call    print_to_buffer
-    jmp     scan_bytes
-cdq_label:
-    mov     ax, offset cdq_str
-    call    print_to_buffer
-    jmp     jmp_to_print_to_file
-jmp_label:
-    mov     ax, offset jmp_str
-    call    print_to_buffer
-    cmp     [opcode], 0E9h
-    je      rel
-    cmp     [opcode], 0EBh
-    jne     not_rel_8_16
-rel:
-    mov     ax, "+$"
-    stosw
-    xor     eax, eax
-    mov     [is_imm], 1
-    cmp     [opcode], 0EBh
-    je      rel8
-    lodsw
-    add     ax, 3
-    jnz     not_zero_rel16
-remove_rel_sign:
-    dec     di
-    jmp     jmp_to_print_to_file
-not_zero_rel16:
-    jns     print_imm
-    neg     ax
-put_minus:
-    mov     byte ptr [di-1], "-"
-    jmp     print_imm
-rel8:
-    lodsb
-    inc     al
-    inc     al
-    jz      remove_rel_sign
-    jns     print_imm
-    neg     al
-    jmp     put_minus
-not_rel_8_16:
-    cmp     [opcode], 0FFh
-    jne     jmp_ptr
-    call    get_mod_reg_rm
-    cmp     [reg], 1000b
-    jne     jmp_memory
-    mov     ax, offset word_ptr
-    cmp     [mode], 11000000b
-    jne     print_ptr_rm
-    mov     al, [rm]
-    mov     [reg], al
-    call    print_reg
-    jmp     jmp_to_print_to_file
-jmp_memory:
-    mov     ax, offset dword_ptr
-    jmp     print_ptr_rm
-jmp_ptr:
-    mov     [is_imm], 1
-    xor     eax, eax
-    mov     bx, ax
-    lodsw
-    or      [is_size_66], 0
-    pushf
-    jz      no_ptr32
-    mov     bx, ax
-    lodsw
-no_ptr32:
-    push    ax
-    lodsw
-    call    print_hex_num
-    mov     al, ":"
-    stosb
-    pop     ax
-    popf
-    jz      print_imm
-    push    ax bx
-    pop     eax
-    jmp     print_imm
-one_operand_rm:
-    cmp     [mode], 11000000b
-    jne     one_op_eff_addr
-    jmp     print_rm
-one_op_eff_addr:
-    cmp     [opcode], 0F6h
-    jne     word_dword_ptr
-    mov     ax, offset byte_ptr
-    jmp     print_ptr_rm
-word_dword_ptr:
-    mov     ax, offset word_ptr
-    sub     al, is_size_66
-    sbb     ah, 0
-print_ptr_rm:
-    call    print_to_buffer
-print_rm:
-    call    print_rm_proc
-    jmp     jmp_to_print_to_file
-imul_label:
-    mov     ax, offset imul_str
-    call    print_to_buffer
-    cmp     [opcode], 0Fh
-    jne     not_2_opcode_byte_imul
-    lodsb
-    mov     [opcode], al
-not_2_opcode_byte_imul:
-    call    get_mod_reg_rm
-    cmp     [opcode], 0F6h
-    jae     one_operand_rm
-    call    print_reg
-    mov     al, ","
-    stosb
-    call    print_rm_proc
-    cmp     [opcode], 6Bh
-    ja      jmp_to_print_to_file
-    pushf
-    cmp     [mode], 11000000b
-    jne     not_reg_reg
-    mov     al, [reg]
-    cmp     al, [rm]
-    jne     not_reg_reg
-move_to_comma:
-    cmp     byte ptr [di], ","
-    je      not_reg_reg
-    dec     di
-    jmp     move_to_comma
-not_reg_reg:
-    mov     al, ","
-    stosb
-    xor     eax, eax
-    mov     [is_imm], 1
-    popf
-    jnb     byte_imm
-    or      [is_size_66], 0
-    jz      word_imm
-    lodsd
-    jmp     print_imm
-word_imm:
-    lodsw
-    jmp     print_imm
-byte_imm:
-    lodsb
-print_imm:
-    call    print_hex_num
-jmp_to_print_to_file:
-    call    print_to_file
-    jmp     scan_bytes
-success_exit:
-    mov     dx, offset success
-    mov     ah, 9
-    int     21h
-    mov     ah, 3Eh
-    mov     bx, [file_descr]
-    int     21h
-exit:
-    mov     ah, 4Ch
-    int     21h
-get_mod_reg_rm proc
-    lodsb
-    mov     ah, al
-    and     ah, 11000000b
-    mov     [mode], ah
-    mov     ah, al
-    shr     ah, 2
-    and     ah, 1110b
-    mov     [reg], ah
-    and     al, 111b
-    shl     al, 1
-    mov     [rm], al
-    ret
-endp
+.STACK 100H
+.DATA
+    COM       DB   'COM.COM', 0
+    RESULT    DB   'RESULT.ASM', 0
+    CWD_      DB   'CWD$'
+    MOV_      DB   'MOV    $'
+    SAR_      DB   'SAR    $'
+    COMMA     DB   ',$'
+    BRACKET   DB   ']$'
+    COLON     DB   ':[$'
+    PLUS      DB   '+$'
+    ONE       DB   '1H$'
+    ERROR     DB   'COM_EXIT$'
+    ALREG     DB   'AL$'
+    CLREG     DB   'CL$'
+    DLREG     DB   'DL$'
+    BLREG     DB   'BL$'
+    AHREG     DB   'AH$'
+    CHREG     DB   'CH$'
+    DHREG     DB   'DH$'
+    BHREG     DB   'BH$'
+    AXREG     DB   'AX$'
+    CXREG     DB   'CX$'
+    DXREG     DB   'DX$'
+    BXREG     DB   'BX$'
+    SPREG     DB   'SP$'
+    BPREG     DB   'BP$'
+    SIREG     DB   'SI$'
+    DIREG     DB   'DI$'
+    EAXREG    DB   'EAX$'
+    ECXREG    DB   'ECX$'
+    EDXREG    DB   'EDX$'
+    EBXREG    DB   'EBX$'
+    ESPREG    DB   'ESP$'
+    EBPREG    DB   'EBP$'
+    ESIREG    DB   'ESI$'
+    EDIREG    DB   'EDI$'
+    REG_B     DW   ALREG,  CLREG,  DLREG,  BLREG,  AHREG,  CHREG,  DHREG,  BHREG
+    REG_W     DW   AXREG,  CXREG,  DXREG,  BXREG,  SPREG,  BPREG,  SIREG,  DIREG
+    REG_D     DW   EAXREG, ECXREG, EDXREG, EBXREG, ESPREG, EBPREG, ESIREG, EDIREG
+    ESSEG     DB   'ES$'
+    CSSEG     DB   'CS$'
+    SSSEG     DB   'SS$'
+    DSSEG     DB   'DS$'
+    FSSEG     DB   'FS$'
+    GSSEG     DB   'GS$'
+    SREGS     DW   ESSEG, CSSEG, SSSEG, DSSEG, FSSEG, GSSEG
+    EA000     DB   'BX+SI$'
+    EA001     DB   'BX+DI$'
+    EA010     DB   'BP+SI$'
+    EA011     DB   'BP+DI$'
+    EA100    EQU   SIREG
+    EA101    EQU   DIREG
+    EA110    EQU   BPREG
+    EA111    EQU   BXREG
+    EA16      DW   EA000, EA001, EA010, EA011, EA100, EA101, EA110,  EA111
+    SCALE2    DB   '*2$'
+    SCALE4    DB   '*4$'
+    SCALE8    DB   '*8$'
+    LOCK_     DB   'LOCK   $'
+    OPCODES   DW   26H DUP(NEXT)
+              DW   S_ES, 7 DUP(NEXT), S_CS, 7 DUP(NEXT), S_SS, 7 DUP(NEXT), S_DS, 25H DUP(NEXT)
+              DW   S_FS, S_GS, SIZE_PREFIX, ADDR_PREFIX, 20H DUP(NEXT),MOV_RM8_R8, MOV_RM1632_R1632
+              DW   MOV_R8_RM8, MOV_R1632_RM1632, MOV_M16R1632_SREG, NEXT, MOV_SREG_RM16, 0AH DUP(NEXT)
+              DW   CWD_PRINT, 6 DUP(NEXT), MOV_AL_MOFFS8, MOV_E_AX_MOFFS1632, MOV_MOFFS8_AL, MOV_MOFFS1632_E_AX
+              DW   0CH DUP(NEXT), 4 DUP (MOV_R_IMM, MOV_R_IMM, MOV_R_IMM, MOV_R_IMM)
+              DW   SAR_RM8_IMM8, SAR_RM1632_IMM8, 4 DUP(NEXT), MOV_RM8_IMM8, MOV_RM1632_IMM1632, 8 DUP(NEXT)
+              DW   SAR_RM8_1, SAR_RM1632_1, SAR_RM8_CL, SAR_RM1632_CL, 1CH DUP(NEXT), LOCK_PRINT
+    B_PTR     DB   'byte ptr $'
+    W_PTR     DB   'word ptr $'
+    D_PTR     DB   'dword ptr $'
+    PTR_      DW   0
+    MOD_MOD         DB   0
+    MOD_RM          DB   0
+    MOD_REG         DB   0
+    SIB_SCALE       DB   0
+    SIB_INDEX       DB   0
+    SIB_BASE        DB   0
+    PREFIX_SEG      DW   0
+    PREFIX_66       DB   0
+    PREFIX_67       DB   0
+    IMM             DB   0
+    OPERAND_BYTE    DB   0
+    OPERAND_SEG     DB   0
+    IMM_SIZE        DB   0
+    STRING          DB   16 DUP (?)
+    BIN             DB   5120 DUP (?)
+.CODE
+START:
+    MOV     AX, @DATA
+    MOV     DS, AX
+    MOV     ES, AX
+    MOV     AX, 3D00H
+    LEA     DX, COM
+    INT     21H
+    JC      COM_EXIT
+    MOV     BX, AX
+    LEA     DX, BIN
+    MOV     DI, DX
+    MOV     SI, DI
+    MOV     CX, 5120
+    MOV     AH, 3FH
+    INT     21H
+    ADD     DI, AX
+    MOV     AH, 3EH
+    INT     21H
+    MOV     AH, 3CH
+    XOR     CX, CX
+    LEA     DX, RESULT
+    INT     21H
+    MOV     BP, AX
+    LEA     DX, STRING
+NEXT:
+    CMP     SI, DI
+    JNBE    EXIT
+    LODSB
+    MOVZX   BX, AL
+    SHL     BX, 1
+    JMP     OPCODES[BX]
+S_ES:
+    LEA     AX, ESSEG
+    JMP     SEG_ADDRESS
+S_CS:
+    LEA     AX, CSSEG
+    JMP     SEG_ADDRESS
+S_SS:
+    LEA     AX, SSSEG
+    JMP     SEG_ADDRESS
+S_DS:
+    LEA     AX, DSSEG
+    JMP     SEG_ADDRESS
+S_FS:
+    LEA     AX, FSSEG
+    JMP     SEG_ADDRESS
+S_GS:
+    LEA     AX, GSSEG
+SEG_ADDRESS:
+    MOV     PREFIX_SEG, AX
+    JMP     NEXT
+SIZE_PREFIX:
+    MOV     PREFIX_66, 1
+    JMP     NEXT
+ADDR_PREFIX:
+    MOV     PREFIX_67, 1
+    JMP     NEXT
+MOV_RM8_R8:
+    MOV     OPERAND_BYTE, 1
+MOV_RM1632_R1632:
+    JMP     MODRM_PRINT_MOV_RM_REG
+MOV_R8_RM8:
+    MOV     OPERAND_BYTE, 1
+MOV_R1632_RM1632:
+    JMP     MODRM_PRINT_MOV_REG_RM
+MOV_M16R1632_SREG:
+    MOV     OPERAND_SEG, 1
+    JMP     MODRM_PRINT_MOV_RM_REG
+MOV_SREG_RM16:
+    MOV     OPERAND_SEG, 1
+    JMP     MODRM_PRINT_MOV_REG_RM
+CWD_PRINT:
+    LEA     AX, CWD_
+    CALL    PRINT_STRING
+    JMP     PRINT_NEW_LINE
+MOV_AL_MOFFS8:
+    MOV     OPERAND_BYTE, 1
+MOV_E_AX_MOFFS1632:
+    CALL    SET_MOFFS
+    JMP     PRINT_MOV_REG_RM
+MOV_MOFFS8_AL:
+    MOV     OPERAND_BYTE, 1
+MOV_MOFFS1632_E_AX:
+    CALL    SET_MOFFS
+    JMP     PRINT_MOV_RM_REG
+MOV_R_IMM:
+    MOV     OPERAND_BYTE, 1
+    AND     AL, 0FH
+    CMP     AL, 8
+    JB      OPERAND_IS_IMM8
+    SUB     AL, 8
+    OR      PREFIX_66, 0
+    JZ      IMM_IS_16BIT
+    OR      IMM_SIZE, 80H
+IMM_IS_16BIT:
+    MOV     IMM_SIZE, 1
+    MOV     OPERAND_BYTE, 0
+OPERAND_IS_IMM8:
+    SHL     AL, 1
+    MOV     MOD_REG, AL
+    CALL    PRINT_MOV
+    CALL    PRINT_REG
+PRINT_COMMA_IMM:
+    CALL    PRINT_COMMA
+    XOR     EAX, EAX
+    MOV     IMM, 1
+    OR      IMM_SIZE, 0
+    JNS     IMM_IS_NOT_DWORD
+    LODSD
+    JMP     IMM_OUT
+IMM_IS_NOT_DWORD:
+    JNZ     IMM_IS_WORD
+    LODSB
+    JMP     IMM_OUT
+IMM_IS_WORD:
+    LODSW
+IMM_OUT:
+    CALL    PRINT_HEX
+    JMP     PRINT_NEW_LINE
+SAR_RM8_IMM8:
+    MOV     OPERAND_BYTE, 1
+    MOV     PTR_, OFFSET B_PTR
+SAR_RM1632_IMM8:
+    CALL    SET_PTR_PRINT_SAR_RM_COMMA
+    XOR     EAX, EAX
+    LODSB
+    CALL    PRINT_HEX
+    JMP     PRINT_NEW_LINE
+MOV_RM8_IMM8:
+    MOV     OPERAND_BYTE, 1
+    MOV     PTR_, OFFSET B_PTR
+MOV_RM1632_IMM1632:
+    CALL    PRINT_MOV
+    CALL    MOD_REG_RM
+    OR      OPERAND_BYTE, 0
+    JNZ     ITS_BYTE_WORD_IMM
+    OR      IMM_SIZE, 1
+    MOV     PTR_, OFFSET W_PTR
+    OR      PREFIX_66, 0
+    JZ      ITS_BYTE_WORD_IMM
+    MOV     PTR_, OFFSET D_PTR
+    OR      IMM_SIZE, 80H
+ITS_BYTE_WORD_IMM:
+    CALL    PRINT_RM
+    JMP     PRINT_COMMA_IMM
+SAR_RM8_1:
+    MOV     OPERAND_BYTE, 1
+    MOV     PTR_, OFFSET B_PTR
+SAR_RM1632_1:
+    CALL    SET_PTR_PRINT_SAR_RM_COMMA
+    LEA     AX, ONE
+    CALL    PRINT_STRING
+    JMP     PRINT_NEW_LINE
+SAR_RM8_CL:
+    MOV     OPERAND_BYTE, 1
+    MOV     PTR_, OFFSET B_PTR
+SAR_RM1632_CL:
+    CALL    SET_PTR_PRINT_SAR_RM_COMMA
+    LEA     AX, CLREG
+    CALL    PRINT_STRING
+    JMP     PRINT_NEW_LINE
+LOCK_PRINT:
+    LEA     AX, LOCK_
+    CALL    PRINT_STRING
+    JMP     NEXT
+COM_EXIT:
+    LEA     DX, ERROR
+    MOV     AH, 9
+    INT     21H
+EXIT:
+    MOV     AH, 3EH
+    MOV     BX, BP
+    INT     21H
+    MOV     AH, 4CH
+    INT     21H
+MODRM_PRINT_MOV_RM_REG:
+    CALL    MOD_REG_RM
+PRINT_MOV_RM_REG:
+    CALL    PRINT_MOV
+    CALL    PRINT_RM
+    CALL    PRINT_COMMA
+    CALL    PRINT_REG
+    JMP     PRINT_NEW_LINE
+MODRM_PRINT_MOV_REG_RM:
+    CALL    MOD_REG_RM
+PRINT_MOV_REG_RM:
+    CALL    PRINT_MOV
+    CALL    PRINT_REG
+    CALL    PRINT_COMMA
+    CALL    PRINT_RM
+PRINT_NEW_LINE:
+    PUSH    SI DI
+    MOV     DI, DX
+    MOV     AX, 0A0DH
+    STOSW
+    MOV     CX, 2
+    MOV     AH, 40H
+    MOV     BX, BP
+    INT     21H
+    REP     STOSB
+    MOV     MOD_MOD, 0
+    MOV     MOD_REG, 0
+    MOV     MOD_RM, 0
+    MOV     PREFIX_SEG, 0
+    MOV     PREFIX_66, 0
+    MOV     PREFIX_67, 0
+    MOV     PTR_, 0
+    MOV     IMM, 0
+    MOV     OPERAND_BYTE, 0
+    MOV     IMM_SIZE, 0
+    POP     DI SI
+    JMP     NEXT
 
-print_reg proc
-    push    bx si
-    mov     bx, offset regs8
-    cmp     [opcode], 0F6h
-    je      go_print
-    mov     bx, offset regs16
-    or      [is_size_66], 0
-    jz      go_print
-    mov     bx, offset regs32
-go_print:
-    movzx   si, reg
-    mov     ax, [bx + si]
-    call    print_to_buffer
-    pop     si bx
-    ret
-endp
+SET_PTR_PRINT_SAR_RM_COMMA PROC
+    LEA     AX, SAR_
+    CALL    PRINT_STRING
+    CALL    MOD_REG_RM
+    OR      OPERAND_BYTE, 0
+    JNZ     RET_SAR
+    MOV     PTR_, OFFSET W_PTR
+    OR      PREFIX_66, 0
+    JZ      RET_SAR
+    MOV     PTR_, OFFSET D_PTR
+RET_SAR:
+    CALL    PRINT_RM
+    CALL    PRINT_COMMA
+    MOV     IMM, 1
+    RET
+ENDP
 
-print_rm_proc  proc
-    cmp     [mode], 11000000b
-    jne     not11mod
-    mov     al, rm
-    mov     bl, al
-    mov     bh, reg
-    mov     reg, al
-    call    print_reg
-    mov     reg, bh
-    mov     rm, bl
-    jmp     ret_reg
-not11mod:
-    call    print_seg
-    or      [is_addr_67], 0
-    jnz     bit32_addr
-    or      [mode], 0
-    jnz     not_00_mod_16
-    cmp     [rm], 1100b
-    jne     not_00_mod_16
-    xor     eax, eax
-    lodsw
-    mov     [is_imm], 1
-    call    print_hex_num
-    jmp     return
-not_00_mod_16:
-    movzx   bx, rm
-    mov     ax, [bx + rm16]
-    call    print_to_buffer
-    or      [mode], 0
-    jz      return
-    xor     eax, eax
-    cmp     [mode], 1000000b
-    jne     not_01_mod_16
-    lodsb
-    jmp     print_disp_byte_word
-not_01_mod_16:
-    lodsw
-print_disp_byte_word:
-    call    print_hex_num
-    jmp     return
-bit32_addr:
-    cmp     [rm], 1000b
-    jne     no_sib_byte
-    lodsb
-    mov     ah, al
-    and     ah, 11000000b
-    mov     [sib_s], ah
-    mov     ah, al
-    shr     ah, 2
-    and     ah, 1110b
-    mov     [sib_i], ah
-    and     al, 111b
-    shl     al, 1
-    mov     [sib_b], al
-    movzx   bx, sib_b
-    mov     ax, [bx + regs32]
-    call    print_to_buffer
-    cmp     [sib_b], 1010b
-    jne     no_base_101
-    or      [mode], 0
-    jnz     no_base_101
-    sub     di, 3
-    jmp     index
-no_base_101:
-    cmp     [sib_i], 1000b
-    je      no_scale
-    mov     al, "+"
-    stosb
-index:
-    movzx   bx, sib_i
-    mov     ax, [bx + regs32]
-    call    print_to_buffer
-    mov     ah, [sib_s]
-    or      ah, ah
-    jz      no_scale
-    shr     ah, 5
-    jnp     not_scale_8
-    mov     ah, 8
-not_scale_8:
-    add     ah, "0"
-    mov     al, "*"
-    stosw
-no_scale:
-    cmp     [sib_b], 1010b
-    jne     check_disp_8_32
-    or      [mode], 0
-    jz      disp32
-    jmp     check_disp_8_32
-no_sib_byte:
-    cmp     [rm], 1010b
-    jne     print_rm32
-    or      [mode], 0
-    jnz     print_rm32
-    mov     [is_imm], 1
-disp32:
-    xor     eax, eax
-    lodsd
-    call    print_hex_num
-    jmp     return
-print_rm32:
-    movzx   bx, rm
-    mov     ax, [bx + regs32]
-    call    print_to_buffer
-    or      [mode], 0
-    jz      return
-check_disp_8_32:
-    cmp     [mode], 1000000b
-    ja      disp32
-    jb      return
-    xor     eax, eax
-    lodsb
-    call    print_hex_num
-return:
-    mov     al, "]"
-    stosb
-ret_reg:
-    ret
-endp
+PRINT_STRING PROC
+    PUSH    SI BX DI
+    MOV     DI, DX
+    XOR     CX, CX
+    MOV     SI, AX
+PRINTING:
+    MOVSB
+    INC     CX
+    CMP     BYTE PTR [SI], '$'
+    JNE     PRINTING
+    MOV     AH, 40H
+    MOV     BX, BP
+    INT     21H
+    POP     DI BX SI
+    RET
+ENDP
 
-print_to_buffer proc
-    push    si
-    mov     si, ax
-    call    get_str_len
-    rep     movsb
-    pop     si
-    ret
-endp
+MOD_REG_RM PROC
+    LODSB
+    MOV     AH, AL
+    AND     AH, 11000000B
+    MOV     MOD_MOD, AH
+    MOV     AH, AL
+    SHR     AH, 2
+    AND     AH, 1110B
+    MOV     MOD_REG, AH
+    AND     AL, 111B
+    SHL     AL, 1
+    MOV     MOD_RM, AL
+    RET
+ENDP
 
-get_str_len proc
-    push    di
-    xor     cx, cx
-    not     cx
-    xor     al, al
-    mov     di, si
-    repnz   scasb
-    not     cx
-    dec     cx
-    pop     di
-    ret
-endp
+PRINT_REG PROC
+    PUSH    BX SI
+    OR      OPERAND_SEG, 0
+    JZ      NOT_SEG_OPER
+    MOV     OPERAND_SEG, 0
+    MOVZX   BX, MOD_REG
+    MOV     AX, SREGS[BX]
+    CALL    PRINT_STRING
+    POP     SI BX
+    RET
+NOT_SEG_OPER:
+    LEA     BX, REG_B
+    OR      OPERAND_BYTE, 0
+    JNZ     GO_PRINT
+    LEA     BX, REG_W
+    OR      PREFIX_66, 0
+    JZ      GO_PRINT
+    LEA     BX, REG_D
+GO_PRINT:
+    MOVZX   SI, MOD_REG
+    MOV     AX, [BX+SI]
+    CALL    PRINT_STRING
+    POP     SI BX
+    RET
+ENDP
 
-print_to_file proc
-    push    si
-    mov     si, offset cr_lf
-    call    get_str_len
-    rep     movsb
-    mov     dx, offset command_buffer
-    mov     cx, di
-    sub     cx, dx
-    mov     di, dx
-    mov     ah, 40h
-    mov     bx, file_descr
-    push    cx
-    int     21h
-    pop     cx
-    xor     al, al
-    push    di
-    rep     stosb
-    pop     di
-    mov     seg_ovr, 0
-    mov     is_size_66, 0
-    mov     is_addr_67, 0
-    mov     is_imm, 0
-    pop     si
-    ret
-endp
+PRINT_RM  PROC
+    CMP     MOD_MOD, 11000000B
+    JNE     NOT11MOD
+    PUSH    word ptr operand_seg
+    MOV     operand_seg, 0
+    MOV     AL, MOD_RM
+    MOV     BH, MOD_REG
+    MOV     BL, AL
+    MOV     MOD_REG, AL
+    CALL    PRINT_REG
+    MOV     MOD_REG, BH 
+    MOV     MOD_RM, BL
+    POP     word ptr operand_seg
+    JMP     RET_REG
+NOT11MOD:
+    OR      PTR_, 0
+    JZ      NO_TYPE_OVR
+    MOV     AX, PTR_
+    CALL    PRINT_STRING
+NO_TYPE_OVR:
+    MOV     AX, PREFIX_SEG
+    OR      AX, AX
+    JNZ     PRINT_SEG_STR
+    MOV     BL, MOD_RM
+    LEA     AX, DSSEG
+    OR      PREFIX_67, 0
+    JNZ     MODRM32
+    CMP     BL, 0100B
+    JE      PRINT_SS
+    CMP     BL, 0110B
+    JE      PRINT_SS
+    CMP     BL, 1100B
+    JNE     PRINT_SEG_STR
+    OR      MOD_MOD, 0
+    JNZ     PRINT_SS
+    JMP     PRINT_SEG_STR
+MODRM32:
+    CMP     BL, 1010B
+    JNE     PRINT_SEG_STR
+    OR      MOD_MOD, 0
+    JZ      PRINT_SEG_STR
+PRINT_SS:
+    LEA     AX, SSSEG
+    JMP     PRINT_SEG_STR
+PRINT_SEG_STR:
+    CALL    PRINT_STRING
+    LEA     AX, COLON
+    CALL    PRINT_STRING
+    OR      PREFIX_67, 0
+    JZ      BIT16_RM
+        CMP     MOD_RM, 1000B
+        JNE     NO_SIB_BASEYTE
+            LODSB
+            MOV     AH, AL
+            AND     AH, 11000000B
+            MOV     SIB_SCALE, AH
+            MOV     AH, AL
+            SHR     AH, 2
+            AND     AH, 1110B
+            MOV     SIB_INDEX, AH
+            AND     AL, 111B
+            SHL     AL, 1
+            MOV     SIB_BASE, AL
+            MOVZX   BX, SIB_BASE
+            MOV     AX, REG_D[BX]
+            CALL    PRINT_STRING
+            CMP     SIB_BASE, 1010B
+            JNE     NO_BASE_101
+            OR      MOD_MOD, 0
+            JNZ     NO_BASE_101
+            PUSH    DX
+            MOV     AH, 42H
+            MOV     AL, 1
+            MOV     BX, BP
+            MOV     CX, -1
+            MOV     DX, -3
+            INT     21H
+            POP     DX
+            JMP     INDEX
+        NO_BASE_101:
+            CMP     SIB_INDEX, 1000B
+            JE      NO_SCALE
+            LEA     AX, PLUS
+            CALL    PRINT_STRING
+        INDEX:
+            MOVZX   BX, SIB_INDEX
+            MOV     AX, REG_D[BX]
+            CALL    PRINT_STRING
+            MOV     BL, SIB_SCALE
+            OR      BL, BL
+            JZ      NO_SCALE
+            LEA     AX, SCALE4
+            CMP     SIB_SCALE, 1000000B
+            JE      PRINT_SCALE
+            JB      SCALETWO
+            LEA     AX, SCALE8
+            JMP     PRINT_SCALE
+        SCALETWO:
+            LEA     AX, SCALE2
+        PRINT_SCALE:
+            CALL    PRINT_STRING
+        NO_SCALE:
+            CMP     SIB_BASE, 1010B
+            JNE     CHECK_DISP_8_32
+            OR      MOD_MOD, 0
+            JZ      DISP32
+            JMP     CHECK_DISP_8_32
+    NO_SIB_BASEYTE:
+        CMP     MOD_RM, 1010B
+        JNE     PRINT_RM32
+        OR      MOD_MOD, 0
+        JNZ     PRINT_RM32
+        MOV     IMM, 1
+    DISP32:
+        LODSD
+        CALL    PRINT_HEX
+        JMP     RETURN
+    PRINT_RM32:
+        MOVZX   BX, MOD_RM
+        MOV     AX, REG_D[BX]
+        CALL    PRINT_STRING
+        OR      MOD_MOD, 0
+        JZ      RETURN
+    CHECK_DISP_8_32:
+        CMP     MOD_MOD, 1000000B
+        JA      DISP32
+        JB      RETURN
+        XOR     EAX, EAX
+        LODSB
+        CALL    PRINT_HEX
+        JMP     RETURN
+BIT16_RM:
+    OR      MOD_MOD, 0
+    JNZ     NOT_00_MOD_16
+    CMP     MOD_RM, 1100B
+    JNE     NOT_00_MOD_16
+    XOR     EAX, EAX
+    LODSW
+    MOV     IMM, 1
+    CALL    PRINT_HEX
+    JMP     RETURN
+NOT_00_MOD_16:
+    MOVZX   BX, MOD_RM
+    MOV     AX, EA16[BX]
+    CALL    PRINT_STRING
+    OR      MOD_MOD, 0
+    JZ      RETURN
+    XOR     EAX, EAX
+    CMP     MOD_MOD, 1000000B
+    JNE     NOT_01_MOD_16
+    LODSB
+    JMP     PRINT_DISP_BYTE_WORD
+NOT_01_MOD_16:
+    LODSW
+PRINT_DISP_BYTE_WORD:
+    CALL    PRINT_HEX
+RETURN:
+    LEA     AX, BRACKET
+    CALL    PRINT_STRING
+RET_REG:
+    RET
+ENDP
 
-print_seg proc
-    push    bx
-    mov     ax, [seg_ovr]
-    or      ax, ax
-    jnz     print_seg_str
-    movzx   bx, rm
-    or      [is_addr_67], 0
-    jnz     modrm32
-    cmp     bl, 1100b
-    jne     print_default_seg
-    or      [mode], 0
-    jnz     print_ss
-    jmp     print_default_seg
-modrm32:
-    mov     ax, offset ds_seg
-    cmp     bl, 1010b
-    jne     print_seg_str
-    or      [mode], 0
-    jz      print_seg_str
-print_ss:
-    mov     ax, offset ss_seg
-    jmp     print_seg_str
-print_default_seg:
-    mov     ax, [bx + mod00_16_def_seg]
-print_seg_str:
-    call    print_to_buffer
-    pop     bx
-    ret
-endp
+SET_MOFFS PROC
+    MOV     MOD_RM, 1100B
+    OR      PREFIX_67, 0
+    JZ      NO_MOFFS32
+    MOV     MOD_RM, 1010B
+NO_MOFFS32:
+    RET
+ENDP
 
-print_hex_num proc
-    push    bx
-    cmp     is_imm, 1
-    je      check_zero
-    or      eax, eax
-    jz      end_printing
-    mov     byte ptr [di], "+"
-    inc     di
-check_zero:
-    or      eax, eax
-    jnz     non_zero_imm
-    mov     al, "0"
-    stosb
-    jmp     put_hex
-non_zero_imm:
-    mov     ebx, eax
-    mov     cl, 8
-    jmp     test_first
-deleting_zeros:
-    dec     cl
-    rol     ebx, 4
-test_first:
-    test    ebx, 0F0000000h
-    jz      deleting_zeros
-    xor     eax, eax
-    shld    eax, ebx, 4
-    cmp     al, 9
-    jna     not_a_letter
-    mov     al, "0"
-    stosb
-not_a_letter:
-    xor     al, al
-hex_to_ascii:
-    shld    eax, ebx, 4
-    shl     ebx, 4
-    cmp     al, 9
-    jna     digit
-    add     al, 7
-digit:
-    add     al, "0"
-    stosb
-    xor     al, al
-    loop    hex_to_ascii
-put_hex:
-    mov     al, "H"
-    stosb
-end_printing:
-    pop     bx
+PRINT_COMMA PROC
+    LEA     AX, COMMA
+    CALL    PRINT_STRING
+    RET
+ENDP
+
+PRINT_MOV PROC
+    LEA     AX, MOV_
+    CALL    PRINT_STRING
     ret
-endp
-    End     Start
+ENDP
+
+PRINT_HEX PROC
+    PUSH    BX DI
+    MOV     DI, DX
+    CMP     IMM, 1
+    JE      ZERO_IMM_CHECK
+    OR      EAX, EAX
+    JZ      END_HEX
+    MOV     BYTE PTR [DI], '+'
+    INC     DI
+ZERO_IMM_CHECK:
+    OR      EAX, EAX
+    JNZ     NOT_ZERO_IMM
+    MOV     AL, '0'
+    STOSB
+    JMP     STORE_H
+NOT_ZERO_IMM:
+    MOV     EBX, EAX
+    MOV     CL, 8
+    JMP     TEST_
+REMOVE_ZERO:
+    DEC     CL
+    ROL     EBX, 4
+TEST_:
+    TEST    EBX, 0F0000000H
+    JZ      REMOVE_ZERO
+    XOR     AL, AL
+    SHLD    EAX, EBX, 4
+    CMP     AL, 9
+    JBE     A_DIGIT
+    MOV     AL, '0'
+    STOSB
+A_DIGIT:
+    XOR     AL, AL
+ASCII:
+    SHLD    EAX, EBX, 4
+    SHL     EBX, 4
+    CMP     AL, 9
+    JNA     NUMBER
+    ADD     AL, 7
+NUMBER:
+    ADD     AL, 30H
+    STOSB
+    XOR     AL, AL
+    LOOP    ASCII
+STORE_H:
+    MOV     AL, 'H'
+    STOSB
+    MOV     CX, DI
+    SUB     CX, DX
+    MOV     AH, 40H
+    MOV     BX, BP
+    INT     21H
+END_HEX:
+    POP     DI BX
+    RET
+ENDP
+    END     START
