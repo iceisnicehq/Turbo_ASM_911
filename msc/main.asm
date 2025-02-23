@@ -1,529 +1,713 @@
-.modrm_mod  l small
+.MODEL SMALL
 .386
-.stack 100h
-.data
-com       db    'COM.COM', 0 ; тут 0 для функций, которые работают с файлами (0Dh)
-result    db    'RESULT.ASM', 0
-cwd_      db    'CWD$' ; тут и далее ноль для процедуры get_str_len (считает длину строки до нуля)
-mov_      db    'MOV    $'
-sar_      db    'SAR    $'
-error     db    'com_error', 13, 10, '$'
-ALreg     db    'AL$'
-CLreg     db    'CL$'
-DLreg     db    'DL$'
-BLreg     db    'BL$'
-AHreg     db    'AH$'
-CHreg     db    'CH$'
-DHreg     db    'DH$'
-BHreg     db    'BH$'
-AXreg     db    'AX$'
-CXreg     db    'CX$'
-DXreg     db    'DX$'
-BXreg     db    'BX$'
-SPreg     db    'SP$'
-BPreg     db    'BP$'
-SIreg     db    'SI$'
-DIreg     db    'DI$'
-EAXreg    db    'EAX$'
-ECXreg    db    'ECX$'
-EDXreg    db    'EDX$'
-EBXreg    db    'EBX$'
-ESPreg    db    'ESP$'
-EBPreg    db    'EBP$'
-ESIreg    db    'ESI$'
-EDIreg    db    'EDI$'
-regs8     dw    ALreg, CLreg, DLreg, BLreg, AHreg, CHreg, DHreg, BHreg ; байтовые реги
-regs16    dw    AXreg, CXreg, DXreg, BXreg, SPreg, BPreg, SIreg, DIreg ; слова реги
-regs32    dw    EAXreg, ECXreg, EDXreg, EBXreg, ESPreg, EBPreg, ESIreg, EDIreg ; двойные слова реги
-byte_ptr     db    'byte ptr $'
-dword_ptr    db    'dword ptr $'
-word_ptr     db    'word ptr $'
-lock_str     db    'LOCK $'
-BX_SIstr     db    ':[BX+SI$'
-BX_DIstr     db    ':[BX+DI$'
-BP_SIstr     db    ':[BP+SI$'
-BP_DIstr     db    ':[BP+DI$'
-SI_rm16      db    ':[SI$'
-DI_rm16      db    ':[DI$'
-BP_rm16      db    ':[BP$'
-BX_rm16      db    ':[BX$'
-rm16         dw    BX_SIstr, BX_DIstr, BP_SIstr, BP_DIstr, SIstr, DIstr, BPstr,  BXstr ; байт РМ
-seg_rm16     dw    ds_seg, ds_seg, ss_seg, ss_seg, ds_seg, ds_seg, ds_seg, ds_seg ; дефолтные сегменты для памяти в РМ
-es_seg    db    'ES$'
-cs_seg    db    'CS$'
-ss_seg    db    'SS$'
-ds_seg    db    'DS$'
-fs_seg    db    'FS$'
-gs_seg    db    'GS$'
-sregs     dw    es_seg, cs_seg, ss_seg, ds_seg, fs_seg, gs_seg
+.STACK 100H
+.DATA
+COM       DB    'COM.COM', 0 ; ТУТ 0 ДЛЯ ФУНКЦИЙ, КОТОРЫЕ РАБОТАЮТ С ФАЙЛАМИ (0DH)
+RESULT    DB    'RESULT.ASM', 0
+CWD_      DB    'CWD$' ; ТУТ И ДАЛЕЕ НОЛЬ ДЛЯ ПРОЦЕДУРЫ GET_STR_LEN (СЧИТАЕТ ДЛИНУ СТРОКИ ДО НУЛЯ)
+MOV_      DB    'MOV    $'
+SAR_      DB    'SAR    $'
+COMMA     DB    ',$'
+BRACKET   DB    ']$'
+COLON     DB    ':[$'
+PLUS      DB    '+$'
+ONE       DB    '1H$'
+ERROR     DB    'COM_ERROR', 0DH, 0AH, '$'
+ALREG     DB    'AL$'
+CLREG     DB    'CL$'
+DLREG     DB    'DL$'
+BLREG     DB    'BL$'
+AHREG     DB    'AH$'
+CHREG     DB    'CH$'
+DHREG     DB    'DH$'
+BHREG     DB    'BH$'
+AXREG     DB    'AX$'
+CXREG     DB    'CX$'
+DXREG     DB    'DX$'
+BXREG     DB    'BX$'
+SPREG     DB    'SP$'
+BPREG     DB    'BP$'
+SIREG     DB    'SI$'
+DIREG     DB    'DI$'
+EAXREG    DB    'EAX$'
+ECXREG    DB    'ECX$'
+EDXREG    DB    'EDX$'
+EBXREG    DB    'EBX$'
+ESPREG    DB    'ESP$'
+EBPREG    DB    'EBP$'
+ESIREG    DB    'ESI$'
+EDIREG    DB    'EDI$'
+REGS8     DW    ALREG, CLREG, DLREG, BLREG, AHREG, CHREG, DHREG, BHREG ; БАЙТОВЫЕ РЕГИ
+REGS16    DW    AXREG, CXREG, DXREG, BXREG, SPREG, BPREG, SIREG, DIREG ; СЛОВА РЕГИ
+REGS32    DW    EAXREG, ECXREG, EDXREG, EBXREG, ESPREG, EBPREG, ESIREG, EDIREG ; ДВОЙНЫЕ СЛОВА РЕГИ
+SCALE2    DB    '*2$'
+SCALE4    DB    '*4$'
+SCALE8    DB    '*8$'
+BYTE_PTR     DB    'byte ptr $'
+DWORD_PTR    DB    'dword ptr $'
+WORD_PTR     DB    'word ptr $'
+LOCK_STR     DB    'LOCK    $'
+EA000        DB    'BX+SI$'
+EA001        DB    'BX+DI$'
+EA010        DB    'BP+SI$'
+EA011        DB    'BP+DI$'
+EA100        EQU    SIREG
+EA101        EQU    DIREG
+EA110        EQU    BPREG
+EA111        EQU    BXREG
+EA16         DW    EA000, EA001, EA010, EA011, EA100, EA101, EA110,  EA111 ; БАЙТ РМ
+SEG_RM16     DW    DS_SEG, DS_SEG, SS_SEG, SS_SEG, DS_SEG, DS_SEG, DS_SEG, DS_SEG ; ДЕФОЛТНЫЕ СЕГМЕНТЫ ДЛЯ ПАМЯТИ В РМ
+ES_SEG    DB    'ES$'
+CS_SEG    DB    'CS$'
+SS_SEG    DB    'SS$'
+DS_SEG    DB    'DS$'
+FS_SEG    DB    'FS$'
+GS_SEG    DB    'GS$'
+SREGS     DW    ES_SEG, CS_SEG, SS_SEG, DS_SEG, FS_SEG, GS_SEG
 
-operands    ENUM {
-    al_operand, cl_operand, dl_operand, bl_operand, ah_operand, ch_operand, dh_operand, bh_operand,
-    ax_operand, cx_operand, dx_operand, bx_operand, sp_operand, bp_operand, si_operand, di_operand,
-    operand_1,
-    imm8_operand, imm1632_operand,
-    moffs_operand, moffs1632_operand,
-    r8_operand, r16_operand,
-    sreg_operand,
-    rm8_operand, rm1632_operand
-}
+OPCODES        DW    26H DUP(NEXT_OPCODE)
+               DW    S_ES, 7 DUP(NEXT_OPCODE)
+               DW    S_CS, 7 DUP(NEXT_OPCODE) 
+               DW    S_SS, 7 DUP(NEXT_OPCODE)
+               DW    S_DS, 25H DUP(NEXT_OPCODE)
+               DW    S_FS, S_GS, SIZE_PREFIX, ADDR_PREFIX, 20H DUP(NEXT_OPCODE)
+               DW    MOV_RM8_R8, MOV_RM1632_R1632 
+               DW    MOV_R8_RM8, MOV_R1632_RM1632
+               DW    MOV_M16R1632_SREG, NEXT_OPCODE, MOV_SREG_RM16, 0AH DUP(NEXT_OPCODE)
+               DW    CWD_PRINT, 6 DUP(NEXT_OPCODE)
+               DW    MOV_AL_MOFFS8, MOV_E_AX_MOFFS1632, MOV_MOFFS8_AL, MOV_MOFFS1632_E_AX, 0CH DUP(NEXT_OPCODE) 
+               DW    4 DUP (MOV_R_IMM, MOV_R_IMM, MOV_R_IMM, MOV_R_IMM)
+               DW    SAR_RM8_IMM8, SAR_RM1632_IMM8, 4 DUP(NEXT_OPCODE)
+               DW    MOV_RM8_IMM8, MOV_RM1632_IMM1632, 8 DUP(NEXT_OPCODE) 
+               DW    SAR_RM8_1, SAR_RM1632_1, SAR_RM8_CL, SAR_RM1632_CL, 1CH DUP(NEXT_OPCODE) 
+               DW    LOCK_PRINT
+MODRM_MOD      DB    0
+MODRM_RM       DB    0
+MODRM_REG      DB    0
+SIB_SCALE      DB    0
+SIB_INDEX      DB    0
+SIB_BASE       DB    0
+HANDLE         DW    0
+PREFIX_SEG     DW    0
+PREFIX_66      DB    0
+PREFIX_67      DB    0
+TYPE_PTR       DW    0
+IS_IMM         DB    0 ; ЭТО ПЕРЕМЕННАЯ НУЖНА, ЧТОБЫ СКИПАТЬ '+' ДЛЯ ИММОВ, И ТАК ЖЕ, ЧТОБЫ ПИСАТЬ НУЛЕВОЙ ИММ, ТАК КАК ИММ 0 (IMUL AX, 0) НУЖНО ПИСАТЬ, А СМЕЩЕНИЕ=0 ПИСАТЬ НЕ НУЖНО
+OPCODE         DB    0 ; ХРАНИТ ОПКОД КОМАНДЫ, КОТОРУЮ ДЕКОДИМ
+STRING         DB    16 DUP (0) ; СТРОКА КОТОРУЮ НАПОЛНЯЕМ ПОСТЕПЕННО, А ПОТОМ ЗАПИСЫВАЕМ В ФАЙЛ
+DATA_BUFFER    DB    5120 DUP (0)
+END_OFFSET     DW    ? ; НОМЕР ПОСЛЕДНЕГО БАЙТА В DATA_BUFFER (ИЗ ЧИСЛА ПРОЧИТАННЫХ)
+OPERAND_BYTE   DB    ?
+OPERAND_SEG    DB    ?
+IMM_VAL_SIZE   DB    ?
 
-opcodes        dw    26h dup(next_opcode)
-               dw    s_es, 7 dup(next_opcode)
-               dw    s_cs, 7 dup(next_opcode) 
-               dw    s_ss, 7 dup(next_opcode)
-               dw    s_ds, 25h dup(next_opcode)
-               dw    s_fs, s_gs, size_prefix, addr_prefix, 20h dup(next_opcode)
-               dw    mov_rm8_r8, mov_rm1632_r1632 
-               dw    mov_r8_rm8, mov_r1632_rm16_32
-               dw    mov_m16r1632_sreg, mov_sreg_rm16, 0Ah dup(next_opcode)
-               dw    cwd_print, 6 dup(next_opcode)
-               dw    mov_al_moffs8, mov_e_ax_moffs1632, mov_moffs8_al, mov_moffs1632_e_ax, 0Ch dup(next_opcode) 
-               dw    mov_al_imm8, mov_bl_imm8, mov_cl_imm8, mov_dl_imm8
-               dw    mov_ah_imm8, mov_ch_imm8, mov_dh_imm8, mov_bh_imm8
-               dw    mov_e_ax_imm1632, mov_e_cx_imm1632, mov_e_dx_imm1632, mov_e_bx_imm1632
-               dw    mov_e_sp_imm1632, mov_e_bp_imm1632, mov_e_si_imm1632, mov_e_di_imm1632 
-               dw    sar_rm8_imm8, sar_rm1632_imm8, 4 dup(next_opcode)
-               dw    mov_rm8_imm8, mov_rm1632_imm1632, 8 dup(next_opcode) 
-               dw    sar_rm8_1, sar_rm1632_1, sar_rm8_cl, sar_rm1632_cl, 1Ch dup(next_opcode) 
-               dw    lock_print
-operand1       db    0
-operand2       db    0
-modrm_mod      db    0
-modrm_rm       db    0
-modrm_reg      db    0
-sib_scale      db    0
-sib_index      db    0
-sib_base       db    0
-handle         dw    0
-prefix_seg     dw    0
-prefix_66      db    0
-prefix_67      db    0
-is_imm         db    0 ; это переменная нужна, чтобы скипать '+' для иммов, и так же, чтобы писать нулевой имм, так как имм 0 (imul ax, 0) нужно писать, а смещение=0 писать не нужно
-opcode         db    0 ; хранит опкод команды, которую декодим
-string         db    64 dup (0) ; строка которую наполняем постепенно, а потом записываем в файл
-data_buffer    db    5120 dup (0)
-end_offset     dw    ? ; номер последнего байта в data_buffer (из числа прочитанных)
+.CODE
+START:
+    MOV     AX, @DATA
+    MOV     DS, AX
+    MOV     ES, AX
+    MOV     AX, 3D00H ; ОТКРЫВАЕМ ФАЙЛ, AH - ФУНКЦИЯ, AL - ПРАВА ДОСТУПА
+    LEA     DX, COM
+    INT     21H
+    JC      COM_ERROR ; ЕСЛИ НЕТ ОШИБОК, ТО ФЛАГ СF НЕ ПОДНИМАЕТСЯ
+    MOV     BX, AX
+    LEA     DX, DATA_BUFFER
+    MOV     CX, 4096
+    MOV     AH, 3FH ; СЧИТЫВАЕМ БАЙТИ ИЗ КОМ ФАЙЛА В DATA_BUFFER
+    INT     21H
+    ADD     AX, DX ; AX = ЧИСЛО ПРОЧИТАННЫХ БАЙТ, DX = АДРЕС НАЧАЛА
+    MOV     [END_OFFSET], AX 
+    MOV     AH, 3EH ; ЗАКРЫВАЕМ КОМ ФАЙЛ
+    INT     21H
+    MOV     AH, 3CH ; СОЗДАЕМ ФАЙЛ-РЕЗУЛЬТАТ 
+    XOR     CX, CX 
+    LEA     DX, RESULT
+    INT     21H
+    MOV     [HANDLE], AX ; СОХРАНЯЕМ ДЕСКРИПТОР РЕЗ-ФАЙЛА
+    LEA     SI, DATA_BUFFER
+NEXT_OPCODE:
+    CMP     SI, [END_OFFSET] ; ЕСЛИ SI ВЫШЕЛ ЗА ПРЕДЕЛЫ DATA_BUFFER, ТО ВЫХОДИМ
+    JNBE    EXIT
+    LODSB
+    MOVZX   BX, AL
+    SHL     BX, 1
+    ADD     BX, OFFSET OPCODES
+    JMP     [BX]   ; ПРЫГАЕМ ПО АДРЕСУ МЕТКИ
+; ВСЕ СЕГМЕНТЫ, ПРОСТО СОХРАНЯЕМ ВСТРЕТИВШИЙСЯ СЕГМЕНТ
+S_ES:
+    LEA     AX, ES_SEG
+    JMP     SAVE_PREF_SEG
+S_CS:
+    LEA     AX, CS_SEG
+    JMP     SAVE_PREF_SEG
+S_SS:
+    LEA     AX, SS_SEG
+    JMP     SAVE_PREF_SEG
+S_DS:
+    LEA     AX, DS_SEG
+    JMP     SAVE_PREF_SEG
+S_FS:
+    LEA     AX, FS_SEG
+    JMP     SAVE_PREF_SEG
+S_GS:
+    LEA     AX, GS_SEG
+SAVE_PREF_SEG:
+    MOV     [PREFIX_SEG], AX
+    JMP     NEXT_OPCODE
+SIZE_PREFIX:
+    MOV     [PREFIX_66], 1
+    JMP     NEXT_OPCODE
+ADDR_PREFIX:
+    MOV     [PREFIX_67], 1
+    JMP     NEXT_OPCODE
 
-.code
-Start:
-    mov     ax, @data
-    mov     ds, ax
-    mov     es, ax
-    mov     ax, 3D00h ; открываем файл, ah - функция, al - права доступа
-    lea     dx, com
-    int     21h
-    jc      com_error ; если нет ошибок, то флаг сf не поднимается
-    mov     bx, ax
-    lea     dx, data_buffer
-    mov     cx, 4096
-    mov     ah, 3fh ; считываем байти из ком файла в data_buffer
-    int     21h
-    add     ax, dx ; ax = число прочитанных байт, dx = адрес начала
-    mov     [end_offset], ax 
-    mov     ah, 3Eh ; закрываем ком файл
-    int     21h
-    mov     ah, 3Ch ; создаем файл-результат 
-    xor     cx, cx 
-    lea     dx, result
-    int     21h
-    mov     [handle], ax ; сохраняем дескриптор рез-файла
-    lea     si, data_buffer
-    lea     di, string
-next_opcode:
-    cmp     si, [end_offset] ; если si вышел за пределы data_buffer, то выходим
-    jnbe    exit
-    lodsb
-    xor     ah, ah
-    shl     ax, 1
-    lea     bx, opcodes ; bx = адрес таблицы с метками
-    add     bx, ax
-    jmp     bx   ; прыгаем по адресу метки
-; все сегменты, просто сохраняем встретившийся сегмент
-s_es:
-    lea     ax, es_seg
-    jmp     save_pref_seg
-s_cs:
-    lea     ax, cs_seg
-    jmp     save_pref_seg
-s_ss:
-    lea     ax, ss_seg
-    jmp     save_pref_seg
-s_ds:
-    lea     ax, ds_seg
-    jmp     save_pref_seg
-s_fs:
-    lea     ax, fs_seg
-    jmp     save_pref_seg
-s_gs:
-    lea     ax, gs_seg
-save_pref_seg:
-    mov     [prefix_seg], ax
-    jmp     next_opcode
-size_prefix:
-    mov     [prefix_66], 1
-    jmp     next_opcode
-addr_prefix:
-    mov     [prefix_67], 1
-    jmp     next_opcode
-mov_rm8_r8:
-mov_rm1632_r1632:
-mov_r8_rm8:
-mov_r1632_rm16_32:
-mov_m16r1632_sreg:
-mov_sreg_rm16:
-cwd_print:  ; cdq выводим сразу
-    lea     ax, cwd_
-    call    print_to_buffer
-    jmp     print_to_file
-mov_al_moffs8:
-mov_e_ax_moffs1632:
-mov_moffs8_al:
-mov_moffs1632_e_ax:
-mov_r8_imm8:
-mov_r1632_imm1632:
-    mov_al_imm8:
-    mov_bl_imm8:
-    mov_cl_imm8:
-    mov_dl_imm8:
-    mov_ah_imm8:
-    mov_ch_imm8:
-    mov_dh_imm8:
-    mov_bh_imm8:
-    mov_e_ax_imm1632:
-    mov_e_cx_imm1632:
-    mov_e_dx_imm1632:
-    mov_e_bx_imm1632:
-    mov_e_sp_imm1632:
-    mov_e_bp_imm1632:
-    mov_e_si_imm1632:
-    mov_e_di_imm1632:
-sar_rm8_imm8:
-sar_rm1632_imm8:
-mov_rm8_imm8:
-mov_rm1632_imm1632:
-sar_rm8_1:
-sar_rm1632_1:
-sar_rm8_cl:
-sar_rm1632_cl:
-lock_print: ; lock выводим сразу
-    lea     ax, lock_str
-    call    print_to_buffer
-    jmp     next_opcode
+MOV_RM8_R8:
+    MOV     [OPERAND_BYTE], 1
+MOV_RM1632_R1632:
+    JMP     GET_MODRM_PRINT_MOV_RM_REG
+MOV_R8_RM8:
+    MOV     [OPERAND_BYTE], 1
+MOV_R1632_RM1632:
+    JMP     GET_MODRM_PRINT_MOV_REG_RM
+MOV_M16R1632_SREG:
+    MOV     [OPERAND_SEG], 1
+    JMP     GET_MODRM_PRINT_MOV_RM_REG
+MOV_SREG_RM16:
+    MOV     [OPERAND_SEG], 1
+    JMP     GET_MODRM_PRINT_MOV_REG_RM
+CWD_PRINT:
+    LEA     AX, CWD_
+    CALL    PRINT_STRING
+    JMP     END_PRINTING
+MOV_AL_MOFFS8:
+    MOV     [OPERAND_BYTE], 1
+MOV_E_AX_MOFFS1632:
+    CALL    SET_MOFFS
+    JMP     NO_GET_MODRM_PRINT_MOV_REG_RM
+MOV_MOFFS8_AL:
+    MOV     [OPERAND_BYTE], 1
+MOV_MOFFS1632_E_AX:
+    CALL    SET_MOFFS
+    JMP     NO_GET_MODRM_PRINT_MOV_RM_REG
+MOV_R_IMM:
+    MOV     [OPERAND_BYTE], 1
+    AND     AL, 0FH
+    CMP     AL, 8
+    JB      OPERAND_IS_IMM8
+    SUB     AL, 8
+    OR      PREFIX_66, 0
+    JZ      IMM_IS_16BIT
+    OR      IMM_VAL_SIZE, 80H
+IMM_IS_16BIT:
+    MOV     IMM_VAL_SIZE, 1
+    MOV     [OPERAND_BYTE], 0
+OPERAND_IS_IMM8:
+    SHL     AL, 1
+    MOV     [MODRM_REG], AL
+    LEA     AX, MOV_
+    CALL    PRINT_STRING
+    CALL    PRINT_REG
+PRINT_COMMA_IMM:
+    CALL    PRINT_COMMA
+    XOR     EAX, EAX
+    MOV     IS_IMM, 1
+    OR      IMM_VAL_SIZE, 0
+    JNS     IMM_IS_NOT_DWORD
+    LODSD
+    JMP     IMM_OUT
+IMM_IS_NOT_DWORD:
+    JNZ     IMM_IS_WORD
+    LODSB
+    JMP     IMM_OUT
+IMM_IS_WORD:
+    LODSW
+IMM_OUT:
+    CALL    PRINT_HEX_NUM
+    JMP     END_PRINTING
 
+SAR_RM8_IMM8:
+    MOV     [OPERAND_BYTE], 1
+    MOV     [TYPE_PTR], OFFSET BYTE_PTR
+SAR_RM1632_IMM8:
+    CALL    SET_PTR_PRINT_SAR_RM_COMMA
+    XOR     EAX, EAX
+    LODSB
+    CALL    PRINT_HEX_NUM
+    JMP     END_PRINTING
 
-com_error:
-    lea     dx, error ; сообщение об ошибке с комом, полезно, если вдруг что-то не так будет на защите (например файл переименуют, как у всех было)
-    mov     ah, 9                ;      тогда сразу будет видно где ошибка
-    int     21h
-exit:
-    mov     ah, 3Eh
-    mov     bx, [handle]  ; закрываем файл результат
-    int     21h
-    mov     ah, 4Ch
-    int     21h
+MOV_RM8_IMM8:
+    MOV     [OPERAND_BYTE], 1
+    MOV     [TYPE_PTR], OFFSET BYTE_PTR
+MOV_RM1632_IMM1632:
+    LEA     AX, MOV_
+    CALL    PRINT_STRING
+    CALL    GET_MOD_REG_RM
+    OR      [OPERAND_BYTE], 0
+    JNZ     ITS_BYTE_WORD_IMM
+    OR      [IMM_VAL_SIZE], 1
+    MOV     [TYPE_PTR], OFFSET WORD_PTR
+    OR      [PREFIX_66], 0
+    JZ      ITS_BYTE_WORD_IMM
+    MOV     [TYPE_PTR], OFFSET DWORD_PTR
+    OR      IMM_VAL_SIZE, 80H
+ITS_BYTE_WORD_IMM:
+    CALL    PRINT_RM_PROC
+    JMP     PRINT_COMMA_IMM
+SAR_RM8_1:
+    MOV     [OPERAND_BYTE], 1
+    MOV     [TYPE_PTR], OFFSET BYTE_PTR
+SAR_RM1632_1:
+    CALL    SET_PTR_PRINT_SAR_RM_COMMA
+    LEA     AX, ONE
+    CALL    PRINT_STRING
+    JMP     END_PRINTING
+SAR_RM8_CL:
+    MOV     [OPERAND_BYTE], 1
+    MOV     [TYPE_PTR], OFFSET BYTE_PTR
+SAR_RM1632_CL:
+    CALL    SET_PTR_PRINT_SAR_RM_COMMA
+    LEA     AX, CLREG
+    CALL    PRINT_STRING
+    JMP     END_PRINTING
 
-print_to_file:
-    push    si
-    mov     ax, 0D0Ah
-    stosw
-    lea     dx, string
-    mov     cx, di
-    sub     cx, dx  ; длина
-    mov     di, dx
-    mov     ah, 40h
-    mov     bx, handle
-    push    cx
-    int     21h
-    pop     cx
-    xor     al, al
-    push    di
-    rep     stosb
-    pop     di
-    mov     prefix_seg, 0
-    mov     prefix_66, 0
-    mov     prefix_67, 0
-    mov     is_imm, 0
-    pop     si
-    jmp     next_opcode
-;--------------------------------------------------------------------------------------
-; Процедура get_mod_reg_rm
-; На вход: ничего
-; На выход: мод, рег и рм
-; Описание: грузит байт из data_buffer по адресу [si], затем разбивает на мод, рег, рм
-;           для рег и рм смещенение shr 2 и shl 1 для движения по массивам рег и рм,
-;           потому что массив состоит из слов, а не из байтов
-;--------------------------------------------------------------------------------------
-get_mod_reg_rm proc
-    lodsb
-    mov     ah, al
-    and     ah, 11000000b
-    mov     [modrm_mod  ], ah
-    mov     ah, al
-    shr     ah, 2
-    and     ah, 1110b
-    mov     [modrm_reg], ah
-    and     al, 111b
-    shl     al, 1
-    mov     [modrm_rm], al
-    ret
-endp
-;--------------------------------------------------------------------------------------
-; Процедура print_reg
-; На вход: ничего
-; На выход: ничего
-; Описание: сохраняет bx и si, затем пишем байтовый регистр для имула F6, или ворд/дворд 
-;           Значение регистра из поля рег.
-;--------------------------------------------------------------------------------------
-print_reg proc
-    push    bx si
-    lea     bx, regs8
-    cmp     [opcode], 0F6h
-    je      go_print
-    lea     bx, regs16
-    or      [prefix_66], 0
-    jz      go_print
-    lea     bx, regs32
-go_print:
-    movzx   si, modrm_reg
-    mov     ax, [bx + si]
-    call    print_to_buffer
-    pop     si bx
-    ret
-endp
-;--------------------------------------------------------------------------------------
-; Процедура print_reg
-; На вход: ничего
-; На выход: ничего
-; Описание: пишем регистр из поля рм, если мод=11, иначе пишем сегмент и операнд рм
-;--------------------------------------------------------------------------------------
-print_rm_proc  proc
-    cmp     [modrm_mod  ], 11000000b   ; если мод=11 пишем регистр по индексу из поля рм
-    jne     not11mod
-    mov     al, modrm_rm
-    mov     bl, al
-    mov     bh, modrm_reg
-    mov     modrm_reg, al
-    call    print_reg
-    mov     modrm_reg, bh
-    mov     modrm_rm, bl
-    jmp     ret_reg
-not11mod:   ; если мод не 11
-    call    print_seg   ; первым делом пишем сегмент в формате '_S:['
-    or      [prefix_67], 0
-    jnz     bit32_addr  ; если есть 67 префикс идем на 32 битную адресацию
-    or      [modrm_mod  ], 0   ; в 16 битах первым делом смотрим на мод00 дисп16
-    jnz     not_00_mod_16
-    cmp     [modrm_rm], 1100b ; дисп16
-    jne     not_00_mod_16
-    xor     eax, eax ; если мод00 и рм110, то это дисп16, пишем его и выходим
-    lodsw
-    mov     [is_imm], 1
-    call    print_hex_num
-    jmp     return
-not_00_mod_16: ; если мод не 00, то это [регистр+дисп8/16]
-    movzx   bx, modrm_rm
-    mov     ax, [bx + rm16]
-    call    print_to_buffer     ; можно сразу вывести начало рм, а дальше смотрим дисп
-    or      [modrm_mod  ], 0           ; если мод 00, то диспа нету
-    jz      return
-    xor     eax, eax            ; иначе готовимся его писать
-    cmp     [modrm_mod  ], 1000000b    ; если мод не 10, то пишем байтовый дисп
-    jne     not_01_mod_16
-    lodsb
-    jmp     print_disp_byte_word
-not_01_mod_16:  ; иначе пишем вордовый дисп
-    lodsw
-print_disp_byte_word:
-    call    print_hex_num
-    jmp     return  ; выходим, конец 16 битного рм
-bit32_addr:
-    cmp     [modrm_rm], 1000b             ; это сиб байт
-    jne     no_sib_baseyte             
-    lodsb                           ; вытягиваем сиб и разбираем на скейл, индекс, базу
-    mov     ah, al
-    and     ah, 11000000b
-    mov     [sib_scale], ah
-    mov     ah, al
-    shr     ah, 2
-    and     ah, 1110b
-    mov     [sib_index], ah
-    and     al, 111b
-    shl     al, 1
-    mov     [sib_base], al
-    movzx   bx, sib_base
-    mov     ax, [bx + regs32]        ; пишем базу в буффер
-    call    print_to_buffer
-    cmp     [sib_base], 1010b           ; проверяем базу 101 (ebp)
-    jne     no_base_101
-    or      [modrm_mod  ], 0                ; если база 101, и мод=0, то..
-    jnz     no_base_101
-    sub     di, 3                    ; двигаем di до начала, так как база не EBP, а только дисп 32
-    jmp     index                   ; пишем индекс и пропускаем проверку NONE и запись + после базы
-no_base_101:
-    cmp     [sib_index], 1000b          ; проверяем индекс 100, то есть NONE
-    je      no_scale                ; если индекс NONE, то не пишем индекс
-    mov     al, '+'                 ; если не NONE дальше пишем индекс, поэтому '+'
-    stosb
-index:
-    movzx   bx, sib_index               ; запись индекса
-    mov     ax, [bx + regs32]
-    call    print_to_buffer
-    mov     ah, [sib_scale]             ; дальше пишем масштаб
-    or      ah, ah                  ; если он 0, то пропускаем его
-    jz      no_scale
-    shr     ah, 5                   ; иначе сдвигаем на 5, таким образом масштаб 10 (*4) будет 100b=4d, а 01 (*2) - 10b=2d 
-    jnp     not_scale_8             ; jp - прыжок, если четное число битов, в 4 и 3 бите ah может быть 11, 10, 01
-    mov     ah, 8                   ;      тогда если после сдвига на 5, чсило битов четное, то это 11, то есть масштаб '*8'
-not_scale_8:                        ;          
-    add     ah, '0'                 ; преобразуем масштаб в ASCII
-    mov     al, '*'                 
-    stosw                           ; и пишем со звездочкой
-no_scale:
-    cmp     [sib_base], 1010b          ; проверяем базу 101 (ebp)
-    jne     check_disp_8_32         ; если база не 101, то провеярем дисп8/32
-    or      [modrm_mod  ], 0               ; если база 101 и мод=0, то тогда база это дисп32
-    jz      disp32
-    jmp     check_disp_8_32         ; иначе дисп8/32
-no_sib_baseyte:    ; всё выше было про сиб байт, если его нет, то
-    cmp     [modrm_rm], 1010b             ; проверяем рм101 (EBP)
-    jne     print_rm32              ; если не 101, то смело пишем рм
-    or      [modrm_mod  ], 0               ; если 101 и мод=0, то тогда там дисп32
-    jnz     print_rm32
-    mov     [is_imm], 1             ; готовимся его писать, так как он там один, то дисп=0, мы пишем
-disp32:
-    xor     eax, eax
-    lodsd
-    call    print_hex_num
-    jmp     return
-print_rm32:
-    movzx   bx, modrm_rm
-    mov     ax, [bx + regs32]       ; выводим рм двигаясь по массиву
-    call    print_to_buffer
-    or      [modrm_mod  ], 0               ; если мод0, то выходим, если нет, то идем проверять дисп8/32
-    jz      return
-check_disp_8_32:
-    cmp     [modrm_mod  ], 1000000b       ; мод=10 - дисп32
-    ja      disp32
-    jb      return
-    xor     eax, eax
-    lodsb                           ; иначе дисп8
-    call    print_hex_num
-return:
-    mov     al, ']'
-    stosb
-ret_reg:
-    ret
-endp
-;--------------------------------------------------------------------------------------
-; Процедура print_buffer
-; На вход:  AX - адрес строки для записи
-; На выход: ничего
-; Описание: сохраняет si, затем пишет строку по адресу AX в буфер
-;--------------------------------------------------------------------------------------
-print_to_buffer proc
-    push    si
-    mov     si, ax
-printing:
-    movsb
-    cmp     byte ptr [si], '$'
-    jne     printing
-    pop     si
-    ret
-endp
-;--------------------------------------------------------------------------------------
-; Процедура print_seg
-; На вход:  ничего
-; На выход: ничего
-; Описание: сохраняет bx,
-;           записывает в буфер сегмент для РМ, смотрит на все флаги и пишет либо оверрайд
-;           сегмент, либо пишет дефолтный
-;--------------------------------------------------------------------------------------
-print_seg proc
-    push    bx
-    mov     ax, [prefix_seg]
-    or      ax, ax
-    jnz     print_seg_str       ; если seg ovr не ноль, то пишем этот сегмент
-    movzx   bx, modrm_rm
-    or      [prefix_67], 0
-    jnz     modrm32             ; если нет 67 префикса, то работаем с модрм16
-    cmp     bl, 1100b           ; если рм = 1100 (bp или дисп16)
-    jne     print_default_seg   ; если не равен, то пишем дефолтный сегмент
-    or      [modrm_mod  ], 0           ; если равен, то проверяем мод
-    jnz     print_ss            ; если мод не ноль, то это [bp+disp8/16]
-    jmp     print_default_seg   ; если ноль, то это disp16, пишем DS
-modrm32:
-    lea     ax, ds_seg   ; у модрм 32 везде DS, кроме EBP
-    cmp     bl, 1010b           ; EBP
-    jne     print_seg_str       
-    or      [modrm_mod  ], 0           ; опять проверяем мод, если не ноль, то это [EBP+disp8/32]
-    jz      print_seg_str       ; если ноль, то DS
-print_ss:
-    lea     ax, ss_seg   ; пишем SS
-    jmp     print_seg_str
-print_default_seg:
-    mov     ax, [bx + seg_rm16] ; двигаемся по массиву
-print_seg_str:
-    call    print_to_buffer ; пишем сегмент
-    pop     bx
-    ret
-endp
-;--------------------------------------------------------------------------------------
-; Процедура print_hex_num
-; На вход:  EAX = число для записи, все остальные биты EAX обязательно равны нулю
-; На выход: ничего
-; Описание: сохраняет bx,
-;           записывает в буфер ASCII число из EAX
-;--------------------------------------------------------------------------------------
-print_hex_num proc
-    push    bx
-    cmp     is_imm, 1  ; проверка на имм
-    je      check_zero
-    or      eax, eax    ; если это не имм, то есть дисп, то проверяем нулевое смещение
-    jz      end_printing 
-    mov     byte ptr [di], '+' ; если дисп не ноль, то пишем плюс, увеличиваем di
-    inc     di                  ; здесь пишем не через al, потому что там число
-check_zero:
-    or      eax, eax        ; проверка нулевого имм
-    jnz     non_zero_imm
-    mov     al, '0'         ; если ноль пишем 0 в буффер и выходим
-    stosb
-    jmp     put_hex
-non_zero_imm:
-    mov     ebx, eax       ; число для записи в EBX
-    mov     cl, 8          ; число байт в EAX
-    jmp     test_first
-deleting_zeros:
-    dec     cl             ; уменьшаем число байт для записи
-    rol     ebx, 4         ; убираем ненужные нули спереди
-test_first:
-    test    ebx, 0F0000000h  ; если результат 0, то спереди числа незначащие нули, убираем их
-    jz      deleting_zeros
-    xor     eax, eax
-    shld    eax, ebx, 4    ; двигаем старший байт для записи в eax
-    cmp     al, 9          ; проверяем его на то, что он не буква
-    jna     not_a_letter
-    mov     al, '0'         ; если буква, то пишем 0
-    stosb
-not_a_letter:
-    xor     al, al         ; обнуляем al 
-hex_to_ascii:
-    shld    eax, ebx, 4    ; двигаем по байту в eax и записываем в буффер в ASCII формате
-    shl     ebx, 4
-    cmp     al, 9          ; проверка на букву
-    jna     digit
-    add     al, 7          ; доп слагаемое для букв
-digit: 
-    add     al, '0'         ; для чисел
-    stosb                   ; сохраняем
-    xor     al, al          ; зануляем так как al это байт, а нам нужно только 4 бита
-    loop    hex_to_ascii    ; циклимся по всем байтам
-put_hex:
-    mov     al, 'H'         ; сохраняем 'H'
-    stosb
-end_printing:
-    pop     bx
-    ret
-endp
+LOCK_PRINT: ; LOCK ВЫВОДИМ СРАЗУ
+    LEA     AX, LOCK_STR
+    CALL    PRINT_STRING
+    JMP     NEXT_OPCODE
 
-    End     Start
+GET_MODRM_PRINT_MOV_RM_REG:
+    CALL    GET_MOD_REG_RM
+NO_GET_MODRM_PRINT_MOV_RM_REG:
+    CALL    PRINT_MOV_RM_REG
+    JMP     END_PRINTING
+GET_MODRM_PRINT_MOV_REG_RM:
+    CALL    GET_MOD_REG_RM
+NO_GET_MODRM_PRINT_MOV_REG_RM:
+    CALL    PRINT_MOV_REG_RM
+    JMP     END_PRINTING
+
+COM_ERROR:
+    LEA     DX, ERROR ; СООБЩЕНИЕ ОБ ОШИБКЕ С КОМОМ, ПОЛЕЗНО, ЕСЛИ ВДРУГ ЧТО-ТО НЕ ТАК БУДЕТ НА ЗАЩИТЕ (НАПРИМЕР ФАЙЛ ПЕРЕИМЕНУЮТ, КАК У ВСЕХ БЫЛО)
+    MOV     AH, 9                ;      ТОГДА СРАЗУ БУДЕТ ВИДНО ГДЕ ОШИБКА
+    INT     21H
+EXIT:
+    MOV     AH, 3EH
+    MOV     BX, [HANDLE]  ; ЗАКРЫВАЕМ ФАЙЛ РЕЗУЛЬТАТ
+    INT     21H
+    MOV     AH, 4CH
+    INT     21H
+
+END_PRINTING:
+    PUSH    SI
+    LEA     DI, STRING
+    MOV     DX, DI
+    MOV     AX, 0A0DH
+    STOSW
+    MOV     CX, 2
+    MOV     AH, 40H
+    MOV     BX, HANDLE
+    INT     21H
+    REP     STOSB
+    MOV     PREFIX_SEG, 0
+    MOV     PREFIX_66, 0
+    MOV     PREFIX_67, 0
+    MOV     TYPE_PTR, 0
+    MOV     IS_IMM, 0
+    MOV     OPERAND_BYTE, 0
+    MOV     MODRM_MOD, 0
+    MOV     MODRM_REG, 0
+    MOV     MODRM_RM, 0
+    MOV     IMM_VAL_SIZE, 0
+    POP     SI
+    JMP     NEXT_OPCODE
+;--------------------------------------------------------------------------------------
+; ПРОЦЕДУРА PRINT_BUFFER
+; НА ВХОД:  AX - АДРЕС СТРОКИ ДЛЯ ЗАПИСИ
+; НА ВЫХОД: НИЧЕГО
+; ОПИСАНИЕ: СОХРАНЯЕТ SI, ЗАТЕМ ПИШЕТ СТРОКУ ПО АДРЕСУ AX В БУФЕР
+;--------------------------------------------------------------------------------------
+SET_PTR_PRINT_SAR_RM_COMMA PROC
+    LEA     AX, SAR_
+    CALL    PRINT_STRING
+    CALL    GET_MOD_REG_RM
+    OR      [OPERAND_BYTE], 0
+    JNZ     RET_SAR
+    MOV     [TYPE_PTR], OFFSET WORD_PTR
+    OR      [PREFIX_66], 0
+    JZ      RET_SAR
+    MOV     [TYPE_PTR], OFFSET DWORD_PTR
+RET_SAR:
+    CALL    PRINT_RM_PROC
+    CALL    PRINT_COMMA
+    MOV     [IS_IMM], 1
+    RET
+ENDP
+
+PRINT_STRING PROC
+    PUSH    SI BX
+    LEA     DI, STRING
+    MOV     DX, DI
+    XOR     CX, CX
+    MOV     SI, AX
+PRINTING:
+    MOVSB
+    INC     CX
+    CMP     BYTE PTR [SI], '$'
+    JNE     PRINTING
+    MOV     AH, 40H
+    MOV     BX, HANDLE
+    INT     21H
+    POP     BX SI
+    RET
+ENDP
+
+PRINT_SAR_RM PROC
+    LEA     AX, SAR_
+    CALL    PRINT_STRING
+    CALL    GET_MOD_REG_RM
+    CALL    PRINT_RM_PROC
+    RET
+ENDP
+;--------------------------------------------------------------------------------------
+; ПРОЦЕДУРА GET_MOD_REG_RM
+; НА ВХОД: НИЧЕГО
+; НА ВЫХОД: МОД, РЕГ И РМ
+; ОПИСАНИЕ: ГРУЗИТ БАЙТ ИЗ DATA_BUFFER ПО АДРЕСУ [SI], ЗАТЕМ РАЗБИВАЕТ НА МОД, РЕГ, РМ
+;           ДЛЯ РЕГ И РМ СМЕЩЕНЕНИЕ SHR 2 И SHL 1 ДЛЯ ДВИЖЕНИЯ ПО МАССИВАМ РЕГ И РМ,
+;           ПОТОМУ ЧТО МАССИВ СОСТОИТ ИЗ СЛОВ, А НЕ ИЗ БАЙТОВ
+;--------------------------------------------------------------------------------------
+GET_MOD_REG_RM PROC
+    LODSB
+    MOV     AH, AL
+    AND     AH, 11000000B
+    MOV     [MODRM_MOD], AH
+    MOV     AH, AL
+    SHR     AH, 2
+    AND     AH, 1110B
+    MOV     [MODRM_REG], AH
+    AND     AL, 111B
+    SHL     AL, 1
+    MOV     [MODRM_RM], AL
+    RET
+ENDP
+;--------------------------------------------------------------------------------------
+; ПРОЦЕДУРА PRINT_REG
+; НА ВХОД: НИЧЕГО
+; НА ВЫХОД: НИЧЕГО
+; ОПИСАНИЕ: СОХРАНЯЕТ BX И SI, ЗАТЕМ ПИШЕМ БАЙТОВЫЙ РЕГИСТР ДЛЯ ИМУЛА F6, ИЛИ ВОРД/ДВОРД 
+;           ЗНАЧЕНИЕ РЕГИСТРА ИЗ ПОЛЯ РЕГ.
+;--------------------------------------------------------------------------------------
+PRINT_REG PROC
+    PUSH    BX SI
+    OR      [OPERAND_SEG], 0
+    JZ      NOT_SEG_OPER
+    MOV     [OPERAND_SEG], 0
+    LEA     BX, SREGS
+    MOVZX   SI, MODRM_REG
+    MOV     AX, [BX + SI]
+    CALL    PRINT_STRING
+    POP     SI BX
+    RET
+NOT_SEG_OPER:
+    LEA     BX, REGS8
+    OR      [OPERAND_BYTE], 0
+    JNZ     GO_PRINT
+    LEA     BX, REGS16
+    OR      [PREFIX_66], 0
+    JZ      GO_PRINT
+    LEA     BX, REGS32
+GO_PRINT:
+    MOVZX   SI, MODRM_REG
+    MOV     AX, [BX + SI]
+    CALL    PRINT_STRING
+    POP     SI BX
+    RET
+ENDP
+;--------------------------------------------------------------------------------------
+; ПРОЦЕДУРА PRINT_REG
+; НА ВХОД: НИЧЕГО
+; НА ВЫХОД: НИЧЕГО
+; ОПИСАНИЕ: ПИШЕМ РЕГИСТР ИЗ ПОЛЯ РМ, ЕСЛИ МОД=11, ИНАЧЕ ПИШЕМ СЕГМЕНТ И ОПЕРАНД РМ
+;--------------------------------------------------------------------------------------
+PRINT_RM_PROC  PROC
+    CMP     [MODRM_MOD], 11000000B   ; ЕСЛИ МОД=11 ПИШЕМ РЕГИСТР ПО ИНДЕКСУ ИЗ ПОЛЯ РМ
+    JNE     NOT11MOD
+    MOV     AL, MODRM_RM
+    MOV     BH, MODRM_REG
+    MOV     BL, AL
+    MOV     MODRM_REG, AL
+    CALL    PRINT_REG
+    MOV     MODRM_REG, BH
+    MOV     MODRM_RM, BL
+    JMP     RET_REG
+NOT11MOD:   ; ЕСЛИ МОД НЕ 11
+    OR      TYPE_PTR, 0
+    JZ      NO_TYPE_OVR
+    MOV     AX, [TYPE_PTR]
+    CALL    PRINT_STRING
+NO_TYPE_OVR:
+    CALL    PRINT_SEG   ; ПЕРВЫМ ДЕЛОМ ПИШЕМ СЕГМЕНТ В ФОРМАТЕ '_S:['
+    LEA     AX, COLON
+    CALL    PRINT_STRING
+    OR      [PREFIX_67], 0
+    JZ      BIT16_RM  ; ЕСЛИ ЕСТЬ 67 ПРЕФИКС ИДЕМ НА 32 БИТНУЮ АДРЕСАЦИЮ
+    CALL    BIT32_RM
+    JMP     RETURN
+BIT16_RM:
+    OR      [MODRM_MOD], 0   ; В 16 БИТАХ ПЕРВЫМ ДЕЛОМ СМОТРИМ НА МОД00 ДИСП16
+    JNZ     NOT_00_MOD_16
+    CMP     [MODRM_RM], 1100B ; ДИСП16
+    JNE     NOT_00_MOD_16
+    XOR     EAX, EAX ; ЕСЛИ МОД00 И РМ110, ТО ЭТО ДИСП16, ПИШЕМ ЕГО И ВЫХОДИМ
+    LODSW
+    MOV     [IS_IMM], 1
+    CALL    PRINT_HEX_NUM
+    JMP     RETURN
+NOT_00_MOD_16: ; ЕСЛИ МОД НЕ 00, ТО ЭТО [РЕГИСТР+ДИСП8/16]
+    MOVZX   BX, MODRM_RM
+    MOV     AX, [BX + EA16]
+    CALL    PRINT_STRING     ; МОЖНО СРАЗУ ВЫВЕСТИ НАЧАЛО РМ, А ДАЛЬШЕ СМОТРИМ ДИСП
+    OR      [MODRM_MOD], 0           ; ЕСЛИ МОД 00, ТО ДИСПА НЕТУ
+    JZ      RETURN
+    XOR     EAX, EAX            ; ИНАЧЕ ГОТОВИМСЯ ЕГО ПИСАТЬ
+    CMP     [MODRM_MOD], 1000000B    ; ЕСЛИ МОД НЕ 10, ТО ПИШЕМ БАЙТОВЫЙ ДИСП
+    JNE     NOT_01_MOD_16
+    LODSB
+    JMP     PRINT_DISP_BYTE_WORD
+NOT_01_MOD_16:  ; ИНАЧЕ ПИШЕМ ВОРДОВЫЙ ДИСП
+    LODSW
+PRINT_DISP_BYTE_WORD:
+    CALL    PRINT_HEX_NUM
+RETURN:
+    LEA     AX, BRACKET
+    CALL    PRINT_STRING
+RET_REG:
+    RET
+ENDP
+
+SET_MOFFS PROC
+    MOV     [MODRM_RM], 1100B
+    OR      [PREFIX_67], 0
+    JZ      NO_MOFFS32
+    MOV     [MODRM_RM], 1010B
+NO_MOFFS32:
+    RET
+ENDP
+
+BIT32_RM PROC
+    CMP     [MODRM_RM], 1000B             ; ЭТО СИБ БАЙТ
+    JNE     NO_SIB_BASEYTE             
+    CALL    GET_SCALE_INDEX_BASE
+    MOV     AX, [BX + REGS32]        ; ПИШЕМ БАЗУ В БУФФЕР
+    CALL    PRINT_STRING
+    CMP     [SIB_BASE], 1010B           ; ПРОВЕРЯЕМ БАЗУ 101 (EBP)
+    JNE     NO_BASE_101
+    OR      [MODRM_MOD], 0                ; ЕСЛИ БАЗА 101, И МОД=0, ТО..
+    JNZ     NO_BASE_101
+    MOV     AH, 42H
+    MOV     AL, 1 ; METHOD: 1 = CURRENT POSITION
+    MOV     BX, HANDLE
+    MOV     CX, -1 ; HIGH WORD OF OFFSET (NEGATIVE NUMBER)
+    MOV     DX, -3 ; LOW WORD OF OFFSET (-3 IN TWO'S COMPLEMENT)
+    INT     21H
+    JMP     INDEX                   ; ПИШЕМ ИНДЕКС И ПРОПУСКАЕМ ПРОВЕРКУ NONE И ЗАПИСЬ + ПОСЛЕ БАЗЫ
+NO_BASE_101:
+    CMP     [SIB_INDEX], 1000B          ; ПРОВЕРЯЕМ ИНДЕКС 100, ТО ЕСТЬ NONE
+    JE      NO_SCALE                ; ЕСЛИ ИНДЕКС NONE, ТО НЕ ПИШЕМ ИНДЕКС
+    LEA     AX, PLUS
+    CALL    PRINT_STRING
+    STOSB
+INDEX:
+    MOVZX   BX, SIB_INDEX               ; ЗАПИСЬ ИНДЕКСА
+    MOV     AX, [BX + REGS32]
+    CALL    PRINT_STRING
+    MOV     BL, [SIB_SCALE]             ; ДАЛЬШЕ ПИШЕМ МАСШТАБ
+    OR      BL, BL                  ; ЕСЛИ ОН 0, ТО ПРОПУСКАЕМ ЕГО
+    JZ      NO_SCALE
+    LEA     AX, SCALE4
+    CMP     [SIB_SCALE], 1000000B
+    JE      PRINT_SCALE
+    JB      SCALETWO
+    LEA     AX, SCALE8
+    JMP     PRINT_SCALE
+SCALETWO:      
+    LEA     AX, SCALE2
+PRINT_SCALE:
+    CALL    PRINT_STRING
+NO_SCALE:
+    CMP     [SIB_BASE], 1010B          ; ПРОВЕРЯЕМ БАЗУ 101 (EBP)
+    JNE     CHECK_DISP_8_32         ; ЕСЛИ БАЗА НЕ 101, ТО ПРОВЕЯРЕМ ДИСП8/32
+    OR      [MODRM_MOD], 0               ; ЕСЛИ БАЗА 101 И МОД=0, ТО ТОГДА БАЗА ЭТО ДИСП32
+    JZ      DISP32
+    JMP     CHECK_DISP_8_32         ; ИНАЧЕ ДИСП8/32
+NO_SIB_BASEYTE:    ; ВСЁ ВЫШЕ БЫЛО ПРО СИБ БАЙТ, ЕСЛИ ЕГО НЕТ, ТО
+    CMP     [MODRM_RM], 1010B             ; ПРОВЕРЯЕМ РМ101 (EBP)
+    JNE     PRINT_RM32              ; ЕСЛИ НЕ 101, ТО СМЕЛО ПИШЕМ РМ
+    OR      [MODRM_MOD], 0               ; ЕСЛИ 101 И МОД=0, ТО ТОГДА ТАМ ДИСП32
+    JNZ     PRINT_RM32
+    MOV     [IS_IMM], 1             ; ГОТОВИМСЯ ЕГО ПИСАТЬ, ТАК КАК ОН ТАМ ОДИН, ТО ДИСП=0, МЫ ПИШЕМ
+DISP32:
+    XOR     EAX, EAX
+    LODSD
+    CALL    PRINT_HEX_NUM
+    JMP     RET32 ;RETURN
+PRINT_RM32:
+    MOVZX   BX, MODRM_RM
+    MOV     AX, [BX + REGS32]       ; ВЫВОДИМ РМ ДВИГАЯСЬ ПО МАССИВУ
+    CALL    PRINT_STRING
+    OR      [MODRM_MOD], 0               ; ЕСЛИ МОД0, ТО ВЫХОДИМ, ЕСЛИ НЕТ, ТО ИДЕМ ПРОВЕРЯТЬ ДИСП8/32
+    JZ      RET32 ;RETURN
+CHECK_DISP_8_32:
+    CMP     [MODRM_MOD], 1000000B       ; МОД=10 - ДИСП32
+    JA      DISP32
+    JB      RET32 ;RETURN
+    XOR     EAX, EAX
+    LODSB                           ; ИНАЧЕ ДИСП8
+    CALL    PRINT_HEX_NUM
+RET32:
+    RET 
+ENDP
+
+GET_SCALE_INDEX_BASE PROC
+    LODSB                           ; ВЫТЯГИВАЕМ СИБ И РАЗБИРАЕМ НА СКЕЙЛ, ИНДЕКС, БАЗУ
+    MOV     AH, AL
+    AND     AH, 11000000B
+    MOV     [SIB_SCALE], AH
+    MOV     AH, AL
+    SHR     AH, 2
+    AND     AH, 1110B
+    MOV     [SIB_INDEX], AH
+    AND     AL, 111B
+    SHL     AL, 1
+    MOV     [SIB_BASE], AL
+    MOVZX   BX, SIB_BASE
+    RET
+ENDP 
+;--------------------------------------------------------------------------------------
+; ПРОЦЕДУРА PRINT_SEG
+; НА ВХОД:  НИЧЕГО
+; НА ВЫХОД: НИЧЕГО
+; ОПИСАНИЕ: СОХРАНЯЕТ BX,
+;           ЗАПИСЫВАЕТ В БУФЕР СЕГМЕНТ ДЛЯ РМ, СМОТРИТ НА ВСЕ ФЛАГИ И ПИШЕТ ЛИБО ОВЕРРАЙД
+;           СЕГМЕНТ, ЛИБО ПИШЕТ ДЕФОЛТНЫЙ
+;--------------------------------------------------------------------------------------
+PRINT_SEG PROC
+    PUSH    BX
+    MOV     AX, [PREFIX_SEG]
+    OR      AX, AX
+    JNZ     PRINT_SEG_STR       ; ЕСЛИ SEG OVR НЕ НОЛЬ, ТО ПИШЕМ ЭТОТ СЕГМЕНТ
+    MOVZX   BX, MODRM_RM
+    OR      [PREFIX_67], 0
+    JNZ     MODRM32             ; ЕСЛИ НЕТ 67 ПРЕФИКСА, ТО РАБОТАЕМ С МОДРМ16
+    CMP     BL, 1100B           ; ЕСЛИ РМ = 1100 (BP ИЛИ ДИСП16)
+    JNE     PRINT_DEFAULT_SEG   ; ЕСЛИ НЕ РАВЕН, ТО ПИШЕМ ДЕФОЛТНЫЙ СЕГМЕНТ
+    OR      [MODRM_MOD], 0           ; ЕСЛИ РАВЕН, ТО ПРОВЕРЯЕМ МОД
+    JNZ     PRINT_SS            ; ЕСЛИ МОД НЕ НОЛЬ, ТО ЭТО [BP+DISP8/16]
+    JMP     PRINT_DEFAULT_SEG   ; ЕСЛИ НОЛЬ, ТО ЭТО DISP16, ПИШЕМ DS
+MODRM32:
+    LEA     AX, DS_SEG   ; У МОДРМ 32 ВЕЗДЕ DS, КРОМЕ EBP
+    CMP     BL, 1010B           ; EBP
+    JNE     PRINT_SEG_STR       
+    OR      [MODRM_MOD], 0           ; ОПЯТЬ ПРОВЕРЯЕМ МОД, ЕСЛИ НЕ НОЛЬ, ТО ЭТО [EBP+DISP8/32]
+    JZ      PRINT_SEG_STR       ; ЕСЛИ НОЛЬ, ТО DS
+PRINT_SS:
+    LEA     AX, SS_SEG   ; ПИШЕМ SS
+    JMP     PRINT_SEG_STR
+PRINT_DEFAULT_SEG:
+    MOV     AX, [BX + SEG_RM16] ; ДВИГАЕМСЯ ПО МАССИВУ
+PRINT_SEG_STR:
+    CALL    PRINT_STRING ; ПИШЕМ СЕГМЕНТ
+    POP     BX
+    RET
+ENDP
+
+PRINT_COMMA PROC
+    LEA     AX, COMMA
+    CALL    PRINT_STRING
+    RET
+ENDP
+
+PRINT_MOV_REG_RM PROC
+    LEA     AX, MOV_
+    CALL    PRINT_STRING
+    CALL    PRINT_REG
+    CALL    PRINT_COMMA
+    CALL    PRINT_RM_PROC
+    RET
+ENDP
+
+PRINT_MOV_RM_REG PROC
+    LEA     AX, MOV_
+    CALL    PRINT_STRING
+    CALL    PRINT_RM_PROC
+    CALL    PRINT_COMMA
+    CALL    PRINT_REG
+    RET
+ENDP
+
+;--------------------------------------------------------------------------------------
+; ПРОЦЕДУРА PRINT_HEX_NUM
+; НА ВХОД:  EAX = ЧИСЛО ДЛЯ ЗАПИСИ, ВСЕ ОСТАЛЬНЫЕ БИТЫ EAX ОБЯЗАТЕЛЬНО РАВНЫ НУЛЮ
+; НА ВЫХОД: НИЧЕГО
+; ОПИСАНИЕ: СОХРАНЯЕТ BX,
+;           ЗАПИСЫВАЕТ В БУФЕР ASCII ЧИСЛО ИЗ EAX
+;--------------------------------------------------------------------------------------
+PRINT_HEX_NUM PROC
+    PUSH    BX
+    LEA     DI, STRING
+    MOV     DX, DI
+    CMP     IS_IMM, 1  ; ПРОВЕРКА НА ИММ
+    JE      CHECK_ZERO
+    OR      EAX, EAX    ; ЕСЛИ ЭТО НЕ ИММ, ТО ЕСТЬ ДИСП, ТО ПРОВЕРЯЕМ НУЛЕВОЕ СМЕЩЕНИЕ
+    JZ      END_HEX
+    MOV     BYTE PTR [DI], '+' ; ЕСЛИ ДИСП НЕ НОЛЬ, ТО ПИШЕМ ПЛЮС, УВЕЛИЧИВАЕМ DI
+    INC     DI                  ; ЗДЕСЬ ПИШЕМ НЕ ЧЕРЕЗ AL, ПОТОМУ ЧТО ТАМ ЧИСЛО
+CHECK_ZERO:
+    OR      EAX, EAX        ; ПРОВЕРКА НУЛЕВОГО ИММ
+    JNZ     NON_ZERO_IMM
+    MOV     AL, '0'         ; ЕСЛИ НОЛЬ ПИШЕМ 0 В БУФФЕР И ВЫХОДИМ
+    STOSB
+    JMP     PUT_HEX
+NON_ZERO_IMM:
+    MOV     EBX, EAX       ; ЧИСЛО ДЛЯ ЗАПИСИ В EBX
+    MOV     CL, 8          ; ЧИСЛО БАЙТ В EAX
+    JMP     TEST_FIRST
+DELETING_ZEROS:
+    DEC     CL             ; УМЕНЬШАЕМ ЧИСЛО БАЙТ ДЛЯ ЗАПИСИ
+    ROL     EBX, 4         ; УБИРАЕМ НЕНУЖНЫЕ НУЛИ СПЕРЕДИ
+TEST_FIRST:
+    TEST    EBX, 0F0000000H  ; ЕСЛИ РЕЗУЛЬТАТ 0, ТО СПЕРЕДИ ЧИСЛА НЕЗНАЧАЩИЕ НУЛИ, УБИРАЕМ ИХ
+    JZ      DELETING_ZEROS
+    XOR     EAX, EAX
+    SHLD    EAX, EBX, 4    ; ДВИГАЕМ СТАРШИЙ БАЙТ ДЛЯ ЗАПИСИ В EAX
+    CMP     AL, 9          ; ПРОВЕРЯЕМ ЕГО НА ТО, ЧТО ОН НЕ БУКВА
+    JNA     NOT_A_LETTER
+    MOV     AL, '0'         ; ЕСЛИ БУКВА, ТО ПИШЕМ 0
+    STOSB
+NOT_A_LETTER:
+    XOR     AL, AL         ; ОБНУЛЯЕМ AL 
+HEX_TO_ASCII:
+    SHLD    EAX, EBX, 4    ; ДВИГАЕМ ПО БАЙТУ В EAX И ЗАПИСЫВАЕМ В БУФФЕР В ASCII ФОРМАТЕ
+    SHL     EBX, 4
+    CMP     AL, 9          ; ПРОВЕРКА НА БУКВУ
+    JNA     DIGIT
+    ADD     AL, 7          ; ДОП СЛАГАЕМОЕ ДЛЯ БУКВ
+DIGIT: 
+    ADD     AL, '0'         ; ДЛЯ ЧИСЕЛ
+    STOSB                   ; СОХРАНЯЕМ
+    XOR     AL, AL          ; ЗАНУЛЯЕМ ТАК КАК AL ЭТО БАЙТ, А НАМ НУЖНО ТОЛЬКО 4 БИТА
+    LOOP    HEX_TO_ASCII    ; ЦИКЛИМСЯ ПО ВСЕМ БАЙТАМ
+PUT_HEX:
+    MOV     AL, 'H'         ; СОХРАНЯЕМ 'H'
+    STOSB
+    MOV     CX, DI
+    SUB     CX, DX
+    MOV     AH, 40H
+    MOV     BX, HANDLE
+    INT     21H
+END_HEX:
+    POP     BX
+    RET
+ENDP
+
+    END     START
