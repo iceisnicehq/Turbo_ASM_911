@@ -505,7 +505,7 @@ PRINT_SEG_STR:
             OR      BL, BL                  ; ЕСЛИ ОН 0, ТО ПРОПУСКАЕМ ЕГО
             JZ      NO_SCALE
             LEA     AX, SCALE4
-            CMP     SIB_SCALE, 1000000B     ; ДАЛЬШЕ ПРОВЕРЯЕМ *2 *4 *8 И ВЫВОДИМ
+            CMP     SIB_SCALE, 10000000B     ; ДАЛЬШЕ ПРОВЕРЯЕМ *2 *4 *8 И ВЫВОДИМ
             JE      PRINT_SCALE
             JB      SCALETWO
             LEA     AX, SCALE8

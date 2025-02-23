@@ -43,8 +43,8 @@ SAR    byte ptr FS:[ECX+565678H],CL
 SAR    word ptr FS:[ESI+4321H],1H
 SAR    dword ptr FS:[EDI+11118H],CL
 SAR    byte ptr FS:[EDX+EBP*8],2H
-SAR    word ptr FS:[ECX+ECX*8],CL
-SAR    dword ptr FS:[ESI+EDI*4],1H
+SAR    word ptr FS:[ECX+ECX*4],CL
+SAR    dword ptr FS:[ESI+EDI*2],1H
 SAR    AL,CL
 SAR    BX,CL
 SAR    ECX,CL
@@ -160,7 +160,7 @@ MOV    AX,DS:[EDI+135H]
 MOV    DS:[EDX+135H],AX
 MOV    DS:[EBP+135H],AX
 MOV    FS:[BP+135H],AX
-MOV    DS:[EDX+EDX*8+135H],AX
+MOV    DS:[EDX+EDX*4+135H],AX
 MOV    DS:[ESI+135H],AX
 MOV    DS:[EDI+135H],AX
 MOV    AL,1H

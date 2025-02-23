@@ -468,7 +468,7 @@ PRINT_SEG_STR:
             OR      BL, BL
             JZ      NO_SCALE
             LEA     AX, SCALE4
-            CMP     SIB_SCALE, 1000000B
+            CMP     SIB_SCALE, 10000000B
             JE      PRINT_SCALE
             JB      SCALETWO
             LEA     AX, SCALE8
