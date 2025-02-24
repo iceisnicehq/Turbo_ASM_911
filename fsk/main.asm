@@ -86,6 +86,7 @@ Start:
     mov     ax, @data
     mov     ds, ax
     mov     es, ax
+    cld
     mov     ax, 3D00h ; открываем файл, ah - функция, al - права доступа
     mov     dx, offset com_file
     int     21h

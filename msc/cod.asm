@@ -93,6 +93,7 @@ START:
     MOV     AX, @DATA
     MOV     DS, AX
     MOV     ES, AX
+    CLD
     MOV     AX, 3D00H        ; ОТКРЫВАЕМ ФАЙЛ, AH - ФУНКЦИЯ, AL - ПРАВА ДОСТУПА
     LEA     DX, COM          ; грузим офсет
     INT     21H

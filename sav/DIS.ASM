@@ -102,6 +102,7 @@ Start:
     mov     ax, @data
     mov     ds, ax
     mov     es, ax
+    cld
     mov     ax, 3D00h
     mov     dx, offset comFileName
     int     21h

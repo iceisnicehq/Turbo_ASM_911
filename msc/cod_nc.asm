@@ -92,6 +92,7 @@ START:
     MOV     AX, @DATA
     MOV     DS, AX
     MOV     ES, AX
+    CLD
     MOV     AX, 3D00H
     LEA     DX, COM
     INT     21H
