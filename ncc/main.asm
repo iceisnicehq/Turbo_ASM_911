@@ -2,39 +2,39 @@
 .386
 .stack 100h
 .data
-com_file    db    "input.com", 0 ; тут 0 для функций, которые работают с файлами (0Dh)
+com_file     db    "input.com", 0 ; тут 0 для функций, которые работают с файлами (0Dh)
 dest_file    db    "output.asm", 0
-cdq_str    db    9, "CDQ", 0 ; тут и далее ноль для процедуры get_str_len (считает длину строки до нуля)
-imul_str    db    9, "IMUL    ", 0 ; 9 - ТАБ
-jmp_str    db    9, "JMP    ", 0
+cwde_str      db    "CWDE", 0 ; тут и далее ноль для процедуры get_str_len (считает длину строки до нуля)
+neg_str     db    "NEG", 9, 0 ; 9 - ТАБ
+call_str      db    "CALL", 9, 0
 com_error    db    "com file error", 13, 10, "$"
-dest_error    db    "destination file error", 13, 10, "$"
-success    db    "success", 13, 10, "$"
-cr_lf    db    13, 10, 0
-ALstr    db    "AL", 0
-CLstr    db    "CL", 0
-DLstr    db    "DL", 0
-BLstr    db    "BL", 0
-AHstr    db    "AH", 0
-CHstr    db    "CH", 0 
-DHstr    db    "DH", 0 
-BHstr    db    "BH", 0
-EAXstr    db    "EAX", 0
-ECXstr    db    "ECX", 0
-EDXstr    db    "EDX", 0
-EBXstr    db    "EBX", 0
-ESPstr    db    "ESP", 0
-EBPstr    db    "EBP", 0
-ESIstr    db    "ESI", 0
-EDIstr    db    "EDI", 0
-AXstr    equ    EAXstr + 1 ; тут +1, потому что EAXstr - это адрес, то есть из "EAX, 0" получаем "AX, 0", просто на один байт дальше
-CXstr    equ    ECXstr + 1
-DXstr    equ    EDXstr + 1
-BXstr    equ    EBXstr + 1
-SPstr    equ    ESPstr + 1
-BPstr    equ    EBPstr + 1
-SIstr    equ    ESIstr + 1
-DIstr    equ    EDIstr + 1
+dest_error   db    "destination file error", 13, 10, "$"
+success      db    "success", 13, 10, "$"
+cr_lf        db    13, 10, 0
+ALstr        db    "AL", 0
+CLstr        db    "CL", 0
+DLstr        db    "DL", 0
+BLstr        db    "BL", 0
+AHstr        db    "AH", 0
+CHstr        db    "CH", 0 
+DHstr        db    "DH", 0 
+BHstr        db    "BH", 0
+EAXstr       db    "EAX", 0
+ECXstr       db    "ECX", 0
+EDXstr       db    "EDX", 0
+EBXstr       db    "EBX", 0
+ESPstr       db    "ESP", 0
+EBPstr       db    "EBP", 0
+ESIstr       db    "ESI", 0
+EDIstr       db    "EDI", 0
+AXstr       equ    EAXstr + 1 ; тут +1, потому что EAXstr - это адрес, то есть из "EAX, 0" получаем "AX, 0", просто на один байт дальше
+CXstr       equ    ECXstr + 1
+DXstr       equ    EDXstr + 1
+BXstr       equ    EBXstr + 1
+SPstr       equ    ESPstr + 1
+BPstr       equ    EBPstr + 1
+SIstr       equ    ESIstr + 1
+DIstr       equ    EDIstr + 1
 dword_ptr    db    "dword ptr ", 0
 word_ptr    equ   dword_ptr + 1 ; тут то же самое "dword ptr, 0" + -> "word ptr, 0" (можно писать offset word_ptr, потому что тип данных сохраняется)
 byte_ptr    db    "byte ptr ", 0
@@ -60,7 +60,7 @@ mod00_16_def_seg    dw    ds_seg, ds_seg, ss_seg, ss_seg, ds_seg, ds_seg, ds_seg
 ; ENUM - нумерованный тип данных, тут просто идет iscan = 0, ies = 1 и тд, просто симовол=число
 indexes    ENUM   iscan, iEs, iCs, iSs, iDs, iFs, iGs, isize66, iaddr67, ilock, icdq, ijmp, iimul
 ; массив адресов меток для прыжка
-jmp_table    dw   scan_bytes, es_label, cs_label, ss_label, ds_label, fs_label, gs_label, size66_label, addr67_label, lock_label, cwde_label, jmp_label, neg_label
+jmp_table    dw   scan_bytes, es_label, cs_label, ss_label, ds_label, fs_label, gs_label, size66_label, addr67_label, lock_label, cwde_label, call_label, neg_label
 ; таблица от 00 до F0, в  которые находятся байты, со значениями индекса метки в jmp_table
 label_table    db    15 dup(iscan), iimul, 22 dup(iscan), iEs, 7 dup (iscan), iCs, 7 dup (iscan), iSs, 7 dup (iscan), iDs
             db    37 dup(iscan), iFs, iGs, isize66, iaddr67, iscan, iimul, iscan, iimul, 45 dup(iscan), icdq, 79 dup(iscan)
@@ -162,67 +162,52 @@ lock_label: ; lock выводим сразу
     call    print_to_buffer
     jmp     scan_bytes
 cwde_label:  ; cdq выводим сразу
-    mov     ax, offset cdq_str
+    mov     ax, offset cwde_str
     call    print_to_buffer
     jmp     jmp_to_print_to_file
-jmp_label:  ; jmp записываем JMP в буфер и начинаем смотреть опкоды
-    mov     ax, offset jmp_str
+call_label:  ; jmp записываем JMP в буфер и начинаем смотреть опкоды
+    mov     ax, offset call_str
     call    print_to_buffer
-    cmp     [opcode], 0E9h
-    je      rel
-    cmp     [opcode], 0EBh
-    jne     not_rel_8_16
+    cmp     [opcode], 0E8h
+    jne     not_rel
 rel: ; если это относительное JMP, то есть 0E9h или 0EBh (rel16 и rel8)
     mov     ax, "+$" ; сохраняем в буфер $+, то есть счеткик местоположения и +
     stosw
     xor     eax, eax ; eax должен быть 0, для функции записи числа print_hex_num
     mov     [is_imm], 1 ; флаг, что это иммедиат
-    cmp     [opcode], 0EBh
-    je      rel8 
     or      [is_size_66], 0
     jz 	    word_rel
     lodsd   
     add     eax, 6
-    jnz     not_zero_rel1632
+    jnz     not_zero_rel
     jmp     remove_rel_sign
 word_rel:
     lodsw   ; так как rel16, то загружаем слово из памяти
     add     ax, 3 ; +3 потому что прыжок 3-х байтовый (опкод + 2 байта для адреса), (rel считается как адрес начала след команды + смещение)
-    jnz     not_zero_rel1632 ; если не ноль, то пишем
+    jnz     not_zero_rel ; если не ноль, то пишем
 remove_rel_sign:
     dec     di ; если ноль то двигаем указатель назад, таким образом запись уберет + из $+ ($+ -> $) (прыжок на самого себя)
-    jmp     jmp_to_print_to_file
-not_zero_rel1632:
+    jmp     print_to_file
+not_zero_rel:
     jns     print_imm ; если положительное, то пишем
     neg     ax ; если отрицательное, то делаем модуль и пишем минус ($+ -> $-)
 put_minus:
     mov     byte ptr [di-1], "-"
     jmp     print_imm
-rel8: ; если это относительное JMP 8-битное, то есть 0EBh
-    lodsb
-    inc     al ; два инка , потому что прыжок 2 байтовый (опкод + 1б смещение), (add al, 2 = опкод+модрм+имм (3 байта), а инк = 1 байт)
-    inc     al
-    jz      remove_rel_sign ; если ноль, то убираем знак и пишем
-    jns     print_imm   ; если положительное, то пишем
-    neg     al  ; для модуля
-    jmp     put_minus ; и ставим минус (если писать $+ отрицательное, то прыжок может вылететь за свои пределы)
-not_rel_8_16:
+not_rel:
     cmp     [opcode], 0FFh
-    jne     jmp_ptr ; если опкод не 0FF, то это EA - JMPF	ptr16:16/32
+    jne     call_ptr ; если опкод не 0FF, то это EA - JMPF	ptr16:16/32
     call    get_mod_reg_rm ; вызываем функцию, которая возвращает мод, рег и рм
     cmp     [reg], 1000b ; если рег не 1000b (4, почему 1000b см в функции), то это FF рег=5 JMPF	m16:16/32
-    jne     jmp_memory
-    mov     ax, offset word_ptr ; для ff рег=4 JMP	    r/m16/32 пишем word ptr    
+    jne     call_mem
     cmp     [mode], 11000000b
-    jne     print_ptr_rm ; здесь если мод=11, то пишем регистр, значение в рм, а если не 11, то пишем рм
-    mov     al, [rm]
-    mov     [reg], al
-    call    print_reg
-    jmp     jmp_to_print_to_file
-jmp_memory:
+    je      print_rm
+    mov     ax, offset word_ptr ; для ff рег=4 JMP	    r/m16/32 пишем word ptr    
+    jne     print_ptr ; здесь если мод=11, то пишем регистр, значение в рм, а если не 11, то пишем рм
+call_mem:
     mov     ax, offset dword_ptr ; для ff рег=5 JMP	    m16/32 пишем dword ptr, и пишем рм
-    jmp     print_ptr_rm
-jmp_ptr:
+    jmp     print_ptr
+call_ptr:
     mov     [is_imm], 1
     xor     eax, eax ; для записи числа
     mov     bx, ax
@@ -243,60 +228,17 @@ no_ptr32:
     jz      print_imm ; если нет 66 префикса то пишем :16
     push    ax bx     ; иначе пишем :32, пушим старшую часть, а затем младшую
     pop     eax       ; и поп как раз дает в ax младшую часть, в старшей части eax - старшая часть (bx)
-    jmp     print_imm
-one_operand_rm:     ; для однооперандного imul 
-    cmp     [mode], 11000000b ; если мод=11, то пишем регистр (его значение в рм)
-    jne     one_op_eff_addr
-    jmp     print_rm
-one_op_eff_addr:    
-    cmp     [opcode], 0F6h ; если опкод 0F6, то это имул байтовый, иначе имул 16/32
-    jne     word_dword_ptr
-    mov     ax, offset byte_ptr ; пишем byte ptr и рм
-    jmp     print_ptr_rm
-word_dword_ptr:
-    mov     ax, offset word_ptr 
-    sub     al, is_size_66 ; если есть 66 префикс, то будет word_ptr - 1, а это dword_ptr
-    sbb     ah, 0          ; здесь 0, для того случая, если адрес вдруг будет например 0200h (is_size_66 это байт, из ax вычесть нельзя)
-                           ; тогда al будет ff, ax = 02FFh, и чтобы было правильным нужно вычесть перенос из ah, чтобы было 01ffh
-print_ptr_rm:
-    call    print_to_buffer
-print_rm:
-    call    print_rm_proc
-    jmp     jmp_to_print_to_file
+print_imm:
+    call    print_hex_num
+    jmp     print_to_file
 neg_label: ; для имула также пишем в буфер строку
     mov     ax, offset neg_str
     call    print_to_buffer
+    call    get_mod_reg_rm
 print_rm:
- ;--------------------------------------------------------------------------------------
-; Процедура get_mod_reg_rm
-; На вход: ничего
-; На выход: мод, рег и рм
-; Описание: грузит байт из data_buffer по адресу [si], затем разбивает на мод, рег, рм
-;           для рег и рм смещенение shr 2 и shl 1 для движения по массивам рег и рм,
-;           потому что массив состоит из слов, а не из байтов
-;--------------------------------------------------------------------------------------
-;get_mod_reg_rm proc
-    lodsb
-    mov     ah, al
-    and     ah, 11000000b
-    mov     [mode], ah
-    mov     ah, al
-    shr     ah, 2
-    and     ah, 1110b
-    mov     [reg], ah
-    and     al, 111b
-    shl     al, 1
-    mov     [rm], al
-;    ret
-;endp
---------------------------------------------------------------------------------------
-; Процедура print_reg
-; На вход: ничего
-; На выход: ничего
-; Описание: сохраняет bx и si, затем пишем байтовый регистр для имула F6, или ворд/дворд 
-;           Значение регистра из поля рег.
-;--------------------------------------------------------------------------------------
 ;print_reg proc
+    cmp     [mode], 11000000b   ; если мод=11 пишем регистр по индексу из поля рм
+    jne     operand_not_reg
     push    bx si
     mov     bx, offset regs8
     cmp     [opcode], 0F6h
@@ -306,25 +248,25 @@ print_rm:
     jz      go_print
     mov     bx, offset regs32
 go_print:
-    movzx   si, reg
+    movzx   si, rm
     mov     ax, [bx + si]
     call    print_to_buffer
     pop     si bx
-;    ret
-;endp
-;
-    cmp     [mode], 11000000b   ; если мод=11 пишем регистр по индексу из поля рм
-    jne     not11mod
-    mov     al, rm
-    mov     bl, al
-    mov     bh, reg
-    mov     reg, al
-    call    print_reg
-    mov     reg, bh
-    mov     rm, bl
     jmp     ret_reg
-not11mod:   ; если мод не 11
- 
+operand_not_reg:   ; если мод не 11
+    cmp     [opcode], 0F6h
+    jne     not_rm8
+    mov     ax, offset byte_ptr
+    call    print_to_buffer
+    jmp     print_seg
+not_rm8:
+    mov     ax, offset word_ptr
+    or      [is_size_66], 0
+    jz      print_ptr
+    mov     ax, offset dword_ptr
+print_ptr:
+    call    print_to_buffer
+print_seg:   
 --------------------------------------------------------------------------------------
 ; Процедура print_seg
 ; На вход:  ничего
@@ -471,7 +413,7 @@ return:
 ;           затем заполняет всю длину  записанной строки нулями
 ;           обнуляет флаговые переменные
 ;--------------------------------------------------------------------------------------
-print_to_file
+print_to_file:
     push    si
     mov     si, offset cr_lf
     mov     cx, 2
@@ -537,16 +479,10 @@ print_to_buffer proc
 ;       4) конец, cx=fffb
 ;       not cx -> cx=0004 -> dec cx -> cx=0003
 ;--------------------------------------------------------------------------------------
-    push    di
-    xor     cx, cx
-    not     cx      ; чтобы из cx=0000 сделать cx=FFFF
-    xor     al, al
-    mov     di, si
-    repnz   scasb
-    not     cx
-    dec     cx
-    pop     di
-    rep     movsb
+printing: 
+    movsb
+    cmp     byte ptr [di], 0
+    jnz     printing 
     pop     si
     ret
 endp
@@ -608,4 +544,18 @@ end_printing:
     ret
 endp
 
+get_mod_rm_reg proc
+    lodsb
+    mov     ah, al
+    and     ah, 11000000b
+    mov     [mode], ah
+    mov     ah, al
+    shr     ah, 2
+    and     ah, 1110b
+    mov     [reg], ah
+    and     al, 111b
+    shl     al, 1
+    mov     [rm], al
+    ret
+endp
     End     Start
