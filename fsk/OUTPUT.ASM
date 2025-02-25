@@ -142,3 +142,6 @@
 	JMP    dword ptr CS:[EBX+EDI*8+1000H]
 	JMP    1234H:5678H
 	JMP    0ABCDH:12345678H
+	JMP    $+1234567EH
+	JMP    $+6H
+	JMP    $

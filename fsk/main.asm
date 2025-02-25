@@ -179,13 +179,20 @@ rel: ; если это относительное JMP, то есть 0E9h или
     mov     [is_imm], 1 ; флаг, что это иммедиат
     cmp     [opcode], 0EBh
     je      rel8 
+    or      [is_size_66], 0
+    jz 	    word_rel
+    lodsd   
+    add     eax, 6
+    jnz     not_zero_rel1632
+    jmp     remove_rel_sign
+word_rel:
     lodsw   ; так как rel16, то загружаем слово из памяти
     add     ax, 3 ; +3 потому что прыжок 3-х байтовый (опкод + 2 байта для адреса), (rel считается как адрес начала след команды + смещение)
-    jnz     not_zero_rel16 ; если не ноль, то пишем
+    jnz     not_zero_rel1632 ; если не ноль, то пишем
 remove_rel_sign:
     dec     di ; если ноль то двигаем указатель назад, таким образом запись уберет + из $+ ($+ -> $) (прыжок на самого себя)
     jmp     jmp_to_print_to_file
-not_zero_rel16:
+not_zero_rel1632:
     jns     print_imm ; если положительное, то пишем
     neg     ax ; если отрицательное, то делаем модуль и пишем минус ($+ -> $-)
 put_minus:

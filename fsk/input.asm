@@ -119,33 +119,36 @@ REL8:
 	JMP     $
 	JMP     $-12H
 	JMP     $-1111H
-    JMP     $+1000H
-    JMP     $+1H
-    JMP     $+111H
-    JMP     REL8
+	JMP     $+1000H
+	JMP     $+1H
+	JMP     $+111H
+	JMP     REL8
 	JMP     START
-    JMP     $+12H
-    JMP     $-12H
-    JMP     BX
-    JMP     EBX
-    JMP     CX
-    JMP     ECX
-    JMP     word ptr CS:[BX]
-    JMP     dword ptr DS:[EBX]
-    JMP     word ptr DS:[BX]
-    JMP     dword ptr DS:[EBX]
-    JMP     word ptr FS:[BX]
-    JMP     dword ptr FS:[EBX]
-    JMP     word ptr GS:[EBX]
-    JMP     dword ptr GS:[EBX]
-    JMP     word ptr FS:[BX+SI]
-    JMP     dword ptr GS:[EBX+ESI]
-    JMP     word ptr DS:[BX+DI+100H]
-    JMP     dword ptr DS:[EBX+EDI*8+1000H]
-    JMP     word ptr FS:[BX+SI]
-    JMP     dword ptr GS:[EBX+ESI]
-    JMP     word ptr ES:[BX+DI+100H]
-    JMP     dword ptr CS:[EBX+EDI*8+1000H]
-    DB      0EAH,78H,56H,34H,12H
-    DB      066H,0EAH,78H,56H,34H,12H,0CDH,0ABH
+	JMP     $+12H
+	JMP     $-12H
+	JMP     BX
+	JMP     EBX
+	JMP     CX
+	JMP     ECX
+	JMP     word ptr CS:[BX]
+	JMP     dword ptr DS:[EBX]
+    	JMP     word ptr DS:[BX]
+	JMP     dword ptr DS:[EBX]
+    	JMP     word ptr FS:[BX]
+    	JMP     dword ptr FS:[EBX]
+    	JMP     word ptr GS:[EBX]
+    	JMP     dword ptr GS:[EBX]
+    	JMP     word ptr FS:[BX+SI]
+    	JMP     dword ptr GS:[EBX+ESI]
+    	JMP     word ptr DS:[BX+DI+100H]
+    	JMP     dword ptr DS:[EBX+EDI*8+1000H]
+    	JMP     word ptr FS:[BX+SI]
+    	JMP     dword ptr GS:[EBX+ESI]
+    	JMP     word ptr ES:[BX+DI+100H]
+    	JMP     dword ptr CS:[EBX+EDI*8+1000H]
+    	DB      0EAH,78H,56H,34H,12H
+    	DB      066H,0EAH,78H,56H,34H,12H,0CDH,0ABH
+	DB 	066H,0E9H,78H,56H,34H,12H
+	DB 	066H,0E9H,00H,00H,00H,00H
+	DB 	066H,0E9H,0FAH,0FFH,0FFH,0FFH
 END START

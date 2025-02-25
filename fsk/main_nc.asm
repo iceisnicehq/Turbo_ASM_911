@@ -170,13 +170,20 @@ rel:
     mov     [is_imm], 1
     cmp     [opcode], 0EBh
     je      rel8
+    or      [is_size_66], 0
+    jz      word_rel
+    lodsd
+    add     eax, 6
+    jnz     not_zero_rel1632
+    jmp     remove_rel_sign
+word_rel:
     lodsw
     add     ax, 3
-    jnz     not_zero_rel16
+    jnz     not_zero_rel1632
 remove_rel_sign:
     dec     di
     jmp     jmp_to_print_to_file
-not_zero_rel16:
+not_zero_rel1632:
     jns     print_imm
     neg     ax
 put_minus:
