@@ -194,7 +194,12 @@ remove_rel_sign:
     jmp     jmp_to_print_to_file
 not_zero_rel1632:
     jns     print_imm ; если положительное, то пишем
+    or      [is_size_66], 0
+    jnz     neg_eax
     neg     ax ; если отрицательное, то делаем модуль и пишем минус ($+ -> $-)
+    jmp     put_minus
+neg_eax:
+    neg     eax
 put_minus:
     mov     byte ptr [di-1], "-"
     jmp     print_imm
