@@ -2,8 +2,8 @@
 .386
 .stack 100h
 .data
-com_file     db    "input.com", 0 ; тут 0 для функций, которые работают с файлами (0Dh)
-dest_file    db    "output.asm", 0
+com_file     db    "INPUT.COM", 0 ; тут 0 для функций, которые работают с файлами (0Dh)
+dest_file    db    "OUTPUT.COM", 0
 cwde_str      db    "CWDE", 0 ; тут и далее ноль для процедуры get_str_len (считает длину строки до нуля)
 neg_str     db    "NEG", 9, 0 ; 9 - ТАБ
 call_str      db    "CALL", 9, 0
@@ -55,16 +55,10 @@ regs16    dw    AXstr, CXstr, DXstr, BXstr, SPstr, BPstr, SIstr, DIstr ; сло�
 regs32    dw    EAXstr, ECXstr, EDXstr, EBXstr, ESPstr, EBPstr, ESIstr, EDIstr ; двойные слова реги
 rm16    dw    BX_SIstr, BX_DIstr, BP_SIstr, BP_DIstr, SIstr, DIstr, BPstr,  BXstr ; байт РМ
 mod00_16_def_seg    dw    ds_seg, ds_seg, ss_seg, ss_seg, ds_seg, ds_seg, ds_seg, ds_seg ; дефолтные сегменты для памяти в РМ
-; OPCODES are: 0F, 26, 2E, 36, 3E, 64, 65, 66, 67, 69, 6B, 99, (0F) AF, E9, EA, EB, F0, F6, F7, FF(r4), FF(r5)
-; 0=NOTHING, 1=ES, 2=CS, 3=DS, 4=SS, 5=FS, 6=GS, 7=size66, 8=addr67, 9=lock, 10=cdq, 11=jmp, 12=imul
-; ENUM - нумерованный тип данных, тут просто идет iscan = 0, ies = 1 и тд, просто симовол=число
-indexes    ENUM   iscan, iEs, iCs, iSs, iDs, iFs, iGs, isize66, iaddr67, ilock, icdq, ijmp, iimul
 ; массив адресов меток для прыжка
-jmp_table    dw   scan_bytes, es_label, cs_label, ss_label, ds_label, fs_label, gs_label, size66_label, addr67_label, lock_label, cwde_label, call_label, neg_label
-; таблица от 00 до F0, в  которые находятся байты, со значениями индекса метки в jmp_table
-label_table    db    15 dup(iscan), iimul, 22 dup(iscan), iEs, 7 dup (iscan), iCs, 7 dup (iscan), iSs, 7 dup (iscan), iDs
-            db    37 dup(iscan), iFs, iGs, isize66, iaddr67, iscan, iimul, iscan, iimul, 45 dup(iscan), icdq, 79 dup(iscan)
-            db    ijmp, ijmp, ijmp, 4 dup(iscan), ilock, 5 dup(iscan), iimul, iimul, 7 dup(iscan), ijmp, ijmp
+jmp_table    dw    es_label, 7 dup (scan_bytes), cs_label, 7 dup (scan_bytes), ss_label, 7 dup (scan_bytes), ds_label
+             dw    37 dup(scan_bytes), fs_label, gs_label, size66_label, addr67_label, 48 dup(scan_bytes), cwde_label, scan_bytes, call_label, 7 dup(scan_bytes)
+             dw    lock_label, 5 dup(scan_bytes), neg_label, neg_label, 7 dup(scan_bytes), call_label
 mode    db    0
 rm    db    0
 reg     db    0
@@ -122,13 +116,11 @@ scan_bytes:
     cmp     si, [end_of_data] ; если si вышел за пределы data_buffer, то выходим
     ja      success_exit
     lodsb
-    mov     bx, offset label_table ; bx = адрес таблицы с метками
     mov     [opcode], al ; сохраняем опкод
-    xlat    ; в al теперь индекс метки
-    mov     bl, al
-    xor     bh, bh
-    shl     bx, 1 ; так как индекс это байт, а адрес это слово, то увеличиваем его в 2 раза
-    jmp     word ptr [bx + jmp_table]   ; прыгаем по адресу метки
+    sub     al, 26h
+    movzx   bx, al
+    shl     bx, 1
+    jmp     jmp_table[bx]   ; прыгаем по адресу метки
 ; все сегменты, просто сохраняем встретившийся сегмент
 es_label:
     mov     ax, offset es_seg
@@ -164,7 +156,7 @@ lock_label: ; lock выводим сразу
 cwde_label:  ; cdq выводим сразу
     mov     ax, offset cwde_str
     call    print_to_buffer
-    jmp     jmp_to_print_to_file
+    jmp     print_to_file
 call_label:  ; jmp записываем JMP в буфер и начинаем смотреть опкоды
     mov     ax, offset call_str
     call    print_to_buffer
@@ -203,7 +195,7 @@ not_rel:
     cmp     [mode], 11000000b
     je      print_rm
     mov     ax, offset word_ptr ; для ff рег=4 JMP	    r/m16/32 пишем word ptr    
-    jne     print_ptr ; здесь если мод=11, то пишем регистр, значение в рм, а если не 11, то пишем рм
+    jmp     print_ptr ; здесь если мод=11, то пишем регистр, значение в рм, а если не 11, то пишем рм
 call_mem:
     mov     ax, offset dword_ptr ; для ff рег=5 JMP	    m16/32 пишем dword ptr, и пишем рм
     jmp     print_ptr
@@ -252,7 +244,7 @@ go_print:
     mov     ax, [bx + si]
     call    print_to_buffer
     pop     si bx
-    jmp     ret_reg
+    jmp     print_to_file
 operand_not_reg:   ; если мод не 11
     cmp     [opcode], 0F6h
     jne     not_rm8
@@ -267,7 +259,7 @@ not_rm8:
 print_ptr:
     call    print_to_buffer
 print_seg:   
---------------------------------------------------------------------------------------
+;--------------------------------------------------------------------------------------
 ; Процедура print_seg
 ; На вход:  ничего
 ; На выход: ничего
@@ -436,7 +428,7 @@ print_to_file:
     mov     is_addr_67, 0
     mov     is_imm, 0
     pop     si
-    jmp     next_opcode
+    jmp     scan_bytes
 
 success_exit:
     mov     dx, offset success ; вывод сообщения об успехе
@@ -449,13 +441,13 @@ exit:
     mov     ah, 4Ch
     int     21h
 
---------------------------------------------------------------------------------------
+;--------------------------------------------------------------------------------------
 ; Процедура print_reg
 ; На вход: ничего
 ; На выход: ничего
 ; Описание: пишем регистр из поля рм, если мод=11, иначе пишем сегмент и операнд рм
 ;--------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------
+;--------------------------------------------------------------------------------------
 ; Процедура print_buffer
 ; На вход:  AX - адрес строки для записи
 ; На выход: ничего
@@ -544,7 +536,7 @@ end_printing:
     ret
 endp
 
-get_mod_rm_reg proc
+get_mod_reg_rm proc
     lodsb
     mov     ah, al
     and     ah, 11000000b
