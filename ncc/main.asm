@@ -60,7 +60,7 @@ mod00_16_def_seg    dw    ds_seg, ds_seg, ss_seg, ss_seg, ds_seg, ds_seg, ds_seg
 ; ENUM - нумерованный тип данных, тут просто идет iscan = 0, ies = 1 и тд, просто симовол=число
 indexes    ENUM   iscan, iEs, iCs, iSs, iDs, iFs, iGs, isize66, iaddr67, ilock, icdq, ijmp, iimul
 ; массив адресов меток для прыжка
-jmp_table    dw   scan_bytes, es_label, cs_label, ss_label, ds_label, fs_label, gs_label, size66_label, addr67_label, lock_label, cdq_label, jmp_label, imul_label
+jmp_table    dw   scan_bytes, es_label, cs_label, ss_label, ds_label, fs_label, gs_label, size66_label, addr67_label, lock_label, cwde_label, jmp_label, neg_label
 ; таблица от 00 до F0, в  которые находятся байты, со значениями индекса метки в jmp_table
 label_table    db    15 dup(iscan), iimul, 22 dup(iscan), iEs, 7 dup (iscan), iCs, 7 dup (iscan), iSs, 7 dup (iscan), iDs
             db    37 dup(iscan), iFs, iGs, isize66, iaddr67, iscan, iimul, iscan, iimul, 45 dup(iscan), icdq, 79 dup(iscan)
@@ -161,7 +161,7 @@ lock_label: ; lock выводим сразу
     mov     ax, offset lock_str
     call    print_to_buffer
     jmp     scan_bytes
-cdq_label:  ; cdq выводим сразу
+cwde_label:  ; cdq выводим сразу
     mov     ax, offset cdq_str
     call    print_to_buffer
     jmp     jmp_to_print_to_file
@@ -263,68 +263,11 @@ print_ptr_rm:
 print_rm:
     call    print_rm_proc
     jmp     jmp_to_print_to_file
-imul_label: ; для имула также пишем в буфер строку
-    mov     ax, offset imul_str
+neg_label: ; для имула также пишем в буфер строку
+    mov     ax, offset neg_str
     call    print_to_buffer
-    cmp     [opcode], 0Fh ; если опкод 0F, то это имул 0F AF IMUL	r16/32	r/m16/32 (двухбайтовый)	
-    jne     not_2_opcode_byte_imul
-    lodsb   ; грузим AF
-    mov     [opcode], al ; сохраняем     для    cmp     [opcode], 6Bh
-not_2_opcode_byte_imul:
-    call    get_mod_reg_rm ; для имула также нужно получить мод, рег и рм
-    cmp     [opcode], 0F6h ; если F6 или F7, то имул однооперандный (байтовый или д/вордовый)
-    jae     one_operand_rm
-    call    print_reg      ; пишем регистр, потому что первый операнд у 2/3 операндных это регистр
-    mov     al, ","        ; пишем запятую
-    stosb
-    call    print_rm_proc  ; пишем рм, если мод=11, то она напише регистр
-    cmp     [opcode], 6Bh  ; если опкод выше 6B, то это двухоперандный имул
-    ja      jmp_to_print_to_file
-    pushf                  ; сохраняем флаги от     cmp     [opcode], 6Bh 
-    cmp     [mode], 11000000b ; если мод=11, то это рег, рег
-    jne     not_reg_reg
-    mov     al, [reg]
-    cmp     al, [rm]          ; если рег=рм и мод=11, то это что-то типа imul ax,ax,1, в таком случае нужно писать imul ax,1
-                              ; это видно в дебагерре и такое было на 8 тесте
-    jne     not_reg_reg
-move_to_comma:                ; здесь буффер будет выглядеть как "imul ax,ax"
-    cmp     byte ptr [di], ","; двигаем di до запятой, чтобы потом поверх регистра написать imm
-    je      not_reg_reg
-    dec     di
-    jmp     move_to_comma
-not_reg_reg:                  ; если рег!=рм или мод!=11, то пишем три операнда
-    mov     al, ","
-    stosb
-    xor     eax, eax          ; для записи числа (см print_hex_num)
-    mov     [is_imm], 1
-    popf                      ; флаги от     cmp     [opcode], 0F6h
-    jnb     byte_imm          ; если не ниже, то опкод 0F7, то есть imm16/32, иначе imm8
-    or      [is_size_66], 0
-    jz      word_imm          ; ну и соотвественно если есть префикс 66, то imm32, иначе imm16
-    lodsd
-    jmp     print_imm
-word_imm:
-    lodsw
-    jmp     print_imm
-byte_imm:
-    lodsb
-print_imm:
-    call    print_hex_num
-jmp_to_print_to_file:
-    call    print_to_file
-    jmp     scan_bytes
-success_exit:
-    mov     dx, offset success ; вывод сообщения об успехе
-    mov     ah, 9
-    int     21h
-    mov     ah, 3Eh
-    mov     bx, [file_descr]  ; закрываем файл результат
-    int     21h
-exit:
-    mov     ah, 4Ch
-    int     21h
-
-;--------------------------------------------------------------------------------------
+print_rm:
+ ;--------------------------------------------------------------------------------------
 ; Процедура get_mod_reg_rm
 ; На вход: ничего
 ; На выход: мод, рег и рм
@@ -332,7 +275,7 @@ exit:
 ;           для рег и рм смещенение shr 2 и shl 1 для движения по массивам рег и рм,
 ;           потому что массив состоит из слов, а не из байтов
 ;--------------------------------------------------------------------------------------
-get_mod_reg_rm proc
+;get_mod_reg_rm proc
     lodsb
     mov     ah, al
     and     ah, 11000000b
@@ -344,16 +287,16 @@ get_mod_reg_rm proc
     and     al, 111b
     shl     al, 1
     mov     [rm], al
-    ret
-endp
-;--------------------------------------------------------------------------------------
+;    ret
+;endp
+--------------------------------------------------------------------------------------
 ; Процедура print_reg
 ; На вход: ничего
 ; На выход: ничего
 ; Описание: сохраняет bx и si, затем пишем байтовый регистр для имула F6, или ворд/дворд 
 ;           Значение регистра из поля рег.
 ;--------------------------------------------------------------------------------------
-print_reg proc
+;print_reg proc
     push    bx si
     mov     bx, offset regs8
     cmp     [opcode], 0F6h
@@ -367,15 +310,9 @@ go_print:
     mov     ax, [bx + si]
     call    print_to_buffer
     pop     si bx
-    ret
-endp
-;--------------------------------------------------------------------------------------
-; Процедура print_reg
-; На вход: ничего
-; На выход: ничего
-; Описание: пишем регистр из поля рм, если мод=11, иначе пишем сегмент и операнд рм
-;--------------------------------------------------------------------------------------
-print_rm_proc  proc
+;    ret
+;endp
+;
     cmp     [mode], 11000000b   ; если мод=11 пишем регистр по индексу из поля рм
     jne     not11mod
     mov     al, rm
@@ -387,7 +324,41 @@ print_rm_proc  proc
     mov     rm, bl
     jmp     ret_reg
 not11mod:   ; если мод не 11
-    call    print_seg   ; первым делом пишем сегмент в формате '_S:['
+ 
+--------------------------------------------------------------------------------------
+; Процедура print_seg
+; На вход:  ничего
+; На выход: ничего
+; Описание: сохраняет bx,
+;           записывает в буфер сегмент для РМ, смотрит на все флаги и пишет либо оверрайд
+;           сегмент, либо пишет дефолтный
+;--------------------------------------------------------------------------------------
+    push    bx
+    mov     ax, [seg_ovr]
+    or      ax, ax
+    jnz     print_seg_str       ; если seg ovr не ноль, то пишем этот сегмент
+    movzx   bx, rm
+    or      [is_addr_67], 0
+    jnz     modrm32             ; если нет 67 префикса, то работаем с модрм16
+    cmp     bl, 1100b           ; если рм = 1100 (bp или дисп16)
+    jne     print_default_seg   ; если не равен, то пишем дефолтный сегмент
+    or      [mode], 0           ; если равен, то проверяем мод
+    jnz     print_ss            ; если мод не ноль, то это [bp+disp8/16]
+    jmp     print_default_seg   ; если ноль, то это disp16, пишем DS
+modrm32:
+    mov     ax, offset ds_seg   ; у модрм 32 везде DS, кроме EBP
+    cmp     bl, 1010b           ; EBP
+    jne     print_seg_str       
+    or      [mode], 0           ; опять проверяем мод, если не ноль, то это [EBP+disp8/32]
+    jz      print_seg_str       ; если ноль, то DS
+print_ss:
+    mov     ax, offset ss_seg   ; пишем SS
+    jmp     print_seg_str
+print_default_seg:
+    mov     ax, [bx + mod00_16_def_seg] ; двигаемся по массиву
+print_seg_str:
+    call    print_to_buffer ; пишем сегмент
+    pop     bx
     or      [is_addr_67], 0
     jnz     bit32_addr  ; если есть 67 префикс идем на 32 битную адресацию
     or      [mode], 0   ; в 16 битах первым делом смотрим на мод00 дисп16
@@ -490,50 +461,6 @@ check_disp_8_32:
 return:
     mov     al, "]"
     stosb
-ret_reg:
-    ret
-endp
-;--------------------------------------------------------------------------------------
-; Процедура print_buffer
-; На вход:  AX - адрес строки для записи
-; На выход: ничего
-; Описание: сохраняет si, затем пишет строку по адресу AX в буфер
-;--------------------------------------------------------------------------------------
-print_to_buffer proc
-    push    si
-    mov     si, ax
-    call    get_str_len
-    rep     movsb
-    pop     si
-    ret
-endp
-;--------------------------------------------------------------------------------------
-; Процедура get_str_len
-; На вход:  Si - адрес ASCIIZ строки для измерения длины
-; На выход: CX - длина входной строки
-; Описание: сохраняет di, идет по строке пока не встретит 0, таким образом в cx длина строки
-;
-; Пример для 'EAX, 0': длина строки 3
-;       repnz scasb сработает 3 раза
-;       0) di указывает на E, cx=ffff
-;       1) di указывает на A, cx=fffe
-;       2) di указывает на X, cx=fffd
-;       3) di указывает на 0, cx=fffc
-;       4) конец, cx=fffb
-;       not cx -> cx=0004 -> dec cx -> cx=0003
-;--------------------------------------------------------------------------------------
-get_str_len proc
-    push    di
-    xor     cx, cx
-    not     cx      ; чтобы из cx=0000 сделать cx=FFFF
-    xor     al, al
-    mov     di, si
-    repnz   scasb
-    not     cx
-    dec     cx
-    pop     di
-    ret
-endp
 ;--------------------------------------------------------------------------------------
 ; Процедура print_to_file
 ; На вход:  ничего
@@ -544,10 +471,10 @@ endp
 ;           затем заполняет всю длину  записанной строки нулями
 ;           обнуляет флаговые переменные
 ;--------------------------------------------------------------------------------------
-print_to_file proc
+print_to_file
     push    si
     mov     si, offset cr_lf
-    call    get_str_len
+    mov     cx, 2
     rep     movsb
     mov     dx, offset command_buffer
     mov     cx, di
@@ -567,43 +494,60 @@ print_to_file proc
     mov     is_addr_67, 0
     mov     is_imm, 0
     pop     si
-    ret
-endp
-;--------------------------------------------------------------------------------------
-; Процедура print_seg
-; На вход:  ничего
+    jmp     next_opcode
+
+success_exit:
+    mov     dx, offset success ; вывод сообщения об успехе
+    mov     ah, 9
+    int     21h
+    mov     ah, 3Eh
+    mov     bx, [file_descr]  ; закрываем файл результат
+    int     21h
+exit:
+    mov     ah, 4Ch
+    int     21h
+
+--------------------------------------------------------------------------------------
+; Процедура print_reg
+; На вход: ничего
 ; На выход: ничего
-; Описание: сохраняет bx,
-;           записывает в буфер сегмент для РМ, смотрит на все флаги и пишет либо оверрайд
-;           сегмент, либо пишет дефолтный
+; Описание: пишем регистр из поля рм, если мод=11, иначе пишем сегмент и операнд рм
 ;--------------------------------------------------------------------------------------
-print_seg proc
-    push    bx
-    mov     ax, [seg_ovr]
-    or      ax, ax
-    jnz     print_seg_str       ; если seg ovr не ноль, то пишем этот сегмент
-    movzx   bx, rm
-    or      [is_addr_67], 0
-    jnz     modrm32             ; если нет 67 префикса, то работаем с модрм16
-    cmp     bl, 1100b           ; если рм = 1100 (bp или дисп16)
-    jne     print_default_seg   ; если не равен, то пишем дефолтный сегмент
-    or      [mode], 0           ; если равен, то проверяем мод
-    jnz     print_ss            ; если мод не ноль, то это [bp+disp8/16]
-    jmp     print_default_seg   ; если ноль, то это disp16, пишем DS
-modrm32:
-    mov     ax, offset ds_seg   ; у модрм 32 везде DS, кроме EBP
-    cmp     bl, 1010b           ; EBP
-    jne     print_seg_str       
-    or      [mode], 0           ; опять проверяем мод, если не ноль, то это [EBP+disp8/32]
-    jz      print_seg_str       ; если ноль, то DS
-print_ss:
-    mov     ax, offset ss_seg   ; пишем SS
-    jmp     print_seg_str
-print_default_seg:
-    mov     ax, [bx + mod00_16_def_seg] ; двигаемся по массиву
-print_seg_str:
-    call    print_to_buffer ; пишем сегмент
-    pop     bx
+--------------------------------------------------------------------------------------
+; Процедура print_buffer
+; На вход:  AX - адрес строки для записи
+; На выход: ничего
+; Описание: сохраняет si, затем пишет строку по адресу AX в буфер
+;--------------------------------------------------------------------------------------
+print_to_buffer proc
+    push    si
+    mov     si, ax
+ ;--------------------------------------------------------------------------------------
+; Процедура get_str_len
+; На вход:  Si - адрес ASCIIZ строки для измерения длины
+; На выход: CX - длина входной строки
+; Описание: сохраняет di, идет по строке пока не встретит 0, таким образом в cx длина строки
+;
+; Пример для 'EAX, 0': длина строки 3
+;       repnz scasb сработает 3 раза
+;       0) di указывает на E, cx=ffff
+;       1) di указывает на A, cx=fffe
+;       2) di указывает на X, cx=fffd
+;       3) di указывает на 0, cx=fffc
+;       4) конец, cx=fffb
+;       not cx -> cx=0004 -> dec cx -> cx=0003
+;--------------------------------------------------------------------------------------
+    push    di
+    xor     cx, cx
+    not     cx      ; чтобы из cx=0000 сделать cx=FFFF
+    xor     al, al
+    mov     di, si
+    repnz   scasb
+    not     cx
+    dec     cx
+    pop     di
+    rep     movsb
+    pop     si
     ret
 endp
 ;--------------------------------------------------------------------------------------
