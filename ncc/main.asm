@@ -2,19 +2,17 @@
 .386
 .stack 100h
 .data
-	com_file     db    "INPUT.COM", 0 ; тут 0 для функций, которые работают с файлами (0Dh)
-	dest_file    db    "OUTPUT.ASM", 0
-	cwde_str     db    "CWDE", 0 ; тут и далее ноль для процедуры get_str_len (считает длину строки до нуля)
-	neg_str      db    "NEG", 9, 0 ; 9 - ТАБ
-	call_str     db    "CALL", 9, 0
-	com_error    db    "com file error", 13, 10, "$"
-	dest_error   db    "destination file error", 13, 10, "$"
-	success      db    "success", 13, 10, "$"
-	cr_lf        db    13, 10, 0
-	ALstr        db    "AL", 0
-	CLstr        db    "CL", 0
-	DLstr        db    "DL", 0
-	BLstr        db    "BL", 0
+	in_file      db    "INPUT.COM", 0 ; тут 0 для функций, которые работают с файлами (0Dh)
+	out_file     db    "OUTPUT.ASM", 0
+	_cwde        db    "CWDE", 0 ; тут и далее ноль для процедуры get_str_len (считает длину строки до нуля)
+	_neg         db    "NEG", 9, 0 ; 9 - ТАБ
+	_call        db    "CALL", 9, 0
+	com_error    db    "com_error", 0dh, 0ah, "$"
+	end_msg      db    "done", 0d, 0ah, "$"
+	_AL        db    "AL", 0
+	_CL        db    "CL", 0
+	_DL        db    "DL", 0
+	_BL        db    "BL", 0
 	AHstr        db    "AH", 0
 	CHstr        db    "CH", 0 
 	DHstr        db    "DH", 0 
@@ -50,7 +48,7 @@ ds_seg    db    "DS:[", 0
 fs_seg    db    "FS:[", 0
 gs_seg    db    "GS:[", 0
 ; это всё массивы, с адресами строк
-regs8    dw    ALstr, CLstr, DLstr, BLstr, AHstr, CHstr, DHstr, BHstr ; байтовые реги
+regs8    dw    _AL, _CL, _DL, _BLH   str, CHstr, DHstr, BHstr ; байтовые реги
 regs16    dw    AXstr, CXstr, DXstr, BXstr, SPstr, BPstr, SIstr, DIstr ; слова реги
 regs32    dw    EAXstr, ECXstr, EDXstr, EBXstr, ESPstr, EBPstr, ESIstr, EDIstr ; двойные слова реги
 rm16    dw    BX_SIstr, BX_DIstr, BP_SIstr, BP_DIstr, SIstr, DIstr, BPstr,  BXstr ; байт РМ
@@ -82,7 +80,7 @@ Start:
     mov     es, ax
     cld
     mov     ax, 3D00h ; открываем файл, ah - функция, al - права доступа
-    mov     dx, offset com_file
+    mov     dx, offset in_file
     int     21h
     jnc     com_success ; если нет ошибок, то флаг сf не поднимается
     mov     dx, offset com_error ; сообщение об ошибке с комом, полезно, если вдруг что-то не так будет на защите (например файл переименуют, как у всех было)
@@ -101,14 +99,8 @@ com_success:
     int     21h
     mov     ah, 3Ch ; создаем файл-результат 
     xor     cx, cx 
-    mov     dx, offset dest_file
+    mov     dx, offset out_file
     int     21h
-    jnc     dest_success
-    mov     dx, offset dest_error
-    mov     ah, 9
-    int     21h
-    jmp     exit
-dest_success:
     mov     [file_descr], ax ; сохраняем дескриптор рез-файла
     mov     si, offset data_buffer
     mov     di, offset command_buffer
@@ -154,11 +146,11 @@ lock_label: ; lock выводим сразу
     call    print_to_buffer
     jmp     scan_bytes
 cwde_label:  ; cdq выводим сразу
-    mov     ax, offset cwde_str
+    mov     ax, offset _cwde
     call    print_to_buffer
     jmp     print_to_file
 call_label:  ; jmp записываем JMP в буфер и начинаем смотреть опкоды
-    mov     ax, offset call_str
+    mov     ax, offset _call
     call    print_to_buffer
     cmp     [opcode], 0E8h
     jne     not_rel
@@ -224,7 +216,7 @@ print_imm:
     call    print_hex_num
     jmp     print_to_file
 neg_label: ; для имула также пишем в буфер строку
-    mov     ax, offset neg_str
+    mov     ax, offset _neg
     call    print_to_buffer
     call    get_mod_reg_rm
 print_rm:
@@ -407,14 +399,13 @@ return:
 ;--------------------------------------------------------------------------------------
 print_to_file:
     push    si
-    mov     si, offset cr_lf
-    mov     cx, 2
-    rep     movsb
+    mov     ax, 0a0dh
+    stosw
+    mov     ah, 40h
     mov     dx, offset command_buffer
     mov     cx, di
     sub     cx, dx  ; длина
     mov     di, dx
-    mov     ah, 40h
     mov     bx, file_descr
     push    cx
     int     21h
@@ -431,7 +422,7 @@ print_to_file:
     jmp     scan_bytes
 
 success_exit:
-    mov     dx, offset success ; вывод сообщения об успехе
+    mov     dx, offset end_msg ; вывод сообщения об успехе
     mov     ah, 9
     int     21h
     mov     ah, 3Eh
