@@ -7,9 +7,9 @@
 	_cwde        db    "CWDE", 0 ; тут и далее ноль для процедуры get_str_len (считает длину строки до нуля)
 	_neg         db    "NEG", 9, 0 ; 9 - ТАБ
 	_call        db    "CALL", 9, 0
-	opcodes      dw    es_label, 7 dup (scan_bytes), cs_label, 7 dup (scan_bytes), ss_label, 7 dup (scan_bytes), ds_label
-                     dw    37 dup(scan_bytes), fs_label, gs_label, size66_label, addr67_label, 48 dup(scan_bytes), cwde_label, scan_bytes, call_label
-                     dw    77 dup(scan_bytes), call_label, 7 dup(scan_bytes), lock_label, 5 dup(scan_bytes), neg_label, neg_label, 7 dup(scan_bytes), call_label
+	jmps      dw    es_jump, 7 dup (load_byte), cs_jump, 7 dup (load_byte), ss_jump, 7 dup (load_byte), ds_jump
+                     dw    37 dup(load_byte), fs_jump, gs_jump, size66_jump, addr67_jump, 48 dup(load_byte), cwde_jump, load_byte, call_jump
+                     dw    77 dup(load_byte), call_jump, 7 dup(load_byte), lock_jump, 5 dup(load_byte), neg_jump, neg_jump, 7 dup(load_byte), call_jump
 	com_error    db    "COM_ERROR", 0dh, 0ah, "$"
 	end_msg      db    "Done!", 0d, 0ah, "$"
 	_lock        db    "LOCK ", 0
@@ -70,6 +70,7 @@
 	sib_byte_b   db    ?
 	file         dw    ?
 	curr_byte    db    ? 	; хранит опкод команды, которую декодим
+
 .code
 Start:
 	mov    ax, @DATA
@@ -101,7 +102,7 @@ no_err:
 	mov    file, ax   		; сохраняем дескриптор рез-файла
 	mov    si, offset com_data
 	mov    di, offset instruction
-scan_bytes:
+load_byte:
 	cmp    si, byte_count 	; если si вышел за пределы com_data, то выходим
 	jae    success_exit
 	lodsb
@@ -109,68 +110,67 @@ scan_bytes:
 	sub    al, 26h		; тут вычитаем потому что начинаются
 	movzx  bx, al
 	shl    bx, 1
-	jmp    opcodes[bx]   	; прыгаем по адресу метки
+	jmp    jmps[bx]   	; прыгаем по адресу метки
 				; все сегменты, просто сохраняем встретившийся сегмент
-es_label:
+es_jump:
 	mov    ax, offset _es
-	jmp    save_segment
-cs_label:
+	jmp    store_seg
+cs_jump:
 	mov    ax, offset _cs
-	jmp    save_segment
-ss_label:
+	jmp    store_seg
+ss_jump:
 	mov    ax, offset _ss
-	jmp    save_segment
-ds_label:
+	jmp    store_seg
+ds_jump:
 	mov    ax, offset _ds
-	jmp    save_segment
-fs_label:
+	jmp    store_seg
+fs_jump:
 	mov    ax, offset _fs
-	jmp    save_segment
-gs_label:
+	jmp    store_seg
+gs_jump:
 	mov    ax, offset _gs
-save_segment:
+store_seg:
 	mov    seg_ovr, ax
-	jmp    scan_bytes
+	jmp    load_byte
 				; то же самое с префиксами 66 и 67, сохраняем, если встретили
-size66_label:
+size66_jump:
 	mov    flagsize_66, 1
-	jmp    scan_bytes
-addr67_label:
+	jmp    load_byte
+addr67_jump:
 	mov    flagaddr_67, 1
-	jmp    scan_bytes
-lock_label: 			; lock выводим сразу
+	jmp    load_byte
+lock_jump: 			; lock выводим сразу
 	mov    ax, offset _lock
-	call   print_to_buffer
-	jmp    scan_bytes
-cwde_label:  			; cwde выводим сразу
+	call   store_str
+	jmp    load_byte
+cwde_jump:  			; cwde выводим сразу
 	mov    ax, offset _cwde
-	call   print_to_buffer
-	jmp    print_to_file
-call_label: 			; начинаем смотреть опкоды
+	call   store_str
+	jmp    end_instruction
+call_jump: 			; начинаем смотреть опкоды
 	mov    ax, offset _call
-	call   print_to_buffer
+	call   store_str
 	cmp    curr_byte, 0E8h
-	jne    not_rel
-rel: 	       		; если это относительное rel16 32
-	mov    ax, "+$" 		; сохраняем в буфер $+, то есть счеткик местоположения и +
+	jne    not_call_rel  	; если это не относительное rel16 32
+	mov    ax, "+$" 	; сохраняем в буфер $+, то есть счеткик местоположения и +
 	stosw
-	xor    eax, eax 		; eax должен быть 0, для функции записи числа print_hex_num
-	mov    flagimm, 1 		; флаг, что это иммедиат
+	xor    eax, eax 	; eax должен быть 0, для функции записи числа store_hex
+	mov    flagimm, 1 	; флаг, что это иммедиат
 	or     flagsize_66, 0
-	jz 	   word_rel
+	jz     rel16
 	lodsd  			; грузим рел32
 	add    eax, 6 		; тут рел32 = 66 +опкод + рел32 = 6 байт
-	jnz    not_zero_rel
-	jmp    remove_rel_sign
-word_rel:
+	jnz    rel_not0
+	jmp    rel_onself
+rel16:
 	lodsw  			; так как rel16, то загружаем слово из памяти
 	add    ax, 3 		; +3 потому что прыжок 3-х байтовый (опкод + 2 байта для адреса), (rel считается как адрес начала след команды + смещение)
-	jnz    not_zero_rel 	; если не ноль, то пишем
-remove_rel_sign:
+	jnz    rel_not0 	; если не ноль, то пишем
+rel_onself:
 	dec    di 			; если ноль то двигаем указатель назад, таким образом запись уберет + из $+ ($+ -> $) (прыжок на самого себя)
-	jmp    print_to_file
-not_zero_rel:
-	jns    print_imm 		; если положительное, то пишем
+	jmp    end_instruction
+rel_not0:
+	jns    store_imm 		; если положительное, то пишем
 	or     flagsize_66, 0
 	jz     neg_ax
 	neg    eax
@@ -179,132 +179,131 @@ neg_ax:
 	neg    ax 			; если отрицательное, то делаем модуль и пишем минус ($+ -> $-)
 minus:
 	mov    byte ptr [di-1], "-"
-	jmp    print_imm
-not_rel:
+	jmp    store_imm
+not_call_rel:
 	cmp    curr_byte, 0FFh
 	jne    call_ptr ; если опкод не 0FF, то это EA - JMPF	ptr16:16/32
-	call   mod_reg_rm ; вызываем функцию, которая возвращает мод, рег и рм
+	call   modrm_byte ; вызываем функцию, которая возвращает мод, рег и рм
 	cmp    reg, 100b ; если рег не 1000b (4, почему 1000b см в функции), то это FF рег=5 JMPF	m16:16/32
 	jne    call_mem
 	cmp    mode, 11000000b
-	je     print_rm
+	je     put_rm
 	mov    ax, offset word_ptr ; для ff рег=4 JMP	    r/m16/32 пишем word ptr    
-	jmp    print_ptr ; здесь если мод=11, то пишем регистр, значение в рм, а если не 11, то пишем рм
+	jmp    type_ptr ; здесь если мод=11, то пишем регистр, значение в рм, а если не 11, то пишем рм
 call_mem:
 	mov    ax, offset dword_ptr ; для ff рег=5 JMP	    m16/32 пишем dword ptr, и пишем рм
-	jmp    print_ptr
+	jmp    type_ptr
 call_ptr:
 	mov    flagimm, 1
 	xor    eax, eax ; для записи числа
 	mov    bx, ax
 	lodsw
 	or     flagsize_66, 0
-	pushf  ; созраняем флаги, чтобы потом не делать опять or [flagsize_66], 0
 	jz     no_ptr32 ; если ноль, то пишем 16-битное
 	mov    bx, ax   ; если не ноль, то пишем 32-битное
 	lodsw           ; в ах теперь младшая часть, а в bx старшая
 no_ptr32:
 	push   ax       ; для jmp ptr16:16/32 в памяти идет :16/32 а помто 16:, поэтому пушим :16
 	lodsw           ; грузим 16:
-	call   print_hex_num ; пишем 16:
+	call   store_hex ; пишем 16:
 	mov    al, ":" ; пишем :
 	stosb
 	pop    ax      ; восстанавливаем :16
-	popf           ; флаги от or [flagsize_66], 0
-	jz     print_imm ; если нет 66 префикса то пишем :16
+	or     flagsize_66, 0
+	jz     store_imm ; если нет 66 префикса то пишем :16
 	push   ax bx     ; иначе пишем :32, пушим старшую часть, а затем младшую
 	pop    eax       ; и поп как раз дает в ax младшую часть, в старшей части eax - старшая часть (bx)
-print_imm:
-	call   print_hex_num
-	jmp    print_to_file
-neg_label: ; для имула также пишем в буфер строку
+store_imm:
+	call   store_hex
+	jmp    end_instruction
+neg_jump: ; для имула также пишем в буфер строку
 	mov    ax, offset _neg
-	call   print_to_buffer
-	call   mod_reg_rm
-print_rm:
+	call   store_str
+	call   modrm_byte
+put_rm:
 	cmp    mode, 11000000b   ; если мод=11 пишем регистр по индексу из поля рм
 	jne    operand_not_reg
 	push   bx si
 	mov    bx, offset r8
 	cmp    curr_byte, 0F6h
-	je     go_print
+	je     put_reg
 	mov    bx, offset r16
 	or     flagsize_66, 0
-	jz     go_print
+	jz     put_reg
 	mov    bx, offset r32
-go_print:
+put_reg:
 	movzx  si, rm
 	mov    ax, [bx+si]
-	call   print_to_buffer
+	call   store_str
 	pop    si bx
-	jmp    print_to_file
+	jmp    end_instruction
 operand_not_reg:   ; если мод не 11
 	cmp    curr_byte, 0F6h
 	jne    not_rm8
 	mov    ax, offset byte_ptr
-	call   print_to_buffer
-	jmp    print_seg
+	call   store_str
+	jmp    put_seg
 not_rm8:
 	mov    ax, offset word_ptr
 	or     flagsize_66, 0
-	jz     print_ptr
+	jz     type_ptr
 	mov    ax, offset dword_ptr
-print_ptr:
-	call   print_to_buffer
-print_seg:
+type_ptr:
+	call   store_str
+put_seg:
 	push   bx
 	mov    ax, seg_ovr
 	or     ax, ax
-	jnz    print_seg_str       ; если seg ovr не ноль, то пишем этот сегмент
+	jnz    end_put_seg       ; если seg ovr не ноль, то пишем этот сегмент
 	movzx  bx, rm
 	or     flagaddr_67, 0
 	jnz    modrm32             ; если нет 67 префикса, то работаем с модрм16
 	cmp    bl, 1100b           ; если рм = 1100 (bp или дисп16)
-	jne    print_default_seg   ; если не равен, то пишем дефолтный сегмент
-	or     mode, 0           ; если равен, то проверяем мод
-	jnz    print_ss            ; если мод не ноль, то это [bp+disp8/16]
-	jmp    print_default_seg   ; если ноль, то это disp16, пишем DS
+	jne    put_def_seg   ; если не равен, то пишем дефолтный сегмент
+	or     mode, 0             ; если равен, то проверяем мод
+	jnz    put_ss              ; если мод не ноль, то это [bp+disp8/16]
+	jmp    put_def_seg         ; если ноль, то это disp16, пишем DS
 modrm32:
-	mov    ax, offset _ds   ; у модрм 32 везде DS, кроме EBP
+	mov    ax, offset _ds      ; у модрм 32 везде DS, кроме EBP
 	cmp    bl, 1010b           ; EBP
-	jne    print_seg_str       
-	or     mode, 0           ; опять проверяем мод, если не ноль, то это [EBP+disp8/32]
-	jz     print_seg_str       ; если ноль, то DS
-print_ss:
+	jne    end_put_seg       
+	or     mode, 0             ; опять проверяем мод, если не ноль, то это [EBP+disp8/32]
+	jz     end_put_seg       ; если ноль, то DS
+put_ss:
 	mov    ax, offset _ss  ; пишем SS
-	jmp    print_seg_str
-print_default_seg:
+	jmp    end_put_seg
+put_def_seg:
     	mov    ax, rmseg[bx] ; двигаемся по массиву
-print_seg_str:
-	call   print_to_buffer ; пишем сегмент
+end_put_seg:
+	call   store_str ; пишем сегмент
 	pop    bx
 	or     flagaddr_67, 0
 	jnz    bit32_addr  ; если есть 67 префикс идем на 32 битную адресацию
 	or     mode, 0   ; в 16 битах первым делом смотрим на мод00 дисп16
-	jnz    not_00_mod_16
+	jnz    mod_123
 	cmp    rm, 1100b ; дисп16
-	jne    not_00_mod_16
+	jne    mod_123
 	xor    eax, eax ; если мод00 и рм110, то это дисп16, пишем его и выходим
 	lodsw
 	mov    flagimm, 1
-	call   print_hex_num
-	jmp    return
-not_00_mod_16: ; если мод не 00, то это [регистр+дисп8/16]
+	call   store_hex
+	jmp    end_rm
+mod_123: ; если мод не 00, то это [регистр+дисп8/16]
 	movzx  bx, rm
 	mov    ax, rm16[bx]
-	call   print_to_buffer     ; можно сразу вывести начало рм, а дальше смотрим дисп
+	call   store_str     ; можно сразу вывести начало рм, а дальше смотрим дисп
 	or     mode, 0           ; если мод 00, то диспа нету
-	jz     return
+	jz     end_rm
 	xor    eax, eax            ; иначе готовимся его писать
 	cmp    mode, 1000000b    ; если мод не 10, то пишем байтовый дисп
-	jne    not_01_mod_16
+	jne    mod_01
 	lodsb
-	jmp    print_disp_byte_word
-not_01_mod_16:  ; иначе пишем вордовый дисп
+	jmp    put_disp_8_16
+mod_01:  ; иначе пишем вордовый дисп
 	lodsw
-print_disp_byte_word:
-	call   print_hex_num
-	jmp    return  ; выходим, конец 16 битного рм
+put_disp_8_16:
+	call   store_hex
+	jmp    end_rm  ; выходим, конец 16 битного рм
 bit32_addr:
 	cmp    rm, 1000b             ; это сиб байт
 	jne    no_sib             
@@ -321,66 +320,66 @@ bit32_addr:
 	mov    sib_byte_b, al
 	movzx  bx, sib_byte_b
 	mov    ax, r32[bx]        ; пишем базу в буффер
-	call   print_to_buffer
+	call   store_str
 	cmp    sib_byte_b, 1010b           ; проверяем базу 101 (ebp)
-	jne    no_base_101
+	jne    not_base_ebp
 	or     mode, 0                ; если база 101, и мод=0, то..
-	jnz    no_base_101
+	jnz    not_base_ebp
 	sub    di, 3                    ; двигаем di до начала, так как база не EBP, а только дисп 32
-	jmp    index                   ; пишем индекс и пропускаем проверку NONE и запись + после базы
-no_base_101:
+	jmp    sib_index                   ; пишем индекс и пропускаем проверку NONE и запись + после базы
+not_base_ebp:
 	cmp    sib_byte_i, 1000b          ; проверяем индекс 100, то есть NONE
-	je     no_scale                ; если индекс NONE, то не пишем индекс
+	je     scale0                ; если индекс NONE, то не пишем индекс
 	mov    al, "+"                 ; если не NONE дальше пишем индекс, поэтому '+'
 	stosb
-index:
+sib_index:
 	movzx  bx, sib_byte_i               ; запись индекса
 	mov    ax, r32[bx]
-	call   print_to_buffer
+	call   store_str
 	mov    ah, sib_byte_s             ; дальше пишем масштаб
 	or     ah, ah                  ; если он 0, то пропускаем его
-	jz     no_scale
+	jz     scale0
 	shr    ah, 5                   ; иначе сдвигаем на 5, таким образом масштаб 10 (*4) будет 100b=4d, а 01 (*2) - 10b=2d 
-	jnp    not_scale_8             ; jp - прыжок, если четное число битов, в 4 и 3 бите ah может быть 11, 10, 01
+	jnp    not_8             ; jp - прыжок, если четное число битов, в 4 и 3 бите ah может быть 11, 10, 01
 	mov    ah, 8                   ;      тогда если после сдвига на 5, чсило битов четное, то это 11, то есть масштаб "*8"
-not_scale_8:                        ;          
+not_8:                        ;          
 	add    ah, "0"                 ; преобразуем масштаб в ASCII
 	mov    al, "*"                 
 	stosw                           ; и пишем со звездочкой
-no_scale:
+scale0:
 	cmp    sib_byte_b, 1010b          ; проверяем базу 101 (ebp)
-	jne    check_disp_8_32         ; если база не 101, то провеярем дисп8/32
+	jne    is_disp_8_32         ; если база не 101, то провеярем дисп8/32
 	or     mode, 0               ; если база 101 и мод=0, то тогда база это дисп32
-	jz     disp32
-	jmp    check_disp_8_32         ; иначе дисп8/32
+	jz     disp_32
+	jmp    is_disp_8_32         ; иначе дисп8/32
 no_sib:    ; всё выше было про сиб байт, если его нет, то
 	cmp    rm, 1010b             ; проверяем рм101 (EBP)
-	jne    print_rm32              ; если не 101, то смело пишем рм
+	jne    put_rm32              ; если не 101, то смело пишем рм
 	or     mode, 0               ; если 101 и мод=0, то тогда там дисп32
-	jnz    print_rm32
+	jnz    put_rm32
 	mov    flagimm, 1             ; готовимся его писать, так как он там один, то дисп=0, мы пишем
-disp32:
+disp_32:
 	xor    eax, eax
 	lodsd
-	call   print_hex_num
-	jmp    return
-print_rm32:
+	call   store_hex
+	jmp    end_rm
+put_rm32:
 	movzx  bx, rm
 	mov    ax, r32[bx]       ; выводим рм двигаясь по массиву
-	call   print_to_buffer
+	call   store_str
 	or     mode, 0               ; если мод0, то выходим, если нет, то идем проверять дисп8/32
-	jz     return
-check_disp_8_32:
+	jz     end_rm
+is_disp_8_32:
 	cmp    mode, 1000000b       ; мод=10 - дисп32
-	ja     disp32
-	jb     return
+	ja     disp_32
+	jb     end_rm
 	xor    eax, eax
 	lodsb                           ; иначе дисп8
-	call   print_hex_num
-return:
+	call   store_hex
+end_rm:
 	mov    al, "]"
 	stosb
-print_to_file:
+end_instruction:
 	push   si
 	mov    ax, 0a0dh
 	stosw
@@ -402,7 +401,7 @@ print_to_file:
 	mov    flagaddr_67, 0
 	mov    flagimm, 0
 	pop    si
-	jmp    scan_bytes
+	jmp    load_byte
 success_exit:
 	mov    dx, offset end_msg ; вывод сообщения об успехе
 	mov    ah, 9
@@ -413,19 +412,19 @@ success_exit:
 exit:
 	mov    ah, 4Ch
 	int    21h
-    
-print_to_buffer proc
+
+store_str proc
 	push   si
 	mov    si, ax
-printing: 
+storing:
 	movsb
 	cmp    byte ptr [si], 0
-	jnz    printing 
+	jnz    storing 
 	pop    si
 	ret
 endp
 
-mod_reg_rm proc
+modrm_byte proc
 	lodsb
 	mov    ah, al
 	and    ah, 11000000b
@@ -440,55 +439,54 @@ mod_reg_rm proc
 	ret
 endp
 
-print_hex_num proc
+store_hex proc
 	push   bx
 	cmp    flagimm, 1  ; проверка на имм
-	je     check_zero
+	je     is_imm_zero
 	or     eax, eax    ; если это не имм, то есть дисп, то проверяем нулевое смещение
-	jz     end_printing 
+	jz     ret_hex 
 	mov    byte ptr [di], "+" ; если дисп не ноль, то пишем плюс, увеличиваем di
 	inc    di                  ; здесь пишем не через al, потому что там число
-check_zero:
+is_imm_zero:
 	or     eax, eax        ; проверка нулевого имм
-	jnz    non_zero_imm
+	jnz    not_zero_imm
 	mov    al, "0"         ; если ноль пишем 0 в буффер и выходим
 	stosb
-	jmp    put_hex
-non_zero_imm:
+	jmp    put_h
+not_zero_imm:
 	mov    ebx, eax       ; число для записи в EBX
 	mov    cl, 8          ; число байт в EAX
-	jmp    test_first
-deleting_zeros:
+	jmp    test_
+del_lead_zeros:
 	dec    cl             ; уменьшаем число байт для записи
 	rol    ebx, 4         ; убираем ненужные нули спереди
-test_first:
+test_:
 	test   ebx, 0F0000000h  ; если результат 0, то спереди числа незначащие нули, убираем их
-	jz     deleting_zeros
+	jz     del_lead_zeros
 	xor    eax, eax
 	shld   eax, ebx, 4    ; двигаем старший байт для записи в eax
 	cmp    al, 9          ; проверяем его на то, что он не буква
-	jna    not_a_letter
+	jna    not_letter
 	mov    al, "0"         ; если буква, то пишем 0
 	stosb
-not_a_letter:
+not_letter:
 	xor    al, al         ; обнуляем al 
-hex_to_ascii:
+hex_ascii:
 	shld   eax, ebx, 4    ; двигаем по байту в eax и записываем в буффер в ASCII формате
 	shl    ebx, 4
 	cmp    al, 9          ; проверка на букву
-	jna    digit
+	jna    number
 	add    al, 7          ; доп слагаемое для букв
-digit: 
-	add    al, "0"         ; для чисел
+number: 
+	add    al, 30h         ; для чисел
 	stosb                   ; сохраняем
 	xor    al, al          ; зануляем так как al это байт, а нам нужно только 4 бита
-	loop   hex_to_ascii    ; циклимся по всем байтам
-put_hex:
+	loop   hex_ascii    ; циклимся по всем байтам
+put_h:
 	mov    al, "H"         ; сохраняем 'H'
 	stosb
-end_printing:
+ret_hex:
 	pop    bx
 	ret
 endp
-
     End    Start
