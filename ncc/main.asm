@@ -106,7 +106,7 @@ com_success:
     mov     di, offset command_buffer
 scan_bytes:
     cmp     si, [end_of_data] ; если si вышел за пределы data_buffer, то выходим
-    ja      success_exit
+    jae     success_exit
     lodsb
     mov     [opcode], al ; сохраняем опкод
     sub     al, 26h
@@ -272,13 +272,13 @@ print_seg:
     jnz     print_ss            ; если мод не ноль, то это [bp+disp8/16]
     jmp     print_default_seg   ; если ноль, то это disp16, пишем DS
 modrm32:
-    mov     ax, offset ds_seg   ; у модрм 32 везде DS, кроме EBP
+    mov     ax, offset _ds   ; у модрм 32 везде DS, кроме EBP
     cmp     bl, 1010b           ; EBP
     jne     print_seg_str       
     or      [mode], 0           ; опять проверяем мод, если не ноль, то это [EBP+disp8/32]
     jz      print_seg_str       ; если ноль, то DS
 print_ss:
-    mov     ax, offset ss_seg   ; пишем SS
+    mov     ax, offset _ss  ; пишем SS
     jmp     print_seg_str
 print_default_seg:
     mov     ax, [bx + rmseg] ; двигаемся по массиву
