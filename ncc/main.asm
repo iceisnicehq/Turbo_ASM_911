@@ -2,39 +2,39 @@
 .386
 .stack 100h
 .data
-com_file     db    "INPUT.COM", 0 ; тут 0 для функций, которые работают с файлами (0Dh)
-dest_file    db    "OUTPUT.ASM", 0
-cwde_str      db    "CWDE", 0 ; тут и далее ноль для процедуры get_str_len (считает длину строки до нуля)
-neg_str     db    "NEG", 9, 0 ; 9 - ТАБ
-call_str      db    "CALL", 9, 0
-com_error    db    "com file error", 13, 10, "$"
-dest_error   db    "destination file error", 13, 10, "$"
-success      db    "success", 13, 10, "$"
-cr_lf        db    13, 10, 0
-ALstr        db    "AL", 0
-CLstr        db    "CL", 0
-DLstr        db    "DL", 0
-BLstr        db    "BL", 0
-AHstr        db    "AH", 0
-CHstr        db    "CH", 0 
-DHstr        db    "DH", 0 
-BHstr        db    "BH", 0
-EAXstr       db    "EAX", 0
-ECXstr       db    "ECX", 0
-EDXstr       db    "EDX", 0
-EBXstr       db    "EBX", 0
-ESPstr       db    "ESP", 0
-EBPstr       db    "EBP", 0
-ESIstr       db    "ESI", 0
-EDIstr       db    "EDI", 0
-AXstr       equ    EAXstr + 1 ; тут +1, потому что EAXstr - это адрес, то есть из "EAX, 0" получаем "AX, 0", просто на один байт дальше
-CXstr       equ    ECXstr + 1
-DXstr       equ    EDXstr + 1
-BXstr       equ    EBXstr + 1
-SPstr       equ    ESPstr + 1
-BPstr       equ    EBPstr + 1
-SIstr       equ    ESIstr + 1
-DIstr       equ    EDIstr + 1
+	com_file     db    "INPUT.COM", 0 ; тут 0 для функций, которые работают с файлами (0Dh)
+	dest_file    db    "OUTPUT.ASM", 0
+	cwde_str     db    "CWDE", 0 ; тут и далее ноль для процедуры get_str_len (считает длину строки до нуля)
+	neg_str      db    "NEG", 9, 0 ; 9 - ТАБ
+	call_str     db    "CALL", 9, 0
+	com_error    db    "com file error", 13, 10, "$"
+	dest_error   db    "destination file error", 13, 10, "$"
+	success      db    "success", 13, 10, "$"
+	cr_lf        db    13, 10, 0
+	ALstr        db    "AL", 0
+	CLstr        db    "CL", 0
+	DLstr        db    "DL", 0
+	BLstr        db    "BL", 0
+	AHstr        db    "AH", 0
+	CHstr        db    "CH", 0 
+	DHstr        db    "DH", 0 
+	BHstr        db    "BH", 0
+	EAXstr       db    "EAX", 0
+	ECXstr       db    "ECX", 0
+	EDXstr       db    "EDX", 0
+	EBXstr       db    "EBX", 0
+	ESPstr       db    "ESP", 0
+	EBPstr       db    "EBP", 0
+	ESIstr       db    "ESI", 0
+	EDIstr       db    "EDI", 0
+	AXstr	     db    "AX", 0    
+	CXstr        db    "CX", 0
+	DXstr        db    "DX", 0
+	BXstr        db    "BX", 0
+	SPstr        db    "SP", 0
+	BPstr        db    "BP", 0
+	SIstr        db    "SI", 0
+	DIstr        db    "DI", 0
 dword_ptr    db    "dword ptr ", 0
 word_ptr    equ   dword_ptr + 1 ; тут то же самое "dword ptr, 0" + -> "word ptr, 0" (можно писать offset word_ptr, потому что тип данных сохраняется)
 byte_ptr    db    "byte ptr ", 0
