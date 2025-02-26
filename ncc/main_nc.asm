@@ -22,7 +22,7 @@
 	_DH          db    "DH", 0 
 	_BH          db    "BH", 0
 	r8           dw    _AL, _CL, _DL, _BL, _AH, _CH, _DH, _BH 
-	_A           db    "AX", 0    
+	_AX          db    "AX", 0    
 	_CX          db    "CX", 0
 	_DX          db    "DX", 0
 	_BX          db    "BX", 0
