@@ -7,9 +7,9 @@
 	_cwde        db    "CWDE", 0 ; тут и далее ноль для процедуры get_str_len (считает длину строки до нуля)
 	_neg         db    "NEG", 9, 0 ; 9 - ТАБ
 	_call        db    "CALL", 9, 0	
-	opcodes    dw    es_label, 7 dup (scan_bytes), cs_label, 7 dup (scan_bytes), ss_label, 7 dup (scan_bytes), ds_label
-            	     dw    37 dup(scan_bytes), fs_label, gs_label, size66_label, addr67_label, 48 dup(scan_bytes), cwde_label, scan_bytes, call_label, 77 dup(scan_bytes)
-             	     dw    call_label, 7 dup(scan_bytes), lock_label, 5 dup(scan_bytes), neg_label, neg_label, 7 dup(scan_bytes), call_label
+	opcodes      dw    es_label, 7 dup (scan_bytes), cs_label, 7 dup (scan_bytes), ss_label, 7 dup (scan_bytes), ds_label
+                 dw    37 dup(scan_bytes), fs_label, gs_label, size66_label, addr67_label, 48 dup(scan_bytes), cwde_label, scan_bytes, call_label
+                 dw    77 dup(scan_bytes), call_label, 7 dup(scan_bytes), lock_label, 5 dup(scan_bytes), neg_label, neg_label, 7 dup(scan_bytes), call_label
 	com_error    db    "com_error", 0dh, 0ah, "$"
 	end_msg      db    "done", 0d, 0ah, "$"
 	_lock        db    "LOCK ", 0
@@ -22,7 +22,7 @@
 	_DH          db    "DH", 0 
 	_BH          db    "BH", 0
 	r8           dw    _AL, _CL, _DL, _BL, _AH, _CH, _DH, _BH ; байтовые реги
-	_AX	     db    "AX", 0    
+	_AX	         db    "AX", 0    
 	_CX          db    "CX", 0
 	_DX          db    "DX", 0
 	_BX          db    "BX", 0
@@ -143,24 +143,24 @@ lock_label: ; lock выводим сразу
     mov     ax, offset _lock
     call    print_to_buffer
     jmp     scan_bytes
-cwde_label:  ; cdq выводим сразу
+cwde_label:  ; cwde выводим сразу
     mov     ax, offset _cwde
     call    print_to_buffer
     jmp     print_to_file
-call_label:  ; jmp записываем JMP в буфер и начинаем смотреть опкоды
+call_label:  ; начинаем смотреть опкоды
     mov     ax, offset _call
     call    print_to_buffer
     cmp     [curr_byte], 0E8h
     jne     not_rel
-rel: ; если это относительное JMP, то есть 0E9h или 0EBh (rel16 и rel8)
+rel: ; если это относительное rel16 32
     mov     ax, "+$" ; сохраняем в буфер $+, то есть счеткик местоположения и +
     stosw
     xor     eax, eax ; eax должен быть 0, для функции записи числа print_hex_num
     mov     [flagimm], 1 ; флаг, что это иммедиат
     or      [flagsize_66], 0
     jz 	    word_rel
-    lodsd   
-    add     eax, 6
+    lodsd   ; грузим рел32
+    add     eax, 6 ; тут рел32 = 66 +опкод + рел32 = 6 байт
     jnz     not_zero_rel
     jmp     remove_rel_sign
 word_rel:
@@ -175,16 +175,16 @@ not_zero_rel:
     or      flagsize_66, 0
     jz      neg_ax
     neg     eax
-    jmp     put_minus
+    jmp     minus
 neg_ax:
     neg     ax ; если отрицательное, то делаем модуль и пишем минус ($+ -> $-)
-put_minus:
+minus:
     mov     byte ptr [di-1], "-"
     jmp     print_imm
 not_rel:
     cmp     [curr_byte], 0FFh
     jne     call_ptr ; если опкод не 0FF, то это EA - JMPF	ptr16:16/32
-    call    get_mod_reg_rm ; вызываем функцию, которая возвращает мод, рег и рм
+    call    mod_reg_rm ; вызываем функцию, которая возвращает мод, рег и рм
     cmp     [reg], 100b ; если рег не 1000b (4, почему 1000b см в функции), то это FF рег=5 JMPF	m16:16/32
     jne     call_mem
     cmp     [mode], 11000000b
@@ -221,9 +221,8 @@ print_imm:
 neg_label: ; для имула также пишем в буфер строку
     mov     ax, offset _neg
     call    print_to_buffer
-    call    get_mod_reg_rm
+    call    mod_reg_rm
 print_rm:
-;print_reg proc
     cmp     [mode], 11000000b   ; если мод=11 пишем регистр по индексу из поля рм
     jne     operand_not_reg
     push    bx si
@@ -253,15 +252,7 @@ not_rm8:
     mov     ax, offset dword_ptr
 print_ptr:
     call    print_to_buffer
-print_seg:   
-;--------------------------------------------------------------------------------------
-; Процедура print_seg
-; На вход:  ничего
-; На выход: ничего
-; Описание: сохраняет bx,
-;           записывает в буфер сегмент для РМ, смотрит на все флаги и пишет либо оверрайд
-;           сегмент, либо пишет дефолтный
-;--------------------------------------------------------------------------------------
+print_seg:
     push    bx
     mov     ax, [seg_ovr]
     or      ax, ax
@@ -390,16 +381,6 @@ check_disp_8_32:
 return:
     mov     al, "]"
     stosb
-;--------------------------------------------------------------------------------------
-; Процедура print_to_file
-; На вход:  ничего
-; На выход: ничего
-; Описание: сохраняет si,
-;           записывает в конец буффера cr и lf, затем пишет в файл строку по адресу
-;           instruction, длина строки = начало строки - di (конец строки)
-;           затем заполняет всю длину  записанной строки нулями
-;           обнуляет флаговые переменные
-;--------------------------------------------------------------------------------------
 print_to_file:
     push    si
     mov     ax, 0a0dh
@@ -434,37 +415,10 @@ success_exit:
 exit:
     mov     ah, 4Ch
     int     21h
-
-;--------------------------------------------------------------------------------------
-; Процедура print_reg
-; На вход: ничего
-; На выход: ничего
-; Описание: пишем регистр из поля рм, если мод=11, иначе пишем сегмент и операнд рм
-;--------------------------------------------------------------------------------------
-;--------------------------------------------------------------------------------------
-; Процедура print_buffer
-; На вход:  AX - адрес строки для записи
-; На выход: ничего
-; Описание: сохраняет si, затем пишет строку по адресу AX в буфер
-;--------------------------------------------------------------------------------------
+    
 print_to_buffer proc
     push    si
     mov     si, ax
- ;--------------------------------------------------------------------------------------
-; Процедура get_str_len
-; На вход:  Si - адрес ASCIIZ строки для измерения длины
-; На выход: CX - длина входной строки
-; Описание: сохраняет di, идет по строке пока не встретит 0, таким образом в cx длина строки
-;
-; Пример для 'EAX, 0': длина строки 3
-;       repnz scasb сработает 3 раза
-;       0) di указывает на E, cx=ffff
-;       1) di указывает на A, cx=fffe
-;       2) di указывает на X, cx=fffd
-;       3) di указывает на 0, cx=fffc
-;       4) конец, cx=fffb
-;       not cx -> cx=0004 -> dec cx -> cx=0003
-;--------------------------------------------------------------------------------------
 printing: 
     movsb
     cmp     byte ptr [si], 0
@@ -472,13 +426,22 @@ printing:
     pop     si
     ret
 endp
-;--------------------------------------------------------------------------------------
-; Процедура print_hex_num
-; На вход:  EAX = число для записи, все остальные биты EAX обязательно равны нулю
-; На выход: ничего
-; Описание: сохраняет bx,
-;           записывает в буфер ASCII число из EAX
-;--------------------------------------------------------------------------------------
+
+mod_reg_rm proc
+    lodsb
+    mov     ah, al
+    and     ah, 11000000b
+    mov     [mode], ah
+    mov     ah, al
+    shr     ah, 2
+    and     ah, 1110b
+    mov     [reg], ah
+    and     al, 111b
+    shl     al, 1
+    mov     [rm], al
+    ret
+endp
+
 print_hex_num proc
     push    bx
     cmp     flagimm, 1  ; проверка на имм
@@ -530,18 +493,4 @@ end_printing:
     ret
 endp
 
-get_mod_reg_rm proc
-    lodsb
-    mov     ah, al
-    and     ah, 11000000b
-    mov     [mode], ah
-    mov     ah, al
-    shr     ah, 2
-    and     ah, 1110b
-    mov     [reg], ah
-    and     al, 111b
-    shl     al, 1
-    mov     [rm], al
-    ret
-endp
     End     Start
