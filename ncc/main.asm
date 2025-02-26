@@ -9,69 +9,69 @@
 	_call        db    "CALL", 9, 0
 	com_error    db    "com_error", 0dh, 0ah, "$"
 	end_msg      db    "done", 0d, 0ah, "$"
-	_AL        db    "AL", 0
-	_CL        db    "CL", 0
-	_DL        db    "DL", 0
-	_BL        db    "BL", 0
-	AHstr        db    "AH", 0
-	CHstr        db    "CH", 0 
-	DHstr        db    "DH", 0 
-	BHstr        db    "BH", 0
-	EAXstr       db    "EAX", 0
-	ECXstr       db    "ECX", 0
-	EDXstr       db    "EDX", 0
-	EBXstr       db    "EBX", 0
-	ESPstr       db    "ESP", 0
-	EBPstr       db    "EBP", 0
-	ESIstr       db    "ESI", 0
-	EDIstr       db    "EDI", 0
-	AXstr	     db    "AX", 0    
-	CXstr        db    "CX", 0
-	DXstr        db    "DX", 0
-	BXstr        db    "BX", 0
-	SPstr        db    "SP", 0
-	BPstr        db    "BP", 0
-	SIstr        db    "SI", 0
-	DIstr        db    "DI", 0
-dword_ptr    db    "dword ptr ", 0
-word_ptr    equ   dword_ptr + 1 ; тут то же самое "dword ptr, 0" + -> "word ptr, 0" (можно писать offset word_ptr, потому что тип данных сохраняется)
-byte_ptr    db    "byte ptr ", 0
-lock_str    db    "LOCK ", 0
-BX_SIstr    db    "BX+SI", 0
-BX_DIstr    db    "BX+DI", 0
-BP_SIstr    db    "BP+SI", 0
-BP_DIstr    db    "BP+DI", 0
-es_seg    db    "ES:[", 0
-cs_seg    db    "CS:[", 0
-ss_seg    db    "SS:[", 0
-ds_seg    db    "DS:[", 0
-fs_seg    db    "FS:[", 0
-gs_seg    db    "GS:[", 0
+	_AL          db    "AL", 0
+	_CL          db    "CL", 0
+	_DL          db    "DL", 0
+	_BL          db    "BL", 0
+	_AH          db    "AH", 0
+	_CH          db    "CH", 0 
+	_DH          db    "DH", 0 
+	_BH          db    "BH", 0
+	_EAX         db    "EAX", 0
+	_ECX         db    "ECX", 0
+	_EDX         db    "EDX", 0
+	_EBX         db    "EBX", 0
+	_ESP         db    "ESP", 0
+	_EBP         db    "EBP", 0
+	_ESI         db    "ESI", 0
+	_EDI         db    "EDI", 0
+	_AX	     db    "AX", 0    
+	_CX          db    "CX", 0
+	_DX          db    "DX", 0
+	_BX          db    "BX", 0
+	_SP          db    "SP", 0
+	_BP          db    "BP", 0
+	_SI          db    "SI", 0
+	_DI          db    "DI", 0
+	dword_ptr    db    "dword ptr ", 0
+	word_ptr     db    "word ptr ", 0
+	byte_ptr     db    "byte ptr ", 0
+	_lock        db    "LOCK ", 0
+	BX_SI        db    "BX+SI", 0
+	BX_DI        db    "BX+DI", 0
+	BP_SI        db    "BP+SI", 0
+	BP_DI        db    "BP+DI", 0
+	_es          db    "ES:[", 0
+	_cs          db    "CS:[", 0
+	_ss          db    "SS:[", 0
+	_ds          db    "DS:[", 0
+	_fs          db    "FS:[", 0
+	_gs          db    "GS:[", 0
 ; это всё массивы, с адресами строк
-regs8    dw    _AL, _CL, _DL, _BLH   str, CHstr, DHstr, BHstr ; байтовые реги
-regs16    dw    AXstr, CXstr, DXstr, BXstr, SPstr, BPstr, SIstr, DIstr ; слова реги
-regs32    dw    EAXstr, ECXstr, EDXstr, EBXstr, ESPstr, EBPstr, ESIstr, EDIstr ; двойные слова реги
-rm16    dw    BX_SIstr, BX_DIstr, BP_SIstr, BP_DIstr, SIstr, DIstr, BPstr,  BXstr ; байт РМ
-mod00_16_def_seg    dw    ds_seg, ds_seg, ss_seg, ss_seg, ds_seg, ds_seg, ds_seg, ds_seg ; дефолтные сегменты для памяти в РМ
+	r8           dw    _AL, _CL, _DL, _BL, _AH, _CH, _DH, _BH ; байтовые реги
+	r16          dw    _AX, _CX, _DX, _BX, _SP, _BP, _SI, _DI ; слова реги
+	r32          dw    _EAX, _ECX, _EDX, _EBX, _ESP, _EBP, _ESI, _EDI ; двойные слова реги
+	rm16         dw    BX_SI, BX_DI, BP_SI, BP_DI, _SI, _DI, _BP,  _BX ; байт РМ
+	rmseg        dw    _ds, _ds, _ss, _ss, _ds, _ds, _ds, _ds; дефолтные сегменты для памяти в РМ
 ; массив адресов меток для прыжка
-jmp_table    dw    es_label, 7 dup (scan_bytes), cs_label, 7 dup (scan_bytes), ss_label, 7 dup (scan_bytes), ds_label
-             dw    37 dup(scan_bytes), fs_label, gs_label, size66_label, addr67_label, 48 dup(scan_bytes), cwde_label, scan_bytes, call_label, 77 dup(scan_bytes)
-             dw    call_label, 7 dup(scan_bytes), lock_label, 5 dup(scan_bytes), neg_label, neg_label, 7 dup(scan_bytes), call_label
-mode    db    0
-rm    db    0
-reg     db    0
-sib_s     db     0
-sib_i     db     0
-sib_b     db     0
-file_descr    dw    0
-seg_ovr     dw    0
-is_size_66    db    0
-is_addr_67    db    0
-is_imm    db    0 ; это переменная нужна, чтобы скипать "+" для иммов, и так же, чтобы писать нулевой имм, так как имм 0 (imul ax, 0) нужно писать, а смещение=0 писать не нужно
-opcode    db    0 ; хранит опкод команды, которую декодим
-command_buffer    db    128 dup (0) ; строка которую наполняем постепенно, а потом записываем в файл
-data_buffer    db    4096 dup (0)
-end_of_data    dw    ? ; номер последнего байта в data_buffer (из числа прочитанных)
+	jmp_table    dw    es_label, 7 dup (scan_bytes), cs_label, 7 dup (scan_bytes), ss_label, 7 dup (scan_bytes), ds_label
+            	     dw    37 dup(scan_bytes), fs_label, gs_label, size66_label, addr67_label, 48 dup(scan_bytes), cwde_label, scan_bytes, call_label, 77 dup(scan_bytes)
+             	     dw    call_label, 7 dup(scan_bytes), lock_label, 5 dup(scan_bytes), neg_label, neg_label, 7 dup(scan_bytes), call_label
+	mode        db    0
+	rm          db    0
+	reg         db    0
+	sib_s       db    0
+	sib_i       db    0
+	sib_b       db    0
+	file        dw    0
+	seg_ovr     dw    0
+	is_size_66  db    0
+	is_addr_67  db    0
+	is_imm      db    0 ; это переменная нужна, чтобы скипать "+" для иммов, и так же, чтобы писать нулевой имм, так как имм 0 (imul ax, 0) нужно писать, а смещение=0 писать не нужно
+	opcode      db    0 ; хранит опкод команды, которую декодим
+	command_buffer    db    128 dup (0) ; строка которую наполняем постепенно, а потом записываем в файл
+	data_buffer    db    4096 dup (0)
+	end_of_data    dw    ? ; номер последнего байта в data_buffer (из числа прочитанных)
 
 .code
 Start:
@@ -101,7 +101,7 @@ com_success:
     xor     cx, cx 
     mov     dx, offset out_file
     int     21h
-    mov     [file_descr], ax ; сохраняем дескриптор рез-файла
+    mov     [file], ax ; сохраняем дескриптор рез-файла
     mov     si, offset data_buffer
     mov     di, offset command_buffer
 scan_bytes:
@@ -115,22 +115,22 @@ scan_bytes:
     jmp     jmp_table[bx]   ; прыгаем по адресу метки
 ; все сегменты, просто сохраняем встретившийся сегмент
 es_label:
-    mov     ax, offset es_seg
+    mov     ax, offset _es
     jmp     save_segment
 cs_label:
-    mov     ax, offset cs_seg
+    mov     ax, offset _cs
     jmp     save_segment
 ss_label:
-    mov     ax, offset ss_seg
+    mov     ax, offset _ss
     jmp     save_segment
 ds_label:
-    mov     ax, offset ds_seg
+    mov     ax, offset _ds
     jmp     save_segment
 fs_label:
-    mov     ax, offset fs_seg
+    mov     ax, offset _fs
     jmp     save_segment
 gs_label:
-    mov     ax, offset gs_seg
+    mov     ax, offset _gs
 save_segment:
     mov     [seg_ovr], ax
     jmp     scan_bytes
@@ -142,7 +142,7 @@ addr67_label:
     mov     [is_addr_67], 1
     jmp     scan_bytes
 lock_label: ; lock выводим сразу
-    mov     ax, offset lock_str
+    mov     ax, offset _lock
     call    print_to_buffer
     jmp     scan_bytes
 cwde_label:  ; cdq выводим сразу
@@ -224,13 +224,13 @@ print_rm:
     cmp     [mode], 11000000b   ; если мод=11 пишем регистр по индексу из поля рм
     jne     operand_not_reg
     push    bx si
-    mov     bx, offset regs8
+    mov     bx, offset r8
     cmp     [opcode], 0F6h
     je      go_print
-    mov     bx, offset regs16
+    mov     bx, offset r16
     or      [is_size_66], 0
     jz      go_print
-    mov     bx, offset regs32
+    mov     bx, offset r32
 go_print:
     movzx   si, rm
     mov     ax, [bx + si]
@@ -281,7 +281,7 @@ print_ss:
     mov     ax, offset ss_seg   ; пишем SS
     jmp     print_seg_str
 print_default_seg:
-    mov     ax, [bx + mod00_16_def_seg] ; двигаемся по массиву
+    mov     ax, [bx + rmseg] ; двигаемся по массиву
 print_seg_str:
     call    print_to_buffer ; пишем сегмент
     pop     bx
@@ -327,7 +327,7 @@ bit32_addr:
     shl     al, 1
     mov     [sib_b], al
     movzx   bx, sib_b
-    mov     ax, [bx + regs32]        ; пишем базу в буффер
+    mov     ax, [bx + r32]        ; пишем базу в буффер
     call    print_to_buffer
     cmp     [sib_b], 1010b           ; проверяем базу 101 (ebp)
     jne     no_base_101
@@ -342,7 +342,7 @@ no_base_101:
     stosb
 index:
     movzx   bx, sib_i               ; запись индекса
-    mov     ax, [bx + regs32]
+    mov     ax, [bx + r32]
     call    print_to_buffer
     mov     ah, [sib_s]             ; дальше пишем масштаб
     or      ah, ah                  ; если он 0, то пропускаем его
@@ -373,7 +373,7 @@ disp32:
     jmp     return
 print_rm32:
     movzx   bx, rm
-    mov     ax, [bx + regs32]       ; выводим рм двигаясь по массиву
+    mov     ax, [bx + r32]       ; выводим рм двигаясь по массиву
     call    print_to_buffer
     or      [mode], 0               ; если мод0, то выходим, если нет, то идем проверять дисп8/32
     jz      return
@@ -406,7 +406,7 @@ print_to_file:
     mov     cx, di
     sub     cx, dx  ; длина
     mov     di, dx
-    mov     bx, file_descr
+    mov     bx, file
     push    cx
     int     21h
     pop     cx
@@ -426,7 +426,7 @@ success_exit:
     mov     ah, 9
     int     21h
     mov     ah, 3Eh
-    mov     bx, [file_descr]  ; закрываем файл результат
+    mov     bx, [file]  ; закрываем файл результат
     int     21h
 exit:
     mov     ah, 4Ch
