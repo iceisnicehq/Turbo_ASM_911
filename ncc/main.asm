@@ -3,7 +3,7 @@
 .stack 100h
 .data
 com_file     db    "INPUT.COM", 0 ; тут 0 для функций, которые работают с файлами (0Dh)
-dest_file    db    "OUTPUT.COM", 0
+dest_file    db    "OUTPUT.ASM", 0
 cwde_str      db    "CWDE", 0 ; тут и далее ноль для процедуры get_str_len (считает длину строки до нуля)
 neg_str     db    "NEG", 9, 0 ; 9 - ТАБ
 call_str      db    "CALL", 9, 0
@@ -57,8 +57,8 @@ rm16    dw    BX_SIstr, BX_DIstr, BP_SIstr, BP_DIstr, SIstr, DIstr, BPstr,  BXst
 mod00_16_def_seg    dw    ds_seg, ds_seg, ss_seg, ss_seg, ds_seg, ds_seg, ds_seg, ds_seg ; дефолтные сегменты для памяти в РМ
 ; массив адресов меток для прыжка
 jmp_table    dw    es_label, 7 dup (scan_bytes), cs_label, 7 dup (scan_bytes), ss_label, 7 dup (scan_bytes), ds_label
-             dw    37 dup(scan_bytes), fs_label, gs_label, size66_label, addr67_label, 48 dup(scan_bytes), cwde_label, scan_bytes, call_label, 7 dup(scan_bytes)
-             dw    lock_label, 5 dup(scan_bytes), neg_label, neg_label, 7 dup(scan_bytes), call_label
+             dw    37 dup(scan_bytes), fs_label, gs_label, size66_label, addr67_label, 48 dup(scan_bytes), cwde_label, scan_bytes, call_label, 77 dup(scan_bytes)
+             dw    call_label, 7 dup(scan_bytes), lock_label, 5 dup(scan_bytes), neg_label, neg_label, 7 dup(scan_bytes), call_label
 mode    db    0
 rm    db    0
 reg     db    0
@@ -190,7 +190,7 @@ not_rel:
     cmp     [opcode], 0FFh
     jne     call_ptr ; если опкод не 0FF, то это EA - JMPF	ptr16:16/32
     call    get_mod_reg_rm ; вызываем функцию, которая возвращает мод, рег и рм
-    cmp     [reg], 1000b ; если рег не 1000b (4, почему 1000b см в функции), то это FF рег=5 JMPF	m16:16/32
+    cmp     [reg], 100b ; если рег не 1000b (4, почему 1000b см в функции), то это FF рег=5 JMPF	m16:16/32
     jne     call_mem
     cmp     [mode], 11000000b
     je      print_rm
@@ -473,7 +473,7 @@ print_to_buffer proc
 ;--------------------------------------------------------------------------------------
 printing: 
     movsb
-    cmp     byte ptr [di], 0
+    cmp     byte ptr [si], 0
     jnz     printing 
     pop     si
     ret
