@@ -72,7 +72,7 @@ REL_CALL:
 	CALL   dword ptr GS:[EAX+EAX*8+1H]
 	CALL   $+1234H
 	CALL   word ptr SS:[BX+1010H]
-	CALL   $+12345678H
+	CALL   $+0ABCH
 	CALL   $-1001H
         CALL   word ptr FS:[BX+DI+1H]
 	CALL   EBX
