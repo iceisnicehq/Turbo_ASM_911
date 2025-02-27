@@ -2,28 +2,22 @@
 .186
 .stack 100h
 
-maxSize                 EQU     256
-cr                      EQU     0Dh
-lf                      EQU     0Ah
-NUMBER_WORD_TO_STORE    EQU      3  ; actual 4
-REVERSED_WORD_NUMBER    EQU      2  ; actual 3
-
 .data
-    file                db      'RES.TXT', 0
-    size_limit          db      cr, lf, 'More than 256 chars. Proccessing output.$'  
-    output_message      db      cr, lf, '___OUTPUT___', cr, lf, "$"
-    too_short           db      cr, lf, 'Not enough words to convert string. Exiting.$'
-    input_message       db      'Enter text: ', '$'
-    buffer              db      maxSize DUP(?)
+    answer        db      "answer.txt", 0
+    info_out      db      cr, lf, "___OUTPUT___$"
+    warning       db      cr, lf, "Not enough words to convert string. Exiting.$"
+    info_in       db      "Enter text: ", "$"
+    buffer        db      255 DUP(?)
+
 .code
 start:
-    mov     ax, @data
+    mov     ax, @DATA
     mov     ds, ax
     mov     es, ax 
     mov     ax, 0003h ; 80x25 ochistka
     int     10h
     mov     ah, 09h
-    mov     dx, offset input_message
+    mov     dx, offset info_in
     int     21h  
     mov     si, OFFSET buffer ; si for reversing (if word exist)
     mov     bp, si            ; for moving into registers
@@ -57,7 +51,7 @@ not_space:
     cmp     bh, NUMBER_WORD_TO_STORE ; if number of words is 4
     jb      to_loop         ; if words less than 4, then jump to iteration
     je      store_byte      ; if the word is 4th, then store in memory
-    stosb                   ; store space in memory (end of word)
+    stosb                   ; store space in memory (info_out of word)
     xor     bh, bh          ; bh = 0 (number of words)
     dec     bl              ; word to reverse
     jnz     to_loop
@@ -71,7 +65,7 @@ end_of_line:
     cmp     bp, di          ; if no words were saved (number of words < 4)
     jne     no_short_string
     mov     ah, 09h
-    mov     dx, offset too_short
+    mov     dx, offset warning
     int     21h
     jmp     exit
 no_short_string:
@@ -100,10 +94,10 @@ reversing:
     jne     reversing
 output:
     mov     ah, 09h 
-    mov     dx, offset output_message
+    mov     dx, offset info_out
     int     21h
     mov     ah, 3Ch
-    mov     dx, offset file
+    mov     dx, offset answer
     xor     cx, cx
     int     21h
     mov     bx, ax
@@ -115,7 +109,7 @@ output:
     not     cx
     dec     cx
     dec     cx
-    int     21h   ; zapis v file
+    int     21h   ; zapis v answer
     mov     ah, 3Eh
     int     21h
     mov     ah, 40h
@@ -126,4 +120,4 @@ exit:
     int     16h 
     mov     ax, 4C00h      
     int     21h
-    END     start
+    info_out     start
