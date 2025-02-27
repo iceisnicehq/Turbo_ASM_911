@@ -15,6 +15,7 @@ start:
     mov     ax, @DATA
     mov     ds, ax
     mov     es, ax
+    cld 			; cld ничего не делает по факту, но дает уверенность, что флаг df=0, по отсутвию этой команде был доеб на защите
     mov     ah, 9
     mov     dx, offset info_in
     int     21h
@@ -22,8 +23,8 @@ start:
     mov     di, si              ; для записи в es:di
     mov     al, 32              ; 32 = аски пробел, сделали для ниже cmp al, 32 
     mov     cx, 255		; число циклов для записи
-    xor     bl, 5		; для уверенности (как ве любит)
-    mov     dl, 1               ; каждое 6 слово
+    mov     bl, 5		; каждое 6 слово (5 - так как 6-оое слово начинается после 5-го)
+    mov     dl, 1               ; первое слово на реверс
     jmp     bios_input          ; прыжок на считку
 store_byte:  			; эта метка работает далее, для записи, поэтому далььше dec cx (записали, уменьшили число циклов)
     dec     dl
@@ -55,7 +56,8 @@ not_space:
     or      bl, bl              ; если бл=0, то уже записали пять слов, следовательно след слово - 6-ое
     jz      store_byte          ; тогда записываем  
     jns     to_loop             ; за бл=0, только бл -1, там уже новые 6 слов, и надо восстановить счетчик бл
-    mov     bl, 5               
+    mov     bl, 5
+    inc     di
 to_loop:
     loop    bios_input  
 end_of_line:
@@ -102,7 +104,7 @@ output:
     mov     cx, di
     mov     bx, ax
     mov     dx, offset buffer
-    mov     ax, 40h
+    mov     ah, 40h
     int     21h   		; zapis v answer
     mov     ah, 3Eh		; закрываем файл
     int     21h
