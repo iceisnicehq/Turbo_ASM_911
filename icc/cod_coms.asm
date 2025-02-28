@@ -390,10 +390,7 @@ exit:
 store_str proc
 	push   si
 	mov    si, ax
-storing:
-	movsb
-	cmp    byte ptr [si], 0
-	jnz    storing 
+	rep    movsb
 	pop    si
 	ret
 endp
