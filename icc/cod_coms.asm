@@ -84,49 +84,58 @@ load_byte:
 	cmp    si, byte_count 	; если si вышел за пределы com_data, то выходим
 	jae    success_exit
 	lodsb
-	cmp    al, op_size
+	cmp    al, op_addr
 	ja     commands
-	j:
-				; все сегменты, просто сохраняем встретившийся сегмент
-es_jump:
-	mov    ax, offset _es
-	jmp    store_seg
-cs_jump:
-	mov    ax, offset _cs
-	jmp    store_seg
-ss_jump:
-	mov    ax, offset _ss
-	jmp    store_seg
-ds_jump:
-	mov    ax, offset _ds
-	jmp    store_seg
-fs_jump:
-	mov    ax, offset _fs
-	jmp    store_seg
-gs_jump:
-	mov    ax, offset _gs
-store_seg:
-	mov    seg_ovr, ax
+	cmp    al, op_gs
+	jnbe   not_seg
+	mov    seg_ovr, al 
 	jmp    load_byte
-				; то же самое с префиксами 66 и 67, сохраняем, если встретили
-size66_jump:
-	mov    flagsize_66, 1
+not_seg:
+        cmp    al, op_size	; все сегменты, просто сохраняем встретившийся сегмент
+	je     op_size_byte
+	mov    flagsize_67, al
 	jmp    load_byte
-addr67_jump:
-	mov    flagaddr_67, 1
+op_size_byte:
+	mov    flagsize_66, al
 	jmp    load_byte
-lock_jump: 			; lock выводим сразу
-	mov    ax, offset _lock
+commands: 			; lock выводим сразу
+	cmp    al, op_lock
+	jne    check_cdq
+	mov    ax, offset lock_mnm
+	mov    cx, lock_len
 	call   store_str
 	jmp    load_byte
-cwde_jump:  			; cwde выводим сразу
-	mov    ax, offset _cwde
+check_cdq:
+	cmp    al, op_cdq
+	jne    idiv_call
+	mov    ax, offset cdq_mnm
+	mov    cx, cdq_len
 	call   store_str
-	jmp    end_instruction
-call_jump: 			; начинаем смотреть опкоды
-	mov    ax, offset _call
+	jmp    load_byte
+idiv_call:
+	mov    dl, al
+	mov    ax, offset idiv_mnm
+	mov    cx, idiv_len
+	cmp    dl, op_idiv8
+	jne    check_idiv16
+	mov    type_ptr, offset byte_ptr
 	call   store_str
-	cmp    curr_byte, 0E8h
+	jmp    print_rm
+check_idiv16:
+	cmp    dl, op_idiv16
+	jne    check_call
+	call   store_str
+	mov    type_ptr, offset word_ptr
+	or     flagsize_66, 0
+	jz     print_rm
+	mov    byte ptr [di], "d"
+	inc    di
+	jmp    print_rm
+check_call: 			; начинаем смотреть опкоды
+	mov    ax, offset call_mnm
+	mov    cx, call_len
+	call   store_str
+	cmp    dl, op_callrel
 	jne    not_call_rel  	; если это не относительное rel16 32
 	mov    ax, "+$" 	; сохраняем в буфер $+, то есть счеткик местоположения и +
 	stosw
@@ -160,14 +169,15 @@ not_call_rel:
 	cmp    curr_byte, 0FFh
 	jne    call_ptr ; если опкод не 0FF, то это EA - JMPF	ptr16:16/32
 	call   modrm_byte ; вызываем функцию, которая возвращает мод, рег и рм
+	mov    ax, offset word_ptr
 	cmp    reg, 100b ; если рег не 1000b (4, почему 1000b см в функции), то это FF рег=5 JMPF	m16:16/32
 	jne    call_mem
 	cmp    mode, 11000000b
 	je     put_rm
-	mov    ax, offset word_ptr ; для ff рег=4 JMP	    r/m16/32 пишем word ptr    
 	jmp    type_ptr ; здесь если мод=11, то пишем регистр, значение в рм, а если не 11, то пишем рм
 call_mem:
-	mov    ax, offset dword_ptr ; для ff рег=5 JMP	    m16/32 пишем dword ptr, и пишем рм
+	mov    byte ptr [di], "d"
+	inc    di		; для ff рег=5 JMP	    m16/32 пишем dword ptr, и пишем рм
 	jmp    type_ptr
 call_ptr:
 	mov    flagimm, 1
@@ -192,39 +202,27 @@ no_ptr32:
 store_imm:
 	call   store_hex
 	jmp    end_instruction
-neg_jump: ; для имула также пишем в буфер строку
-	mov    ax, offset _neg
-	call   store_str
-	call   modrm_byte
 put_rm:
 	cmp    mode, 11000000b   ; если мод=11 пишем регистр по индексу из поля рм
-	jne    operand_not_reg
+	jne    type_ptr 
 	push   bx si
 	mov    bx, offset r8
-	cmp    curr_byte, 0F6h
+	cmp    dl, op_idiv8
 	je     put_reg
-	mov    bx, offset r16
+	add    bx, 16
 	or     flagsize_66, 0
 	jz     put_reg
-	mov    bx, offset r32
+	mov    byte ptr [di], "E"
+	inc    di
 put_reg:
 	movzx  si, rm
 	mov    ax, [bx+si]
 	call   store_str
 	pop    si bx
 	jmp    end_instruction
-operand_not_reg:   ; если мод не 11
-	cmp    curr_byte, 0F6h
-	jne    not_rm8
-	mov    ax, offset byte_ptr
-	call   store_str
-	jmp    put_seg
-not_rm8:
-	mov    ax, offset word_ptr
-	or     flagsize_66, 0
-	jz     type_ptr
-	mov    ax, offset dword_ptr
 type_ptr:
+	mov    cx, ptr_len
+	mov    ax, offset type_ptr
 	call   store_str
 put_seg:
 	push   bx
