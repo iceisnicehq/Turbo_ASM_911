@@ -24,13 +24,8 @@ start:
     mov     al, 32              ; 32 = аски пробел, сделали для ниже cmp al, 32 
     mov     cx, 255		; число циклов для записи
     mov     bl, 5		; каждое 6 слово (5 - так как 6-оое слово начинается после 5-го)
-    mov     dl, 1               ; первое слово на реверс
     jmp     bios_input          ; прыжок на считку
 store_byte:  			; эта метка работает далее, для записи, поэтому далььше dec cx (записали, уменьшили число циклов)
-    dec     dl
-    jnz     not_first_word
-    mov     si, di
-not_first_word:
     dec     cx                  ; уменьшили число циклов
     cmp     al, 32              ; тут, чтобы исключить запись пробелов перед словом и после слова (двойные пробелы слово1__слово2)
     je      bios_input          ; не сохраняем пробел ЭТИМ стосб
@@ -74,11 +69,14 @@ no_short_string:
     jbe     output              ; if space then jump to output
 ;    cmp     si, offset buffer              ; случай общий, но не для тебя, тут кейс такой, что если бы у тебя было например второе слово, то после записи одного слова и нажатия энтера, реверсать было бы нечего, поэтому сам реверс надо скипнуть
  ;   je      output
-    mov     di, si              ; di = address of the word to reverse
     mov     cx, 255
-find_reverse_len:
-    scasb
-    loopne  find_reverse_len
+    mov     ah, 1               ; реверс первого слова
+    mov     di, offset buffer
+find_reverse:
+    mov     si, di
+    repne   scasb
+    dec     ah
+    jnz     find_reverse
     dec     di  		; тут дек, так как мы за пробелом в памяти
 reversing:
     dec     di			; а тут с пробела переходим на уже буквы слова
