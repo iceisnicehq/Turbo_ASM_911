@@ -3,93 +3,93 @@
 .CODE
     ORG     100H
 START:
-    CDQ
+    CQO
     CALL   REL_CALL
 REL_CALL:
-    CALL   dword ptr CS:[DI+10H]
-    CALL   AX
-    CALL   word ptr CS:[ESI+EAX]
-    CALL   dword ptr GS:[ESI+ESI+10101H]
-    CALL   START
+    CALL   $+2345H
+    CALL   word ptr FS:[BX+DI]
+    CALL   $+312H
     CALL   REL_CALL
-    CALL   $+212H
-    CALL   $-1H
-    CALL   word ptr DS:[BX+100H]
-    CALL   dword ptr SS:[ESI+ESI+111H]
-    CALL   dword ptr GS:[EAX+EAX*8+1H]
-    CALL   $+1234H
-    CALL   word ptr SS:[BX+1010H]
-    CALL   $+0ABCH
-    CALL   $-1001H
-    CALL   word ptr FS:[BX+DI+1H]
-    CALL   ESI
-    CALL   word ptr FS:[EBP]
-    CALL   CX
-    CALL   dword ptr DS:[EDX]
-    CALL   dword ptr GS:[ESI+EDI*8+1010H]
-    CALL   dword ptr CS:[EDI*8+1111H]
-    CALL   word ptr FS:[BP+SI]
-    CALL   word ptr GS:[ESI*2]
-    CALL   word ptr SS:[BX+SI]
-    CALL   $-212H
-    DB     9Ah, 56h, 78h, 12h, 34h
-    CALL   EDX
-    DB     66h, 9Ah, 0A0h, 0B0h, 0C0h, 0D0h, 0E0h, 0F0h
-    CALL   dword ptr GS:[ECX]
-    DB     66h, 0E8h, 10h, 1h, 1h, 10h
-    DB     66h, 0E8h, 0Ah, 011h, 011h, 011h
-    IDIV   CL
-    IDIV   word ptr CS:[EAX+ESI*4+0ABCDH]
-    IDIV   EAX
-    IDIV   dword ptr DS:[BX+SI]
-    IDIV   word ptr FS:[EBP+EDI*8]
-    IDIV   byte ptr CS:[EDI]
-    IDIV   dword ptr CS:[DI+0ABCDH]
-    IDIV   AL
-    IDIV   word ptr ES:[SI]
-    IDIV   word ptr FS:[11111H]
-    IDIV   word ptr DS:[BP]
-    IDIV   word ptr SS:[BP+DI]
-    IDIV   dword ptr GS:[ESP+EBP*4+1H]
-    IDIV   dword ptr FS:[ESP+EBP]
-    IDIV   byte ptr SS:[BP+DI]
-    IDIV   byte ptr SS:[SI]
-    IDIV   byte ptr FS:[EDX+EBX+1214H]
-    IDIV   dword ptr DS:[EAX+EBP*8]
-    IDIV   word ptr SS:[EDI+5678H]
-    IDIV   word ptr DS:[ESI+ECX*4]
-    IDIV   dword ptr FS:[EDI+ESI]
-    IDIV   dword ptr GS:[BP+100H]
-    IDIV   dword ptr CS:[ESI+0ABCDH]
-    IDIV   ESI
-    IDIV   DH
+    CALL   $-2002H
+    CALL   $+0BCDH
+    CALL   word ptr CS:[EDI+EBX]
+    CALL   EDI
+    CALL   word ptr FS:[EBX]
+    CALL   dword ptr GS:[EDI+EBX*8+2020H]
+    CALL   dword ptr CS:[SI+20H]
+    CALL   BX
+    CALL   word ptr FS:[BP+SI+2H]
+    CALL   dword ptr DS:[ECX]
+    CALL   word ptr SS:[DI+2020H]
+    CALL   word ptr DS:[DI+200H]
+    CALL   word ptr SS:[1234H]
+    CALL   word ptr GS:[EDI*2]
+    CALL   $-2H
+    CALL   DX
+    CALL   dword ptr GS:[EDI+EDI+20202H]
+    CALL   dword ptr CS:[EBX*8+2222H]
+    CALL   START
+    CALL   $-313H
+    CALL   dword ptr SS:[EDI+EDI+222H]
+    CALL   dword ptr GS:[EBX+EBX*8+2H]
+    DB     9Ah, 67h, 89h, 23h, 45h
+    CALL   ECX
+    DB     66h, 9Ah, 0B0h, 0C0h, 0D0h, 0E0h, 0F0h, 0A0h
+    CALL   dword ptr GS:[EDX]
+    DB     66h, 0E8h, 20h, 2h, 2h, 20h
+    DB     66h, 0E8h, 0Bh, 022h, 022h, 022h
+    IDIV   DL
+    IDIV   BL
+    IDIV   word ptr DS:[EDI+EDX*4]
+    IDIV   BH
+    IDIV   word ptr SS:[SI+2345H]
+    IDIV   dword ptr DS:[EBX+EBX*8]
+    IDIV   byte ptr CS:[EBX]
+    IDIV   byte ptr GS:[EBX+EDI]
+    IDIV   word ptr FS:[EDI+EDI+6789H]
+    IDIV   byte ptr SS:[DI]
+    IDIV   word ptr GS:[EBX+EDI*8+2000H]
+    IDIV   word ptr ES:[DI]
+    IDIV   word ptr FS:[EBX+EDI*8]
     IDIV   dword ptr ES:[ESP]
-    IDIV   byte ptr DS:[BX+1234H]
-    IDIV   AX
-    IDIV   word ptr CS:[SI+0ABCDH]
-    IDIV   dword ptr CS:[EDI+ESI]
-    IDIV   word ptr CS:[EBP*4]
-    IDIV   byte ptr CS:[DI]
-    IDIV   dword ptr SS:[BP+DI+100H]
-    IDIV   word ptr SS:[BX+SI+1234H]
-    IDIV   dword ptr DS:[ESI+EDX]
-    IDIV   ESP
-    IDIV   byte ptr FS:[EDI]
-    IDIV   word ptr SS:[BP]
-    IDIV   byte ptr DS:[123H]
-    IDIV   byte ptr GS:[EBP+ESI]
-    IDIV   byte ptr CS:[BP+SI]
-    IDIV   AH
-    IDIV   byte ptr GS:[EBP+EDI*8]
-    IDIV   word ptr FS:[EDI+ESI+5678H]
-    IDIV   word ptr CS:[EAX+ESI*4]
+    IDIV   byte ptr SS:[BX+DI]
+    IDIV   byte ptr FS:[ESP+2020h]
+    IDIV   word ptr SS:[BX]
+    IDIV   EDI
+    IDIV   word ptr CS:[EBX+EDI*4]
+    IDIV   word ptr FS:[22222H]
+    IDIV   byte ptr DS:[DI+2345H]
+    IDIV   dword ptr GS:[EBX]
+    IDIV   word ptr DS:[EDI+22H]
+    IDIV   dword ptr CS:[EDI+0BCDEH]
+    IDIV   byte ptr CS:[BX+DI]
+    IDIV   EBX
+    IDIV   word ptr CS:[EBX+EAX*4]
+    IDIV   dword ptr FS:[EDI+EDI]
+    IDIV   byte ptr SS:[BX+DI]
+    IDIV   dword ptr GS:[BX+200H]
+    IDIV   byte ptr CS:[SI]
+    IDIV   CX
+    IDIV   CH
+    IDIV   byte ptr DS:[234H]
+    IDIV   dword ptr CS:[SI+0BCDEH]
     IDIV   BX
-    IDIV   BP
-    IDIV   word ptr DS:[ESI+11H]
-    IDIV   byte ptr FS:[ESP+1010h]
-    IDIV   word ptr CS:[EAX+EBX*4]
-    IDIV   dword ptr GS:[EBP]
-    IDIV   byte ptr SS:[BP+SI]
-    IDIV   word ptr GS:[EBP+EDI*8+1000H]
-    IDIV   byte ptr FS:[EBP+1000H]
+    IDIV   word ptr CS:[EBX*4]
+    IDIV   word ptr DS:[BX]
+    IDIV   dword ptr GS:[ESP+EBX*4+2H]
+    IDIV   BX
+    IDIV   byte ptr GS:[EBX+EDI*8]
+    IDIV   word ptr CS:[EBX+EDI*4+0BCDEH]
+    IDIV   byte ptr FS:[ECX+EAX+2325H]
+    IDIV   dword ptr DS:[BX+SI]
+    IDIV   dword ptr FS:[ESP+EBX]
+    IDIV   dword ptr SS:[BX+DI+200H]
+    IDIV   word ptr SS:[EDI+6789H]
+    IDIV   byte ptr FS:[EBX]
+    IDIV   ESP
+    IDIV   dword ptr CS:[EBX+EDI]
+    IDIV   byte ptr FS:[EBX+2000H]
+    IDIV   word ptr CS:[DI+0BCDEH]
+    IDIV   word ptr SS:[BX+DI]
+    IDIV   dword ptr DS:[EDI+ECX]
 END START
