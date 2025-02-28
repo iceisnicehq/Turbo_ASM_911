@@ -91,7 +91,7 @@ load_byte:
 	mov    seg_ovr, al 
 	jmp    load_byte
 not_seg:
-        cmp    al, op_size	; все сегменты, просто сохраняем встретившийся сегмент
+    cmp    al, op_size	; все сегменты, просто сохраняем встретившийся сегмент
 	je     op_size_byte
 	mov    flagsize_67, al
 	jmp    load_byte
@@ -206,14 +206,14 @@ put_rm:
 	cmp    mode, 11000000b   ; если мод=11 пишем регистр по индексу из поля рм
 	jne    type_ptr 
 	push   bx si
-	mov    bx, offset r8
+	mov    bx, offset regs
 	cmp    dl, op_idiv8
 	je     put_reg
 	add    bx, 16
 	or     flagsize_66, 0
 	jz     put_reg
-	mov    byte ptr [di], "E"
-	inc    di
+	mov    al, "E"
+	stosb
 put_reg:
 	movzx  si, rm
 	mov    ax, [bx+si]
@@ -226,30 +226,53 @@ type_ptr:
 	call   store_str
 put_seg:
 	push   bx
-	mov    ax, seg_ovr
-	or     ax, ax
-	jnz    end_put_seg       ; если seg ovr не ноль, то пишем этот сегмент
+	or     seg_ovr, 0
+	jz     default_seg       ; если seg ovr не ноль, то пишем этот сегмент
+	mov    al, 'E'
+	cmp    seg_ovr, op_es
+	je     end_put_seg
+	mov    al, 'C'
+	cmp    seg_ovr, op_cs
+	je     end_put_seg
+	mov    al, 'D'
+	cmp    seg_ovr, op_ds
+	je     end_put_seg
+	mov    al, 'S'
+	cmp    seg_ovr, op_ss
+	je     end_put_seg
+	mov    al, 'F'
+	cmp    seg_ovr, op_fs
+	je     end_put_seg
+	mov    al, 'G'
+	jmp    end_put_seg
+default_seg:
+	mov    al, 'D'
 	movzx  bx, rm
 	or     flagaddr_67, 0
 	jnz    modrm32             ; если нет 67 префикса, то работаем с модрм16
+	cmp    bl, 0110B               ; ДЛЯ BP+SI НУЖЕН SS 
+	je     put_ss
+	cmp    bl, 0110B               ; ДЛЯ BP+DI НУЖЕН SS 
+	JE     put_ss
 	cmp    bl, 1100b           ; если рм = 1100 (bp или дисп16)
-	jne    put_def_seg   ; если не равен, то пишем дефолтный сегмент
+	jne    end_put_seg   ; если не равен, то пишем дефолтный сегмент
 	or     mode, 0             ; если равен, то проверяем мод
 	jnz    put_ss              ; если мод не ноль, то это [bp+disp8/16]
-	jmp    put_def_seg         ; если ноль, то это disp16, пишем DS
+	jmp    end_put_seg         ; если ноль, то это disp16, пишем DS
 modrm32:
-	mov    ax, offset _ds      ; у модрм 32 везде DS, кроме EBP
+	mov    al, 'D'      ; у модрм 32 везде DS, кроме EBP
 	cmp    bl, 1010b           ; EBP
 	jne    end_put_seg       
 	or     mode, 0             ; опять проверяем мод, если не ноль, то это [EBP+disp8/32]
 	jz     end_put_seg       ; если ноль, то DS
 put_ss:
-	mov    ax, offset _ss  ; пишем SS
-	jmp    end_put_seg
-put_def_seg:
-    	mov    ax, rmseg[bx] ; двигаемся по массиву
+	mov    al, 'S'  ; пишем SS
 end_put_seg:
-	call   store_str ; пишем сегмент
+	stosb
+	mov    al, 'S'
+	stosb
+	mov    ax, '[:'
+	stosw
 	pop    bx
 	or     flagaddr_67, 0
 	jnz    bit32_addr  ; если есть 67 префикс идем на 32 битную адресацию
@@ -264,6 +287,7 @@ end_put_seg:
 	jmp    end_rm
 mod_123: ; если мод не 00, то это [регистр+дисп8/16]
 	movzx  bx, rm
+	cmp    bl, 0110b
 	mov    ax, rm16[bx]
 	call   store_str     ; можно сразу вывести начало рм, а дальше смотрим дисп
 	or     mode, 0           ; если мод 00, то диспа нету
@@ -293,7 +317,10 @@ bit32_addr:
 	shl    al, 1
 	mov    sib_byte_b, al
 	movzx  bx, sib_byte_b
-	mov    ax, r32[bx]        ; пишем базу в буффер
+	mov    al, 'E'
+	stosb
+	mov    cx, 2
+	mov    ax, regs[bx + 16]        ; пишем базу в буффер
 	call   store_str
 	cmp    sib_byte_b, 1010b           ; проверяем базу 101 (ebp)
 	jne    not_base_ebp
@@ -308,7 +335,10 @@ not_base_ebp:
 	stosb
 sib_index:
 	movzx  bx, sib_byte_i               ; запись индекса
-	mov    ax, r32[bx]
+	mov    al, 'E'
+	stosb
+	mov    cx, 2
+	mov    ax, regs[bx + 16]      
 	call   store_str
 	mov    ah, sib_byte_s             ; дальше пишем масштаб
 	or     ah, ah                  ; если он 0, то пропускаем его
@@ -339,7 +369,10 @@ disp_32:
 	jmp    end_rm
 put_rm32:
 	movzx  bx, rm
-	mov    ax, r32[bx]       ; выводим рм двигаясь по массиву
+	mov    al, 'E'
+	stosb
+	mov    cx, 2
+	mov    ax, regs[bx + 16] 
 	call   store_str
 	or     mode, 0               ; если мод0, то выходим, если нет, то идем проверять дисп8/32
 	jz     end_rm
