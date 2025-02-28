@@ -3,7 +3,7 @@
 .CODE
     ORG     100H
 START:
-    CQO
+    CDQ
     CALL   REL_CALL
 REL_CALL:
     CALL   $+2345H
