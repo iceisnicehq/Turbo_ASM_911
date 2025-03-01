@@ -68,7 +68,7 @@ YES_ASCII_ENTER:
 NO_LEN_ERROR:
     CMP    BYTE PTR [DI-1], ASCII_SPACE
     JE     DONT_COUNT_LAST_WORD
-    INC    BH                   ; если в конце нет пробела, то счетчик слов не увелчивается, поэтому увеличиваем руками
+    INC    BL                   ; если в конце нет пробела, то счетчик слов не увелчивается, поэтому увеличиваем руками
 DONT_COUNT_LAST_WORD:
     MOV    DX, DI		; для расчета длины всей строки
     MOV    DI, OFFSET BUFFER
@@ -76,13 +76,15 @@ DONT_COUNT_LAST_WORD:
     MOV    BH, 8                ; НОМЕР СЛОВА для реверса
     CMP    BL, BH		; если например всего 7 слов, тогда инвертировать нечего
     JB     PRINT_STRING 
-    MOV    CX, SIZE BUFFER
     MOV    AX, ASCII_SPACE
 FIND_8th_WORD:			; ищем слово и считаем длину найденных слов
+    XOR    CX, CX
+    NOT    CX
     MOV    SI, DI
     REPNE  SCASB
     DEC    BH
     JNZ    FIND_8th_WORD
+    NOT    CX
     DEC    CX
     CMP    CX, 1		; если слово из одной буквы
     JE     PRINT_STRING
