@@ -88,7 +88,7 @@ SEARCH_INVERT:			; ищем слово и считаем длину найден
     MOV   SI, DI
     REPNE SCASB
     DEC   BH
-    JNZ   FIND_7th_WORD
+    JNZ   SEARCH_INVERT
     NOT   CX
     DEC   CX
     SHR   CX, 1		; если слово из одной буквы
