@@ -155,6 +155,8 @@ output:
     int     21h
     mov     ah, 3Eh
     int     21h
+    mov     ah, 08h
+    int     21h
 exit:
     mov     ax, 4C00h      
     int     21h
