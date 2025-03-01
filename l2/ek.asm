@@ -56,7 +56,7 @@ REGULAR_CHAR:
     OR    BH, BH                   ; 
     JNZ   NO_STOSB                 ; IF WORDS LESS THAN 7, THEN JUMP TO ITERATION
     CMP   AL, SPACE          ; пробел не записываем
-    LOOPE READ_CHAR 
+    LOOPE REMEMBER_CHAR 
     INC   CX
     STOSB                           ; сохраняем только НЕ пробелы
 NO_STOSB:
