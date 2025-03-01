@@ -19,17 +19,17 @@ START:
     MOV   DS, AX
     MOV   ES, AX
     CLD	         	            ; проверка флага, (ВЕ требовал на защите в декбаре)
-    MOV   AX, 3
+    MOV   AX, 3              ; установка видео режима, для очистки консоли.
     INT   10H
     MOV   AH, 9                    ; Вывод строки
     MOV   DX, OFFSET INPUT
     INT   21H
-    MOV   CX, SIZE BUFFER	    ; ЧИСЛО DUP для BUFFER
     MOV   DI, OFFSET BUFFER        ; Для записи 
     MOV   BP, DI
     MOV   AL, SPACE
     DEC   DI
     MOV   BL, -1
+    MOV   CX, SIZE BUFFER	    ; ЧИСЛО DUP для BUFFER
 RESET_VALS:
     MOV   BH, 4                    ; это номер слова для записи (в BH, а BL зануляем) (4 потому что 5-е слово начинается после 1-го пробела)
     INC   BL	   		    ; BL счётчик записанных слов, чтоб не делать реверс, если нет 8-го
