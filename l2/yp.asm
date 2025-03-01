@@ -64,6 +64,7 @@ without_space:
     jne     skip_stosb
     cmp     al, space
     jb      bios_input
+    cld
     stosb
 skip_stosb:
     loop    bios_input  
@@ -77,6 +78,7 @@ enter_is_pressed_check_one:
 check_two:   
     mov     al, space
     dec     di
+    cld
     scasb
     jne     without_max_length_error     
 check_three:
@@ -90,6 +92,7 @@ len_error:
     jmp     short exit
 without_max_length_error:
     mov     al, space
+    cld
     stosb
     dec     di
     inc     si
@@ -101,6 +104,7 @@ without_max_length_error:
     xchg    di, si
     xor     cx, cx 
     not     cx
+    cld
     repne   scasb ; считаем длину реверс слова
     not     cx 
     dec     cx
@@ -112,9 +116,11 @@ without_max_length_error:
     dec     di
     xchg    si, di ; смена адресов для реверса
 reverse:  
+    cld
     lodsb
     dec     si
     xchg    di, si
+    cld
     movsb
     dec     si
     dec     di
