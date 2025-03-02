@@ -11,8 +11,6 @@
     TXT_BUFFER     DB    256 DUP(0)
 .CODE
 
-
-
 START:
     MOV    AX, @DATA
     MOV    DS, AX
