@@ -61,8 +61,6 @@ first:
     xor     ax, ax
     xor     bx, bx
     lodsb
-    ;cmp     al, 24
-    ;jz      close
     mov     dl, 66h
     xor     dl, al
     jnz     next_pr
@@ -823,9 +821,6 @@ write_mem16:
     mov     ax, 7862h
     stosw
 c:  
-    mov     al, 2Bh
-    stosb
-    mov     cx, 2
     call    disp16
     mov     al, 5Dh
     stosb
@@ -837,7 +832,6 @@ mod00:
     mov     dl, 00000110b
     xor     dl, al
     jnz     a
-    mov     cx, 2
     call    disp16
 a:
     mov     al, 5Dh
@@ -853,8 +847,6 @@ mod01:
     mov     ax, 7862h
     stosw
 b:  
-    mov     al, 2Bh
-    stosb
     call    disp8
     mov     al, 5Dh
     stosb
@@ -936,6 +928,7 @@ endw:
     ret
     
 write_mem32:
+    ;int     3h
     xor     ah, ah
     xor     cx, cx
     mov     dh, al
@@ -961,9 +954,6 @@ write_mem32:
     mov     al, 70h 
     stosb
 c32:  
-    mov     al, 2Bh
-    stosb
-    mov     cx, 4
     call    disp32
     mov     al, 5Dh
     stosb
@@ -974,7 +964,6 @@ mod0032:
     mov     dl, 0101b
     xor     dl, al
     jnz     a32
-    mov     cx, 4
     call    disp32
 a32:
     mov     al, 5Dh
@@ -991,13 +980,12 @@ mod0132:
     mov     ax, 70h 
     stosb
 b32:  
-    mov     al, 2Bh
-    stosb
     call    disp8
     mov     al, 5Dh
     stosb
     ret
 write_efadw:
+    ;int     3h
     mov     dl, 00000000b
     xor     dl, al
     jnz     ecx_
@@ -1056,7 +1044,7 @@ edi_:
     mov     ax, 6473h
     stosw
 enddw:
-    mov     al, dh
+    ;mov     al, dh
     ret
     
     
@@ -1128,14 +1116,9 @@ wr_disp_sib:
     mov     dl, 00000001b
     xor     dl, al
     jz      wr_disp8_sib
-    mov     cx, 4
-    mov     al, 2Bh
-    stosb
     call    disp32
     jmp     no_disp
 wr_disp8_sib:
-    mov     al, 2Bh
-    stosb
     call    disp8
 no_disp:
     mov     al, 5Dh
@@ -1143,14 +1126,12 @@ no_disp:
     ret
     
 esp_bs:
-    mov     dh, al
     mov     ax, 7365h
     stosw
     mov     al, 70h 
     stosb
     jmp     write_in
 ebp_bs:
-    mov     cx, ax
     mov     ax, 6265h
     stosw
     mov     al, 70h 
@@ -1267,10 +1248,7 @@ next_sib_byte00:
     mov     dh, al
     or      al, al
     jz      wr_
-    mov     al, 2Bh
-    stosb
     dec     si
-    mov     cx, 4
     call    disp32
 wr_:
     mov     ax, 5Dh
@@ -1282,27 +1260,95 @@ next_com:
     jmp     first
     
 disp32:
-    lodsb
-    aam
-    add     ax, 3030h  
-    xchg    al, ah
-    stosw 
-    loop    disp32
+    push    ax
+    push    bx
+    push    cx
+    push    dx
+    lodsd
+    mov     ecx, eax
+    mov     bx, 10d
+    or      eax, eax
+    mov     al, 2Bh 
+    jns     pA
+    mov     al, 2Dh
+    neg     ecx
+pA: 
+    stosb
+    mov     eax, ecx
+    xor     ecx, ecx
+n:
+    xor     edx, edx
+    div     ebx
+    add     dl, 30h
+    push    dx
+    inc     cx
+    test    eax, eax
+    jnz     n
+    
+rep_disp:
+    pop     ax
+    stosb
+    loop    rep_disp
+    pop     dx
+    pop     cx
+    pop     bx
+    pop     ax
     ret
+    
 disp8:
     lodsb
+    or      al, al
+    mov     dl, 2Bh 
+    jns     pB
+    mov     dl, 2Dh
+    neg     ax
+pB:    
+    aam
+    add     al, 30h  
+    mov     cl, al
+    mov     al, ah
     aam
     add     ax, 3030h
-    xchg    al, ah
+    xchg    al, dl
     stosw
+    mov     al, dl
+    mov     ah, cl
+    stosw 
     ret
 disp16:
-    lodsb
-    aam
-    add     ax, 3030h
-    xchg    al, ah
-    stosw
-    loop    disp16
+    push    ax
+    push    bx
+    push    cx
+    push    dx
+    lodsw
+    mov     cx, ax
+    mov     bx, 10d
+    or      ax, ax
+    mov     al, 2Bh 
+    jns     pC
+    mov     al, 2Dh
+    neg     cx
+pC: 
+    stosb
+    mov     ax, cx
+    xor     cx, cx
+n16:
+    xor     dx, dx
+    div     bx
+    add     dl, 30h
+    push    dx
+    inc     cx
+    test    ax, ax
+    jnz     n16
+    
+rep_disp16:
+    pop     ax
+    stosb
+    loop    rep_disp16
+    pop     dx
+    pop     cx
+    pop     bx
+    pop     ax
     ret
     
 write_to_file:  
