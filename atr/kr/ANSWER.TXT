@@ -1,0 +1,1 @@
+RCL    word ptr DS:[EBP + EBP*4], CL
